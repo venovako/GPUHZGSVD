@@ -1,0 +1,2 @@
+*.h linguist-language=C
+src/device_code*.hpp linguist-language=Cuda
