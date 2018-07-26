@@ -80,7 +80,7 @@ SOURCES=		\
 	main.cu		\
 	my_utils.cu
 
-EXE=HZ1.exe
+EXE=HZ$(CVG).exe
 
 all: $(EXE)
 

@@ -167,6 +167,20 @@ MYDEVFN void dMultAV
   }
 }
 
+MYDEVFN double dSsqC
+(
+ const double *const bA,
+ const double *const eA
+)
+{
+  double x = +0.0, y;
+  for (const double *pA = bA; pA < eA; pA += WARP_SZ) {
+    y = *pA;
+    x = __fma_rn(y, y, x);
+  }
+  return dSum32(x);
+}
+
 MYDEVFN void dInvNrm2C
 (
  const double *const bA,
@@ -175,12 +189,7 @@ MYDEVFN void dInvNrm2C
  double &inv_nrm
 )
 {
-  double x = +0.0, y;
-  for (const double *pA = bA; pA < eA; pA += WARP_SZ) {
-    y = *pA;
-    x = __fma_rn(y, y, x);
-  }
-  ssq = dSum32(x);
+  ssq = dSsqC(bA, eA);
   inv_nrm = my_drsqrt_rn(ssq);
 }
 
@@ -231,10 +240,8 @@ MYDEVFN void dGlobalPostScaleFast
     const double *const eFi = F + (cix * ldF + nRow);
     double *const bGi = G + (cix * ldG + lid);
     const double *const eGi = G + (cix * ldG + nRow);
-    double Fi_ssq, Fi_nrm, Fi_inv_nrm;
-    dNrm2InvC(bFi, eFi, Fi_ssq, Fi_nrm, Fi_inv_nrm);
-    double Gi_ssq, Gi_nrm, Gi_inv_nrm;
-    dNrm2InvC(bGi, eGi, Gi_ssq, Gi_nrm, Gi_inv_nrm);
+    const double Fi_ssq = dSsqC(bFi, eFi);
+    const double Gi_ssq = dSsqC(bGi, eGi);
     const double Rhyp = my_drsqrt_rn(Fi_ssq + Gi_ssq);
     if (Rhyp != 1.0) {
       double *const bVi = V + (cix * ldV + lid);
@@ -309,6 +316,26 @@ MYKERN dInitS(const int full)
 
 MYDEVFN void dGlobalInitV
 (
+ double *const V,
+ const unsigned nRow,
+ const unsigned nRank,
+ const unsigned ldV
+)
+{
+  const unsigned wpb = (blockDim.x + WARP_SZ_SUB1) >> WARP_SZ_LG;
+  const unsigned wid = threadIdx.x >> WARP_SZ_LG;
+
+  const unsigned cix = blockIdx.x * wpb + wid;
+  if (cix < nRank) {
+    unsigned lid;
+    asm ("mov.u32 %0, %%laneid;" : "=r"(lid));
+    if (!lid)
+      V[cix * ldV + cix] = 1.0;
+  }
+}
+
+MYDEVFN void dGlobalInitVscl
+(
  double *const F,
  double *const G,
  double *const V,
@@ -341,9 +368,12 @@ MYDEVFN void dGlobalInitV
   }
 }
 
-MYKERN dInitV()
+MYKERN dInitV(const int sclV)
 {
-  dGlobalInitV(_F, _G, _V, _nRow, _nRank, _ldF, _ldG, _ldV);
+  if (sclV)
+    dGlobalInitVscl(_F, _G, _V, _nRow, _nRank, _ldF, _ldG, _ldV);
+  else
+    dGlobalInitV(_V, _nRow, _nRank, _ldV);
 }
 
 #endif // !DEVICE_CODE_COMMON_HPP

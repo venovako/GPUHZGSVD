@@ -16,11 +16,11 @@ In fact only the ``strat.so`` library is needed.
 
 ### Make options
 
-To build the test executable ``HZ1.exe``, execute:
+To build the test executable, do the following:
 ```bash
 cd src
-./mk.sh SM OPT
+./mk.sh SM OPT CVG
 ```
-where ``SM`` is the target GPU architecture (e.g., for a Maxwell card it might be ``52``, for a Pascal one ``60``, etc.), and ``OPT`` is the optimization level (``3`` should be fine).
+where ``SM`` is the target GPU architecture (e.g., for a Maxwell card it might be ``52``, for a Pascal one ``60``, etc.), ``OPT`` is the optimization level (``3`` should be fine), and ``CVG`` is the algorithm requested (``0`` and ``1`` done, ``2`` and ``3`` in progress).
 
-It is also possible to append ``clean`` to the invocation above, to remove ``HZ1.exe``, or such cleanup can be done manually.
+It is also possible to append ``clean`` to the invocation above, to remove the executable, or such cleanup can be done manually.

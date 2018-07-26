@@ -1,22 +1,6 @@
 #ifndef DEVICE_CODE_CDSORT_HPP
 #define DEVICE_CODE_CDSORT_HPP
 
-MYDEVFN double
-dSUM_PROD_32(const double x, const double y, double &s0, double &s1)
-{
-  const double xy = __dmul_rd(x, y); // (x *_RD y)
-  const double rp = __fma_rn(x, y, -xy); // rounded-off part (always >= 0)
-  s0 = dSum32(xy);
-  s1 = dSum32(rp);
-  return (s0 + s1);
-}
-
-MYDEVFN double
-dSSQ32(const double x, double &s0, double &s1)
-{
-  return dSUM_PROD_32(x, x, s0, s1);
-}
-
 MYDEVFN unsigned dHZ_L0_s
 (
  volatile double *const F,

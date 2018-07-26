@@ -7,6 +7,10 @@
 #include "device_code_cdsort_0.hpp"
 #elif (CVG == 1)
 #include "device_code_cdsort_1.hpp"
+#elif (CVG == 2)
+#include "device_code_cdsort_2.hpp"
+#elif (CVG == 3)
+#include "device_code_cdsort_3.hpp"
 #else // unknown CVG
 #error CVG unknown
 #endif // ?CVG
@@ -35,13 +39,14 @@ void initS(const int full, const unsigned nRank, const cudaStream_t s) throw()
   CUDA_CALL(cudaLaunch(dInitS));
 }
 
-void initV(const unsigned nRank, const cudaStream_t s) throw()
+void initV(const int sclV, const unsigned nRank, const cudaStream_t s) throw()
 {
   const dim3 bD(2u * WARP_SZ, 1u, 1u);
   const dim3 gD(udiv_ceil(nRank * WARP_SZ, bD.x), 1u, 1u);
   const size_t shmD = static_cast<size_t>(0u);
 
   CUDA_CALL(cudaConfigureCall(gD, bD, shmD, s));
+  CUDA_CALL(cudaSetupArgument(sclV, static_cast<size_t>(0u)));
   CUDA_CALL(cudaLaunch(dInitV));
 }
 

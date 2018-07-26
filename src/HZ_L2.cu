@@ -42,6 +42,7 @@ HZ_L2
     return -1;
 
   const bool blk_ori = (routine & HZ_BLK_ORI);
+  const int sclV = !(CVG & 1);
 
   if (!nrow || (nrow % 64u))
     return -2;
@@ -119,7 +120,7 @@ HZ_L2
 
   timers[1] = stopwatch_lap(timers[3]);
   
-  initV(ncol, static_cast<cudaStream_t>(NULL));
+  initV(sclV, ncol, static_cast<cudaStream_t>(NULL));
   CUDA_CALL(cudaDeviceSynchronize());
 
   void (*const HZ_L1)(const unsigned) = HZ_L1_sv;

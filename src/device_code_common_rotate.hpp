@@ -1,6 +1,7 @@
 #ifndef DEVICE_CODE_COMMON_ROTATE_HPP
 #define DEVICE_CODE_COMMON_ROTATE_HPP
 
+#if ((CVG == 0) || (CVG == 1))
 MYDEVFN void
 dRot(double &App, double &Aqq,
      const double Apq, const double Bpq, const double Bpq_,
@@ -73,5 +74,8 @@ dRot(double &App, double &Aqq,
   App = CosF*CosF*App - scalbn(CosF*SinP*Apq, 1) + SinP*SinP*Aqq;
   Aqq = SinF*SinF*App + scalbn(SinF*CosP*Apq, 1) + CosP*CosP*Aqq;
 }
+#else // CVG == 2 || CVG == 3
+#error not yet implemented
+#endif // ?CVG
 
 #endif // !DEVICE_CODE_COMMON_ROTATE_HPP
