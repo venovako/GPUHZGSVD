@@ -76,6 +76,12 @@ dRot(double &App, double &Aqq,
 }
 #else // CVG == 2 || CVG == 3
 #error not yet implemented
+MYDEVFN void
+dRot(double &App, double &Aqq, const double Apq,
+     const double Bpp, const double Bqq, const double Bpq,
+     double &CosF, double &SinF, double &CosP, double &SinP)
+{
+}
 #endif // ?CVG
 
 #endif // !DEVICE_CODE_COMMON_ROTATE_HPP
