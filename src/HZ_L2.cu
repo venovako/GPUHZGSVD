@@ -42,7 +42,7 @@ HZ_L2
     return -1;
 
   const bool blk_ori = (routine & HZ_BLK_ORI);
-  const int sclV = !(CVG & 1);
+  const int sclV = (CVG < 2);
 
   if (!nrow || (nrow % 64u))
     return -2;
