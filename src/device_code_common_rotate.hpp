@@ -1,7 +1,6 @@
 #ifndef DEVICE_CODE_COMMON_ROTATE_HPP
 #define DEVICE_CODE_COMMON_ROTATE_HPP
 
-#if ((CVG == 0) || (CVG == 1))
 MYDEVFN void
 dRot(double &App, double &Aqq,
      const double Apq, const double Bpq, const double Bpq_,
@@ -74,13 +73,47 @@ dRot(double &App, double &Aqq,
   App = CosF*CosF*App - scalbn(CosF*SinP*Apq, 1) + SinP*SinP*Aqq;
   Aqq = SinF*SinF*App + scalbn(SinF*CosP*Apq, 1) + CosP*CosP*Aqq;
 }
-#else // CVG == 2 || CVG == 3
-#error not yet implemented
-MYDEVFN void
-dRot(double &App, double &Aqq, const double Apq,
-     const double Bpp, const double Bqq, const double Bpq,
-     double &CosF, double &SinF, double &CosP, double &SinP)
+
+#if ((CVG == 2) || (CVG == 3))
+MYDEVFN int
+dROT(double &App, double &Aqq, double &Apq,
+     double &Bpp, double &Bqq, double &Bpq,
+     double &CosF, double &SinF, double &CosP, double &SinP,
+     int &fn1, int &pn1)
 {
+  if (Bpp != 1.0) {
+    Bpp = my_drsqrt_rn(Bpp);
+    App *= Bpp;
+    App *= Bpp;
+    Apq *= Bpp;
+    Bpq *= Bpp;
+  }
+  if (Bqq != 1.0) {
+    Bqq = my_drsqrt_rn(Bqq);
+    Aqq *= Bqq;
+    Aqq *= Bqq;
+    Apq *= Bqq;
+    Bpq *= Bqq;
+  }
+  const double Bpq_ = fabs(Bpq);
+  dRot(App, Aqq, Apq, Bpq, Bpq_, CosF, SinF, CosP, SinP);
+  if (Bpp != 1.0) {
+    if (fn1)
+      CosF *= Bpp;
+    else
+      CosF = Bpp;
+    SinF *= Bpp;
+  }
+  if (Bqq != 1.0) {
+    if (pn1)
+      CosP *= Bqq;
+    else
+      CosP = Bqq;
+    SinP *= Bqq;
+  }
+  fn1 = (fabs(CosF) != 1.0);
+  pn1 = (fabs(CosP) != 1.0);
+  return (fn1 || pn1);
 }
 #endif // ?CVG
 

@@ -48,8 +48,8 @@ MYDEVFN unsigned dHZ_L0_s
       Aqq = dSSQ32(Fq, s0, s1);
       Bpp = dSSQ32(Gp, s0, s1);
       Bqq = dSSQ32(Gq, s0, s1);
-      const double Apq = dSUM_PROD_32(Fp, Fq, s0, s1);
-      const double Bpq = dSUM_PROD_32(Gp, Gq, s0, s1);
+      double Apq = dSUM_PROD_32(Fp, Fq, s0, s1);
+      double Bpq = dSUM_PROD_32(Gp, Gq, s0, s1);
 
       const double
         App_ = __dsqrt_rn(App),
@@ -69,14 +69,8 @@ MYDEVFN unsigned dHZ_L0_s
 
       if (transf_s) {
         double CosF, SinF, CosP, SinP;
-        dRot(App, Aqq, Apq, Bpp, Bqq, Bpq, CosF, SinF, CosP, SinP);
-        const double
-          CosF_ = fabs(CosF),
-          CosP_ = fabs(CosP);
-        const int
-          fn1 = (CosF_ != 1.0),
-          pn1 = (CosP_ != 1.0);
-        transf_b = (fn1 || pn1);
+        int fn1, pn1;
+        transf_b = dROT(App, Aqq, Apq, Bpp, Bqq, Bpq, CosF, SinF, CosP, SinP, fn1, pn1);
         
         if (transf_b) {
           if (App >= Aqq) {
