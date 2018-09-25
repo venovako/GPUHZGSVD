@@ -167,6 +167,7 @@ MYDEVFN void dMultAV
   }
 }
 
+#if ((CVG == 0) || (CVG == 2))
 MYDEVFN double dSsqC
 (
  const double *const bA,
@@ -180,6 +181,26 @@ MYDEVFN double dSsqC
   }
   return dSum32(x);
 }
+#else // ((CVG == 1) || (CVG == 3))
+MYDEVFN double dSsqC
+(
+ const double *const bA,
+ const double *const eA
+)
+{
+  double x = +0.0, xx = +0.0, y, yy;
+  for (const double *pA = bA; pA < eA; pA += WARP_SZ) {
+    y = *pA;
+    yy = __dmul_rd(y, y);
+    y = __fma_rn(y, y, -yy);
+    xx += yy;
+    x += y;
+  }
+  yy = dSum32(xx);
+  y = dSum32(x);
+  return (yy + y);
+}
+#endif // ?CVG
 
 MYDEVFN void dInvNrm2C
 (
