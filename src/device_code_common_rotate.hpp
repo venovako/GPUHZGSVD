@@ -82,30 +82,28 @@ dROT(double &App, double &Aqq, double &Apq,
      int &fn1, int &pn1)
 {
   if (Bpp != 1.0) {
+    App = __ddiv_rn(App, Bpp);
     Bpp = my_drsqrt_rn(Bpp);
-    App *= Bpp;
-    App *= Bpp;
     Apq *= Bpp;
     Bpq *= Bpp;
   }
   if (Bqq != 1.0) {
+    Aqq = __ddiv_rn(Aqq, Bqq);
     Bqq = my_drsqrt_rn(Bqq);
-    Aqq *= Bqq;
-    Aqq *= Bqq;
     Apq *= Bqq;
     Bpq *= Bqq;
   }
   const double Bpq_ = fabs(Bpq);
   dRot(App, Aqq, Apq, Bpq, Bpq_, CosF, SinF, CosP, SinP);
   if (Bpp != 1.0) {
-    if (fn1)
+    if (CosF != 1.0)
       CosF *= Bpp;
     else
       CosF = Bpp;
     SinF *= Bpp;
   }
   if (Bqq != 1.0) {
-    if (pn1)
+    if (CosP != 1.0)
       CosP *= Bqq;
     else
       CosP = Bqq;
