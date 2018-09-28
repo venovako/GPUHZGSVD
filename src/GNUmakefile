@@ -27,7 +27,7 @@ HDF5_l=-l hdf5_hl,hdf5
 endif # HDF5_FULL
 
 NVPPFLAGS=-I. $(HDF5_I) -DHZ_GSVD -DCVG=$(CVG)
-NVCCFLAGS=-std c++11 -arch $(GPU_ARCH) -cudart shared -restrict -Xcompiler -march=native
+NVCCFLAGS=-std c++14 -arch $(GPU_ARCH) -cudart shared -restrict -Xcompiler -march=native
 NVLDFLAGS=$(HDF5_L) $(HDF5_l)
 
 ifdef NDEBUG
