@@ -95,22 +95,16 @@ dROT(double &App, double &Aqq, double &Apq,
   }
   const double Bpq_ = fabs(Bpq);
   dRot(App, Aqq, Apq, Bpq, Bpq_, CosF, SinF, CosP, SinP);
+  fn1 = (fabs(CosF) != 1.0);
+  pn1 = (fabs(CosP) != 1.0);
   if (Bpp != 1.0) {
-    if (CosF != 1.0)
-      CosF *= Bpp;
-    else
-      CosF = Bpp;
+    CosF *= Bpp;
     SinF *= Bpp;
   }
   if (Bqq != 1.0) {
-    if (CosP != 1.0)
-      CosP *= Bqq;
-    else
-      CosP = Bqq;
+    CosP *= Bqq;
     SinP *= Bqq;
   }
-  fn1 = (fabs(CosF) != 1.0);
-  pn1 = (fabs(CosP) != 1.0);
   return (fn1 || pn1);
 }
 #endif // ?CVG
