@@ -1,9 +1,9 @@
 #ifndef HZ_L_HPP
 #define HZ_L_HPP
 
-// `Standard' maximal number of sweeps per Jacobi process
+// maximal number of sweeps per Jacobi process
 #ifndef HZ_NSWEEP
-#define HZ_NSWEEP 30u
+#define HZ_NSWEEP 99u
 #endif // !HZ_NSWEEP
 
 // HEPS = DBL_EPSILON / 2 = 2^(-53) (* Lapack/RN Epsilon *)
@@ -135,6 +135,6 @@ extern unsigned STRAT1, STRAT1_STEPS, STRAT1_PAIRS;
 extern unsigned STRAT0_DTYPE strat0[STRAT0_MAX_STEPS][STRAT0_MAX_PAIRS][2u];
 extern unsigned STRAT1_DTYPE strat1[STRAT1_MAX_STEPS][STRAT1_MAX_PAIRS][2u];
 
-extern void init_strats(const char *const sdy, const char *const snp, const unsigned n0, const unsigned n1) throw();
+extern void init_strats(const char *const sdy, const char *const snp0, const unsigned n0, const char *const snp1, const unsigned n1) throw();
 
 #endif // !HZ_L_HPP
