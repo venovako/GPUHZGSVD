@@ -73,7 +73,7 @@ MYDEVFN unsigned dHZ_L0_s
         int fn1, pn1;
         transf_b = dROT(App, Aqq, Apq, Bpp, Bqq, Bpq, CosF, SinF, CosP, SinP, fn1, pn1);
         
-        if (transf_b) {
+        if (fn1 || pn1) {
           if (App >= Aqq) {
             if (fn1) {
               if (SinP == 1.0) {
