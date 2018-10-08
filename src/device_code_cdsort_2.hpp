@@ -51,30 +51,50 @@ MYDEVFN unsigned dHZ_L0_s
       double Apq = dSum32(Fp * Fq);
       double Bpq = dSum32(Gp * Gq);
 
-      const double
-        App_ = __dsqrt_rn(App),
-        Aqq_ = __dsqrt_rn(Aqq),
-        Bpp_ = __dsqrt_rn(Bpp),
-        Bqq_ = __dsqrt_rn(Bqq),
-        Apq_ = fabs(Apq),
-        Bpq_ = fabs(Bpq),
-        App_Aqq_ = App_ * Aqq_,
-        Bpp_Bqq_ = Bpp_ * Bqq_;
+      double App_ = App;
+      if (Bpp != 1.0) {
+        App_ = __ddiv_rn(App_, Bpp);
+        Bpp = my_drsqrt_rn(Bpp);
+        Apq *= Bpp;
+        Bpq *= Bpp;
+      }
 
-      const int transf_s = (!(Bpq_ < (Bpp_Bqq_ * HZ_MYTOL)) ? 1 : !(Apq_ < (App_Aqq_ * HZ_MYTOL)));
+      double Aqq_ = Aqq;
+      if (Bqq != 1.0) {
+        Aqq_ = __ddiv_rn(Aqq_, Bqq);
+        Bqq = my_drsqrt_rn(Bqq);
+        Apq *= Bqq;
+        Bpq *= Bqq;
+      }
+
+      const double Bpq_ = fabs(Bpq);
+
+      const int transf_s = (!(Bpq_ < HZ_MYTOL) ? 1 : !(fabs(Apq) < ((App_ * Aqq_) * HZ_MYTOL)));
       swp_transf_s += (__syncthreads_count(transf_s) >> WARP_SZ_LGi);
 
       int transf_b = 0;
       Fp_ = Fp; Fq_ = Fq;
       Gp_ = Gp; Gq_ = Gq;
       Vp_ = Vp; Vq_ = Vq;
+
       if (transf_s) {
         double CosF, SinF, CosP, SinP;
-        int fn1, pn1;
-        transf_b = dROT(App, Aqq, Apq, Bpp, Bqq, Bpq, CosF, SinF, CosP, SinP, fn1, pn1);
-        
+        dRot(App_, Aqq_, Apq, Bpq, Bpq_, CosF, SinF, CosP, SinP);
+        transf_b = ((fabs(CosF) != 1.0) || (fabs(CosP) != 1.0));
+        if (Bpp != 1.0) {
+          CosF *= Bpp;
+          SinF *= Bpp;
+        }
+        if (Bqq != 1.0) {
+          CosP *= Bqq;
+          SinP *= Bqq;
+        }
+        const int
+          fn1 = (fabs(CosF) != 1.0),
+          pn1 = (fabs(CosP) != 1.0);
+
         if (fn1 || pn1) {
-          if (App >= Aqq) {
+          if (App_ >= Aqq_) {
             if (fn1) {
               if (SinP == 1.0) {
                 Fp_ = __fma_rn(CosF, Fp, -Fq);
@@ -191,7 +211,7 @@ MYDEVFN unsigned dHZ_L0_s
         }
         else {
           const double SinP_ = -SinP;
-          if (App >= Aqq) {
+          if (App_ >= Aqq_) {
             Fp_ = __fma_rn(SinP_, Fq, Fp);
             Fq_ = __fma_rn(SinF, Fp, Fq);
             Gp_ = __fma_rn(SinP_, Gq, Gp);

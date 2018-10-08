@@ -11,6 +11,8 @@
 #include "device_code_cdsort_2.hpp"
 #elif (CVG == 3)
 #include "device_code_cdsort_3.hpp"
+#elif (CVG == 4)
+#include "device_code_cdsort_4.hpp"
 #else // unknown CVG
 #error CVG unknown
 #endif // ?CVG

@@ -74,7 +74,7 @@ dRot(double &App, double &Aqq,
   Aqq = SinF*SinF*App + scalbn(SinF*CosP*Apq, 1) + CosP*CosP*Aqq;
 }
 
-#if ((CVG == 2) || (CVG == 3))
+#if (CVG == 4)
 MYDEVFN int
 dROT(double &App, double &Aqq, double &Apq,
      double &Bpp, double &Bqq, double &Bpq,

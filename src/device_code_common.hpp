@@ -167,7 +167,7 @@ MYDEVFN void dMultAV
   }
 }
 
-#if ((CVG == 0) || (CVG == 2))
+#if ((CVG == 0) || (CVG == 2) || (CVG == 4))
 MYDEVFN double dSsqC
 (
  const double *const bA,
