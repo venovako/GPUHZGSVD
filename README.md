@@ -25,4 +25,4 @@ where ``SM`` is the target GPU architecture (e.g., for a Maxwell card it might b
 
 It is also possible to append ``clean`` to the invocation above, to remove the executable, or such cleanup can be done manually.
 
-This work has been supported in part by Croatian Science Foundation under the project IP--2014--09--3670.
+This work has been supported in part by Croatian Science Foundation under the project IP-2014-09-3670.
