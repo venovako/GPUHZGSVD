@@ -16,7 +16,7 @@ MYDEVFN unsigned dHZ_L0_s
     p = _strat0[0u][y][0u],
     q = _strat0[0u][y][1u];
   double
-    App, Aqq, Bpp, Bqq,
+    App, Aqq, Bpp, Bqq, s0, s1,
     Fp_, Fq_, Gp_, Gq_, Vp_, Vq_;
 
   F32(V, x, p) = ((x == p) ? 1.0 : 0.0);
@@ -44,12 +44,12 @@ MYDEVFN unsigned dHZ_L0_s
 
       __syncthreads();
 
-      App = dSsq32(Fp);
-      Aqq = dSsq32(Fq);
-      Bpp = dSsq32(Gp);
-      Bqq = dSsq32(Gq);
-      double Apq = dSum32(Fp * Fq);
-      double Bpq = dSum32(Gp * Gq);
+      App = dSSQ32(Fp, s0, s1);
+      Aqq = dSSQ32(Fq, s0, s1);
+      Bpp = dSSQ32(Gp, s0, s1);
+      Bqq = dSSQ32(Gq, s0, s1);
+      double Apq = dSUM_PROD_32(Fp, Fq, s0, s1);
+      double Bpq = dSUM_PROD_32(Gp, Gq, s0, s1);
 
       double App_ = App;
       if (Bpp != 1.0) {
@@ -318,14 +318,14 @@ MYDEVFN unsigned dHZ_L0_s
   if (blk_transf_s) {
     // normalize V
 
-    App = dSsq32(Fp_);
-    Bpp = dSsq32(Gp_);
+    App = dSSQ32(Fp_, s0, s1);
+    Bpp = dSSQ32(Gp_, s0, s1);
     const double Vpp_ = my_drsqrt_rn(App + Bpp);
     if (Vpp_ != 1.0)
       F32(V, x, p) = Vp_ * Vpp_;
 
-    Aqq = dSsq32(Fq_);
-    Bqq = dSsq32(Gq_);
+    Aqq = dSSQ32(Fq_, s0, s1);
+    Bqq = dSSQ32(Gq_, s0, s1);
     const double Vqq_ = my_drsqrt_rn(Aqq + Bqq);
     if (Vqq_ != 1.0)
       F32(V, x, q) = Vq_ * Vqq_;

@@ -13,6 +13,8 @@
 #include "device_code_cdsort_3.hpp"
 #elif (CVG == 4)
 #include "device_code_cdsort_4.hpp"
+#elif (CVG == 5)
+#include "device_code_cdsort_5.hpp"
 #else // unknown CVG
 #error CVG unknown
 #endif // ?CVG

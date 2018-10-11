@@ -167,7 +167,7 @@ MYDEVFN void dMultAV
   }
 }
 
-#if ((CVG == 0) || (CVG == 2) || (CVG == 4))
+#if ((CVG == 0) || (CVG == 2) || (CVG == 3) || (CVG == 4))
 MYDEVFN double dSsqC
 (
  const double *const bA,
@@ -181,7 +181,7 @@ MYDEVFN double dSsqC
   }
   return dSum32(x);
 }
-#else // ((CVG == 1) || (CVG == 3))
+#else // ((CVG == 1) || (CVG == 5))
 MYDEVFN double dSsqC
 (
  const double *const bA,
