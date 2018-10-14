@@ -27,15 +27,15 @@ HDF5_l=-l hdf5_hl,hdf5
 endif # HDF5_FULL
 
 NVPPFLAGS=-I. $(HDF5_I) -DHZ_GSVD -DCVG=$(CVG)
-NVCCFLAGS=-std c++14 -arch $(GPU_ARCH) -cudart shared -restrict -Xcompiler -march=native
+NVCCFLAGS=-std c++14 -arch $(GPU_ARCH) -restrict -res-usage -Xcompiler -march=native
 NVLDFLAGS=$(HDF5_L) $(HDF5_l)
 
 ifdef NDEBUG
 NVPPFLAGS+=-DNDEBUG
-NVCCFLAGS+=-O$(NDEBUG) -Xptxas -v
+NVCCFLAGS+=-O$(NDEBUG)
 else # debug
 NVPPFLAGS+=-UNDEBUG
-NVCCFLAGS+=-O0 -g -G -src-in-ptx -Xptxas -no-bb-merge,-v
+NVCCFLAGS+=-O0 -g -G -src-in-ptx -Xptxas -no-bb-merge,-ret-end
 endif # NDEBUG
 
 # e.g. -ffp-contract=on,-integrated-as
