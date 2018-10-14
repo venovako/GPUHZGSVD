@@ -60,10 +60,10 @@ dCholesky32(volatile double *const A,
   #pragma unroll
   for (unsigned k = 0u; k < 16u; ++k) {
     // cdiv(k)
-    if ((y0 == k) && (x >= k)) {
-      const double Akk = F32(A, k, k);
-      F32(A, x, k) = (x > k) ? (F32(A, x, k) * my_drsqrt_rn(Akk)) : __dsqrt_rn(Akk);
-    }
+    const double Akk = (((y0 == k) && (x >= k)) ? F32(A, k, k) : 0.0);
+    __syncthreads();
+    if ((y0 == k) && (x >= k))
+      F32(A, x, k) = ((x > k) ? (F32(A, x, k) * my_drsqrt_rn(Akk)) : __dsqrt_rn(Akk));
     __syncthreads();
 
     unsigned j = (k + 1u) + y0;
@@ -92,10 +92,10 @@ dCholesky32(volatile double *const A,
   #pragma unroll
   for (unsigned k = 16u; k < 32u; ++k) {
     // cdiv(k)
-    if ((y1 == k) && (x >= k)) {
-      const double Akk = __dsqrt_rn(F32(A, k, k));
-      F32(A, x, k) = (x > k) ? __ddiv_rn(F32(A, x, k), Akk) : Akk;
-    }
+    const double Akk = (((y1 == k) && (x >= k)) ? F32(A, k, k) : 0.0);
+    __syncthreads();
+    if ((y1 == k) && (x >= k))
+      F32(A, x, k) = ((x > k) ? (F32(A, x, k) * my_drsqrt_rn(Akk)) : __dsqrt_rn(Akk));
     __syncthreads();
 
     const unsigned j = (k + 1u) + y0;
