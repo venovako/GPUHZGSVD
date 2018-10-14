@@ -21,7 +21,7 @@ To build the test executable, do the following:
 cd src
 ./mk.sh SM OPT CVG
 ```
-where ``SM`` is the target GPU architecture (e.g., for a Maxwell card it might be ``52``, for a Pascal one ``60``, etc.), ``OPT`` is the optimization level (``3`` should be fine), and ``CVG`` is the algorithm requested (``0`` and ``1`` done; ``2``, ``3`` and ``4``, ``5`` in progress).
+where ``SM`` is the target GPU architecture (e.g., for a Maxwell card it might be ``52``, for a Pascal one ``60``, etc.), ``OPT`` is the optimization level (``3`` should be fine), and ``CVG`` is the algorithm requested (``0`` and ``1`` done, ``2`` and ``3`` in progress).
 
 It is also possible to append ``clean`` to the invocation above, to remove the executable, or such cleanup can be done manually.
 
