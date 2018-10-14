@@ -74,42 +74,4 @@ dRot(double &App, double &Aqq,
   Aqq = SinF*SinF*App + scalbn(SinF*CosP*Apq, 1) + CosP*CosP*Aqq;
 }
 
-#if (CVG == 4)
-MYDEVFN int
-dROT(double &App, double &Aqq, double &Apq,
-     double &Bpp, double &Bqq, double &Bpq,
-     double &CosF, double &SinF, double &CosP, double &SinP,
-     int &fn1, int &pn1)
-{
-  if (Bpp != 1.0) {
-    App = __ddiv_rn(App, Bpp);
-    Bpp = my_drsqrt_rn(Bpp);
-    Apq *= Bpp;
-    Bpq *= Bpp;
-  }
-  if (Bqq != 1.0) {
-    Aqq = __ddiv_rn(Aqq, Bqq);
-    Bqq = my_drsqrt_rn(Bqq);
-    Apq *= Bqq;
-    Bpq *= Bqq;
-  }
-  const double Bpq_ = fabs(Bpq);
-  dRot(App, Aqq, Apq, Bpq, Bpq_, CosF, SinF, CosP, SinP);
-  const bool
-    _fn1 = (fabs(CosF) != 1.0),
-    _pn1 = (fabs(CosP) != 1.0);
-  if (Bpp != 1.0) {
-    CosF *= Bpp;   
-    SinF *= Bpp;
-  }
-  if (Bqq != 1.0) {
-    CosP *= Bqq;
-    SinP *= Bqq;
-  }
-  fn1 = (fabs(CosF) != 1.0);
-  pn1 = (fabs(CosP) != 1.0);
-  return (_fn1 || _pn1);
-}
-#endif // ?CVG
-
 #endif // !DEVICE_CODE_COMMON_ROTATE_HPP

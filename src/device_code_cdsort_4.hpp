@@ -51,30 +51,50 @@ MYDEVFN unsigned dHZ_L0_s
       double Apq = dSum32(Fp * Fq);
       double Bpq = dSum32(Gp * Gq);
 
-      const double
-        App_ = __dsqrt_rn(App),
-        Aqq_ = __dsqrt_rn(Aqq),
-        Bpp_ = __dsqrt_rn(Bpp),
-        Bqq_ = __dsqrt_rn(Bqq),
-        Apq_ = fabs(Apq),
-        Bpq_ = fabs(Bpq),
-        App_Aqq_ = App_ * Aqq_,
-        Bpp_Bqq_ = Bpp_ * Bqq_;
+      double App_ = App;
+      if (Bpp != 1.0) {
+        App_ = __ddiv_rn(App_, Bpp);
+        Bpp = my_drsqrt_rn(Bpp);
+        Apq *= Bpp;
+        Bpq *= Bpp;
+      }
 
-      const int transf_s = (!(Bpq_ < (Bpp_Bqq_ * HZ_MYTOL)) ? 1 : !(Apq_ < (App_Aqq_ * HZ_MYTOL)));
-      swp_transf_s += (__syncthreads_count(transf_s) >> WARP_SZ_LGi);
+      double Aqq_ = Aqq;
+      if (Bqq != 1.0) {
+        Aqq_ = __ddiv_rn(Aqq_, Bqq);
+        Bqq = my_drsqrt_rn(Bqq);
+        Apq *= Bqq;
+        Bpq *= Bqq;
+      }
 
-      int transf_b = 0;
+      const double Bpq_ = fabs(Bpq);
+
+      const int transf_s = (!(Bpq_ < HZ_MYTOL) ? 1 : !(fabs(Apq) < ((App_ * Aqq_) * HZ_MYTOL)));
+      int inc_swp_transf_s = (__syncthreads_count(transf_s) >> WARP_SZ_LGi);
+
+      int transf_b = 0, chg = 0;
       Fp_ = Fp; Fq_ = Fq;
       Gp_ = Gp; Gq_ = Gq;
       Vp_ = Vp; Vq_ = Vq;
+
       if (transf_s) {
         double CosF, SinF, CosP, SinP;
-        int fn1, pn1;
-        transf_b = dROT(App, Aqq, Apq, Bpp, Bqq, Bpq, CosF, SinF, CosP, SinP, fn1, pn1);
+        dRot(App_, Aqq_, Apq, Bpq, Bpq_, CosF, SinF, CosP, SinP);
+        transf_b = ((fabs(CosF) != 1.0) || (fabs(CosP) != 1.0));
+        if (Bpp != 1.0) {
+          CosF *= Bpp;
+          SinF *= Bpp;
+        }
+        if (Bqq != 1.0) {
+          CosP *= Bqq;
+          SinP *= Bqq;
+        }
+        const int
+          fn1 = (fabs(CosF) != 1.0),
+          pn1 = (fabs(CosP) != 1.0);
         
         if (fn1 || pn1) {
-          if (App >= Aqq) {
+          if (App_ >= Aqq_) {
             if (fn1) {
               if (SinP == 1.0) {
                 Fp_ = __fma_rn(CosF, Fp, -Fq);
@@ -191,7 +211,7 @@ MYDEVFN unsigned dHZ_L0_s
         }
         else {
           const double SinP_ = -SinP;
-          if (App >= Aqq) {
+          if (App_ >= Aqq_) {
             Fp_ = __fma_rn(SinP_, Fq, Fp);
             Fq_ = __fma_rn(SinF, Fp, Fq);
             Gp_ = __fma_rn(SinP_, Gq, Gp);
@@ -208,12 +228,59 @@ MYDEVFN unsigned dHZ_L0_s
             Vp_ = __fma_rn(SinF, Vp, Vq);
           }
         }
-        F32(F, x, p) = Fp_;
-        F32(F, x, q) = Fq_;
-        F32(G, x, p) = Gp_;
-        F32(G, x, q) = Gq_;
-        F32(V, x, p) = Vp_;
-        F32(V, x, q) = Vq_;
+
+        if (App_ >= Aqq_) {
+          if (Fp != Fp_) {
+            F32(F, x, p) = Fp_;
+            ++chg;
+          }
+          if (Fq != Fq_) {
+            F32(F, x, q) = Fq_;
+            ++chg;
+          }
+          if (Gp != Gp_) {
+            F32(G, x, p) = Gp_;
+            ++chg;
+          }
+          if (Gq != Gq_) {
+            F32(G, x, q) = Gq_;
+            ++chg;
+          }
+          if (Vp != Vp_) {
+            F32(V, x, p) = Vp_;
+            ++chg;
+          }
+          if (Vq != Vq_) {
+            F32(V, x, q) = Vq_;
+            ++chg;
+          }
+        }
+        else {
+          if (Fp != Fq_) {
+            F32(F, x, p) = Fp_;
+            ++chg;
+          }
+          if (Fq != Fp_) {
+            F32(F, x, q) = Fq_;
+            ++chg;
+          }
+          if (Gp != Gq_) {
+            F32(G, x, p) = Gp_;
+            ++chg;
+          }
+          if (Gq != Gp_) {
+            F32(G, x, q) = Gq_;
+            ++chg;
+          }
+          if (Vp != Vq_) {
+            F32(V, x, p) = Vp_;
+            ++chg;
+          }
+          if (Vq != Vp_) {
+            F32(V, x, q) = Vq_;
+            ++chg;
+          }
+        }
       }
       else if (App < Aqq) {
         Fp_ = Fq;
@@ -230,7 +297,14 @@ MYDEVFN unsigned dHZ_L0_s
         F32(V, x, q) = Vq_;
       }
 
-      swp_transf_b += (__syncthreads_count(transf_b) >> WARP_SZ_LGi);
+      chg = __syncthreads_count(chg);
+      if (chg) {
+        inc_swp_transf_s = (__syncthreads_count(transf_s) >> WARP_SZ_LGi);
+        if (inc_swp_transf_s) {
+          swp_transf_s += inc_swp_transf_s;
+          swp_transf_b += (__syncthreads_count(transf_b) >> WARP_SZ_LGi);
+        }
+      }
     }
 
     if (swp_transf_s) {

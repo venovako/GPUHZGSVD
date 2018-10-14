@@ -16,7 +16,7 @@ MYDEVFN unsigned dHZ_L0_s
     p = _strat0[0u][y][0u],
     q = _strat0[0u][y][1u];
   double
-    App, Aqq, Bpp, Bqq,
+    App, Aqq, Bpp, Bqq, s0, s1,
     Fp_, Fq_, Gp_, Gq_, Vp_, Vq_;
 
   F32(V, x, p) = ((x == p) ? 1.0 : 0.0);
@@ -44,12 +44,12 @@ MYDEVFN unsigned dHZ_L0_s
 
       __syncthreads();
 
-      App = dSsq32(Fp);
-      Aqq = dSsq32(Fq);
-      Bpp = dSsq32(Gp);
-      Bqq = dSsq32(Gq);
-      double Apq = dSum32(Fp * Fq);
-      double Bpq = dSum32(Gp * Gq);
+      App = dSSQ32(Fp, s0, s1);
+      Aqq = dSSQ32(Fq, s0, s1);
+      Bpp = dSSQ32(Gp, s0, s1);
+      Bqq = dSSQ32(Gq, s0, s1);
+      double Apq = dSUM_PROD_32(Fp, Fq, s0, s1);
+      double Bpq = dSUM_PROD_32(Gp, Gq, s0, s1);
 
       double App_ = App;
       if (Bpp != 1.0) {
@@ -70,9 +70,9 @@ MYDEVFN unsigned dHZ_L0_s
       const double Bpq_ = fabs(Bpq);
 
       const int transf_s = (!(Bpq_ < HZ_MYTOL) ? 1 : !(fabs(Apq) < ((App_ * Aqq_) * HZ_MYTOL)));
-      int inc_swp_transf_s = (__syncthreads_count(transf_s) >> WARP_SZ_LGi);
+      swp_transf_s += (__syncthreads_count(transf_s) >> WARP_SZ_LGi);
 
-      int transf_b = 0, chg = 0;
+      int transf_b = 0;
       Fp_ = Fp; Fq_ = Fq;
       Gp_ = Gp; Gq_ = Gq;
       Vp_ = Vp; Vq_ = Vq;
@@ -92,7 +92,7 @@ MYDEVFN unsigned dHZ_L0_s
         const int
           fn1 = (fabs(CosF) != 1.0),
           pn1 = (fabs(CosP) != 1.0);
-        
+
         if (fn1 || pn1) {
           if (App_ >= Aqq_) {
             if (fn1) {
@@ -228,59 +228,12 @@ MYDEVFN unsigned dHZ_L0_s
             Vp_ = __fma_rn(SinF, Vp, Vq);
           }
         }
-
-        if (App_ >= Aqq_) {
-          if (Fp != Fp_) {
-            F32(F, x, p) = Fp_;
-            ++chg;
-          }
-          if (Fq != Fq_) {
-            F32(F, x, q) = Fq_;
-            ++chg;
-          }
-          if (Gp != Gp_) {
-            F32(G, x, p) = Gp_;
-            ++chg;
-          }
-          if (Gq != Gq_) {
-            F32(G, x, q) = Gq_;
-            ++chg;
-          }
-          if (Vp != Vp_) {
-            F32(V, x, p) = Vp_;
-            ++chg;
-          }
-          if (Vq != Vq_) {
-            F32(V, x, q) = Vq_;
-            ++chg;
-          }
-        }
-        else {
-          if (Fp != Fq_) {
-            F32(F, x, p) = Fp_;
-            ++chg;
-          }
-          if (Fq != Fp_) {
-            F32(F, x, q) = Fq_;
-            ++chg;
-          }
-          if (Gp != Gq_) {
-            F32(G, x, p) = Gp_;
-            ++chg;
-          }
-          if (Gq != Gp_) {
-            F32(G, x, q) = Gq_;
-            ++chg;
-          }
-          if (Vp != Vq_) {
-            F32(V, x, p) = Vp_;
-            ++chg;
-          }
-          if (Vq != Vp_) {
-            F32(V, x, q) = Vq_;
-            ++chg;
-          }
-        }
+        F32(F, x, p) = Fp_;
+        F32(F, x, q) = Fq_;
+        F32(G, x, p) = Gp_;
+        F32(G, x, q) = Gq_;
+        F32(V, x, p) = Vp_;
+        F32(V, x, q) = Vq_;
       }
       else if (App < Aqq) {
         Fp_ = Fq;
@@ -297,14 +250,7 @@ MYDEVFN unsigned dHZ_L0_s
         F32(V, x, q) = Vq_;
       }
 
-      chg = __syncthreads_count(chg);
-      if (chg) {
-        inc_swp_transf_s = (__syncthreads_count(transf_s) >> WARP_SZ_LGi);
-        if (inc_swp_transf_s) {
-          swp_transf_s += inc_swp_transf_s;
-          swp_transf_b += (__syncthreads_count(transf_b) >> WARP_SZ_LGi);
-        }
-      }
+      swp_transf_b += (__syncthreads_count(transf_b) >> WARP_SZ_LGi);
     }
 
     if (swp_transf_s) {
@@ -318,14 +264,14 @@ MYDEVFN unsigned dHZ_L0_s
   if (blk_transf_s) {
     // normalize V
 
-    App = dSsq32(Fp_);
-    Bpp = dSsq32(Gp_);
+    App = dSSQ32(Fp_, s0, s1);
+    Bpp = dSSQ32(Gp_, s0, s1);
     const double Vpp_ = my_drsqrt_rn(App + Bpp);
     if (Vpp_ != 1.0)
       F32(V, x, p) = Vp_ * Vpp_;
 
-    Aqq = dSsq32(Fq_);
-    Bqq = dSsq32(Gq_);
+    Aqq = dSSQ32(Fq_, s0, s1);
+    Bqq = dSSQ32(Gq_, s0, s1);
     const double Vqq_ = my_drsqrt_rn(Aqq + Bqq);
     if (Vqq_ != 1.0)
       F32(V, x, q) = Vq_ * Vqq_;
