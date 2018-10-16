@@ -135,8 +135,10 @@ int main(int argc, char *argv[])
   if (ret)
     (void)fprintf(stderr, "%s: error %d\n", ca.exe, ret);
   else {
-    (void)printf("GLB_ROT_S(%20" FmtLong "u), GLB_ROT_B(%20" FmtLong "u)\n", glb_s, glb_b);
-    (void)printf("%#12.6f s %2u sweeps\n", *timing, glbSwp);
+    (void)fprintf(stdout, "GLB_ROT_S(%20" FmtLong "u), GLB_ROT_B(%20" FmtLong "u)\n", glb_s, glb_b);
+    (void)fflush(stdout);
+    (void)fprintf(stdout, "%#12.6f s %2u sweeps\n", *timing, glbSwp);
+    (void)fflush(stdout);
   }
 
   if (ca.h5r) {
