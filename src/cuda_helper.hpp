@@ -17,7 +17,7 @@
 #endif
 #else // !HAVE_CUBLAS
 #include <cuComplex.h>
-#endif // HAVE_CUBLAS
+#endif // ?HAVE_CUBLAS
 
 #include <cuda_runtime.h>
 #include <math_constants.h>
@@ -49,7 +49,7 @@
 #else // CUBLAS_CALL
 #error CUBLAS_CALL not definable externally
 #endif // !CUBLAS_CALL
-#endif // HAVE_CUBLAS
+#endif // ?HAVE_CUBLAS
 
 #ifndef WARP_SZ
 #define WARP_SZ 32u

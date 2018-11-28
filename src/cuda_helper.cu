@@ -50,11 +50,11 @@ int configureGPUex(const int dev, const unsigned maxShMemB) throw()
 int configureGPU(const int dev) throw()
 {
   static const unsigned maxShMemB =
-#ifdef HZ_GSVD
+#ifdef USE_DOUBLE_COMPLEX
+    49152u // 48 kB
+#else // USE_DOUBLE_REAL
     24576u // 24 kB
-#else // Jacobi (H)SVD
-    16384u // 16 kB
-#endif // HZ_GSVD
+#endif // ?USE_DOUBLE_COMPLEX
     ;
   return configureGPUex(dev, maxShMemB);
 }
