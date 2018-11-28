@@ -56,9 +56,9 @@ int main(int argc, char *argv[])
   unsigned
     ldhF = idadim[0],
     ldhG = idadim[0],
-    ldhV = idadim[2],
-    nrow = idadim[1],
-    ncol = idadim[2];
+    ldhV = idadim[0],
+    nrow = idadim[0],
+    ncol = idadim[0];
 
   m = static_cast<size_t>(nrow);
   n = static_cast<size_t>(ncol);
