@@ -26,8 +26,8 @@ HZ_L2
  // V^{-T} of G = U \Sigma V^T
  const unsigned ldhV,        // IN, leading dimension of V^{-T}, >= nrow
  double *const hS,           // OUT, the generalized singular values, optionally sorted in descending order
- double *const hH,           // ||F_i||_2/sqrt(||F_i||_2^2 + ||G_i||_2^2)
- double *const hK,           // ||G_i||_2/sqrt(||F_i||_2^2 + ||G_i||_2^2)
+ double *const hH,           // ||F_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2)
+ double *const hK,           // ||G_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2)
  unsigned *const glbSwp,     // OUT, number of sweeps at the outermost level
  unsigned Long *const glb_s, // OUT, number of rotations
  unsigned Long *const glb_b, // OUT, number of ``big'' rotations
