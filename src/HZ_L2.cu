@@ -86,13 +86,6 @@ HZ_L2
   const unsigned
     swp_max[HZ_MAX_LEVELS] = { (blk_ori ? 1u : HZ_NSWEEP), HZ_NSWEEP };
 
-  const double
-    alpha = +1.0,
-    beta = +0.0;
-  const double
-    *alpha_ptr = static_cast<double*>(NULL),
-    *beta_ptr = static_cast<double*>(NULL);
-
   size_t lddF = static_cast<size_t>(nrow);
   double *const dF = allocDeviceMtx<double>(lddF, static_cast<size_t>(nrow), static_cast<size_t>(ncol), true);
 
@@ -112,7 +105,7 @@ HZ_L2
   CUDA_CALL(cudaMemcpy2DAsync(dF, lddF * sizeof(double), hF, ldhF * sizeof(double), nrow * sizeof(double), ncol, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaMemcpy2DAsync(dG, lddG * sizeof(double), hG, ldhG * sizeof(double), nrow * sizeof(double), ncol, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaMemset2DAsync(dV, lddV * sizeof(double), 0, ncol * sizeof(double), ncol));
-  initSymbols(dF, dG, dV, dS, dH, dK, cvg_dat, nrow, ncol, static_cast<unsigned>(lddF), static_cast<unsigned>(lddG), static_cast<unsigned>(lddV), swp_max[0u], alpha, beta, alpha_ptr, beta_ptr);
+  initSymbols(dF, dG, dV, dS, dH, dK, cvg_dat, nrow, ncol, static_cast<unsigned>(lddF), static_cast<unsigned>(lddG), static_cast<unsigned>(lddV), swp_max[0u]);
 
   CUDA_CALL(cudaDeviceSynchronize());
 
