@@ -8,27 +8,13 @@ ifndef GPU_ARCH
 GPU_ARCH=sm_30
 endif # !GPU_ARCH
 
-ifndef HDF5
-HDF5=$(HOME)/hdf5
-endif # !HDF5
-
 ifndef CVG
 CVG=0
 endif # !CVG
 
-HDF5_I=-I$(HDF5)/include
-HDF5_L=-L$(HDF5)/lib
-
-# e.g., mpi,z
-ifdef HDF5_FULL
-HDF5_l=-l hdf5_hl,hdf5,$(HDF5_FULL)
-else # minimal HDF5
-HDF5_l=-l hdf5_hl,hdf5
-endif # HDF5_FULL
-
-NVPPFLAGS=-I. $(HDF5_I) -DHZ_GSVD -DCVG=$(CVG)
+NVPPFLAGS=-I. -DCVG=$(CVG)
 NVCCFLAGS=-std c++14 -arch $(GPU_ARCH) -restrict -res-usage -Xcompiler -march=native
-NVLDFLAGS=$(HDF5_L) $(HDF5_l)
+NVLDFLAGS= #-ewp
 
 ifdef NDEBUG
 NVPPFLAGS+=-DNDEBUG
@@ -45,12 +31,11 @@ endif # HOST_FLAGS
 
 ifdef ANIMATE
 NVPPFLAGS+=-DANIMATE=$(ANIMATE) -DVN_INTEGER_KIND=8 -I../../../GitHub/JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
-NVLDFLAGS+=-L../../../GitHub/JACSD -lvn -L${MKLROOT}/lib -Xlinker -rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Xlinker -rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_core -lmkl_intel_thread -liomp5 -lpthread
+NVLDFLAGS=-L../../../GitHub/JACSD -lvn -L${MKLROOT}/lib -Xlinker -rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Xlinker -rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_core -lmkl_intel_thread -liomp5 -lpthread
 else # !ANIMATE
 NVPPFLAGS+=-UANIMATE
 endif # ANIMATE
 
-NVPPFLAGS+=-UUSE_MULTI_THR
 NVLDFLAGS+=-l dl,m
 
 HEADERS=				\
@@ -69,7 +54,6 @@ HEADERS=				\
 	device_code_common_rotate.hpp	\
 	device_code_common_Kepler.hpp	\
 	device_code_common_Cholesky.hpp	\
-	hdf5_helper.hpp			\
 	my_utils.hpp
 
 SOURCES=		\

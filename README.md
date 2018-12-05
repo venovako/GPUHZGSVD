@@ -19,7 +19,7 @@ In fact only the ``strat.so`` library is needed.
 To build the test executable, do the following:
 ```bash
 cd src
-./mk.sh SM OPT CVG
+./mk.sh D SM OPT CVG
 ```
 where ``SM`` is the target GPU architecture (e.g., for a Maxwell card it might be ``52``, for a Pascal one ``60``, etc.), ``OPT`` is the optimization level (``3`` should be fine), and ``CVG`` is the algorithm requested (``0`` and ``1`` done, ``2`` and ``3`` in progress).
 

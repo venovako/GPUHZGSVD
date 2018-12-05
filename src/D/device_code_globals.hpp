@@ -2,7 +2,10 @@
 #define DEVICE_CODE_GLOBALS_HPP
 
 __constant__
-double *_F, *_G, *_V, *_S, *_H, *_K;
+double *_F, *_G, *_V;
+
+__constant__
+double *_S, *_H, *_K;
 
 __constant__
 volatile unsigned Long *_cvg;
