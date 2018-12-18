@@ -344,6 +344,7 @@ MYDEVFN unsigned dHZ_L0_s
     }
   }
 
+  __syncthreads();
   return blk_transf_s;
 }
 
