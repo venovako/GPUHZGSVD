@@ -5,8 +5,7 @@
 
 extern int // 0 if OK, < 0 if invalid argument, > 0 if error
 HZ_L2
-(
- const unsigned routine,     // IN, routine ID, <= 15, (B___)_2
+(const unsigned routine,     // IN, routine ID, <= 15, (B___)_2
  // B: block-oriented or full-block
  const unsigned nrow,        // IN, number of rows of G, == 0 (mod 256)
  const unsigned ncol,        // IN, number of columns of G, <= nrow, == 0 (mod 128)

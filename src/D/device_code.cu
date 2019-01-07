@@ -15,6 +15,10 @@
 #include "device_code_cdsort_4.hpp"
 #elif (CVG == 5)
 #include "device_code_cdsort_5.hpp"
+#elif (CVG == 6)
+#include "device_code_cdsort_6.hpp"
+#elif (CVG == 7)
+#include "device_code_cdsort_7.hpp"
 #else // unknown CVG
 #error CVG unknown
 #endif // ?CVG
@@ -55,8 +59,7 @@ void initV(const int sclV, const unsigned nRank, const cudaStream_t s) throw()
 }
 
 void initSymbols
-(
- double *const F,
+(double *const F,
  double *const G,
  double *const V,
  double *const S,

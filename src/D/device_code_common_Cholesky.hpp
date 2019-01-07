@@ -1,13 +1,13 @@
 #ifndef DEVICE_CODE_COMMON_CHOLESKY_HPP
 #define DEVICE_CODE_COMMON_CHOLESKY_HPP
 
-MYDEVFN void
-dAtA(const double *const A0,
-     const double *const A1,
-     volatile double *const A,
-     const unsigned x,
-     const unsigned y0,
-     const unsigned y1)
+MYDEVFN void dAtA
+(const double *const A0,
+ const double *const A1,
+ volatile double *const A,
+ const unsigned x,
+ const unsigned y0,
+ const unsigned y1)
 {
   double
     y0x = +0.0,
@@ -47,11 +47,11 @@ dAtA(const double *const A0,
   __syncthreads();
 }
 
-MYDEVFN void
-dCholesky32(volatile double *const A,
-            const unsigned x,
-            const unsigned y0,
-            const unsigned y1)
+MYDEVFN void dCholesky32
+(volatile double *const A,
+ const unsigned x,
+ const unsigned y0,
+ const unsigned y1)
 {
   //      [ L ? ? ]
   // A -> [ L L ? ]
@@ -132,8 +132,7 @@ dCholesky32(volatile double *const A,
 }
 
 MYDEVFN void dFactorize
-(
- const double *const F0,
+(const double *const F0,
  const double *const F1,
  const double *const G0,
  const double *const G1,
@@ -142,8 +141,7 @@ MYDEVFN void dFactorize
  volatile double *const V,
  const unsigned x,
  const unsigned y0,
- const unsigned y1
-)
+ const unsigned y1)
 {
   dAtA(F0, F1, A, x, y0, y1);
   dAtA(G0, G1, B, x, y0, y1);

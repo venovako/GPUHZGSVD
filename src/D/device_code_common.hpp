@@ -126,15 +126,13 @@ my_drsqrt_rn(double a)
 #include "device_code_common_Cholesky.hpp"
 
 MYDEVFN void dMultAV
-(
- double *const A0,
+(double *const A0,
  double *const A1,
  volatile double *const A,
  const double *const B,
  const unsigned x,
  const unsigned y0,
- const unsigned y1
-)
+ const unsigned y1)
 {
   // Cannon-like A*B
   for (unsigned i = x; i < _nRow; i += 32u) {
@@ -167,12 +165,10 @@ MYDEVFN void dMultAV
   }
 }
 
-#if ((CVG == 0) || (CVG == 2) || (CVG == 4))
+#if ((CVG == 0) || (CVG == 2) || (CVG == 4) || (CVG == 6))
 MYDEVFN double dSsqC
-(
- const double *const bA,
- const double *const eA
-)
+(const double *const bA,
+ const double *const eA)
 {
   double x = +0.0, y;
   for (const double *pA = bA; pA < eA; pA += WARP_SZ) {
@@ -181,12 +177,10 @@ MYDEVFN double dSsqC
   }
   return dSum32(x);
 }
-#else // ((CVG == 1) || (CVG == 3) || (CVG == 5))
+#else // ((CVG == 1) || (CVG == 3) || (CVG == 5) || (CVG == 7))
 MYDEVFN double dSsqC
-(
- const double *const bA,
- const double *const eA
-)
+(const double *const bA,
+ const double *const eA)
 {
   double x = +0.0, xx = +0.0, y, yy;
   for (const double *pA = bA; pA < eA; pA += WARP_SZ) {
@@ -203,52 +197,44 @@ MYDEVFN double dSsqC
 #endif // ?CVG
 
 MYDEVFN void dInvNrm2C
-(
- const double *const bA,
+(const double *const bA,
  const double *const eA,
  double &ssq,
- double &inv_nrm
-)
+ double &inv_nrm)
 {
   ssq = dSsqC(bA, eA);
   inv_nrm = my_drsqrt_rn(ssq);
 }
 
 MYDEVFN void dNrm2InvC
-(
- const double *const bA,
+(const double *const bA,
  const double *const eA,
  double &ssq,
  double &nrm,
- double &inv_nrm
-)
+ double &inv_nrm)
 {
   dInvNrm2C(bA, eA, ssq, inv_nrm);
   nrm = __dsqrt_rn(ssq);
 }
 
 MYDEVFN void dScalC
-(
- double *const bA,
+(double *const bA,
  const double *const eA,
- const double scl
-)
+ const double scl)
 {
   for (double *pA = bA; pA < eA; pA += WARP_SZ)
     *pA *= scl;
 }
 
 MYDEVFN void dGlobalPostScaleFast
-(
- double *const F,
+(double *const F,
  double *const G,
  double *const V,
  const unsigned nRow,
  const unsigned nRank,
  const unsigned ldF,
  const unsigned ldG,
- const unsigned ldV
-)
+ const unsigned ldV)
 {
   const unsigned wpb = (blockDim.x + WARP_SZ_SUB1) >> WARP_SZ_LG;
   const unsigned wid = threadIdx.x >> WARP_SZ_LG;
@@ -272,8 +258,7 @@ MYDEVFN void dGlobalPostScaleFast
 }
 
 MYDEVFN void dGlobalPostScaleFull
-(
- double *const F,
+(double *const F,
  double *const G,
  double *const V,
  double *const S,
@@ -283,8 +268,7 @@ MYDEVFN void dGlobalPostScaleFull
  const unsigned nRank,
  const unsigned ldF,
  const unsigned ldG,
- const unsigned ldV
-)
+ const unsigned ldV)
 {
   const unsigned wpb = (blockDim.x + WARP_SZ_SUB1) >> WARP_SZ_LG;
   const unsigned wid = threadIdx.x >> WARP_SZ_LG;
@@ -334,12 +318,10 @@ MYKERN dInitS(const int full)
 }
 
 MYDEVFN void dGlobalInitV
-(
- double *const V,
+(double *const V,
  const unsigned nRow,
  const unsigned nRank,
- const unsigned ldV
-)
+ const unsigned ldV)
 {
   const unsigned wpb = (blockDim.x + WARP_SZ_SUB1) >> WARP_SZ_LG;
   const unsigned wid = threadIdx.x >> WARP_SZ_LG;
@@ -353,16 +335,14 @@ MYDEVFN void dGlobalInitV
 }
 
 MYDEVFN void dGlobalInitVscl
-(
- double *const F,
+(double *const F,
  double *const G,
  double *const V,
  const unsigned nRow,
  const unsigned nRank,
  const unsigned ldF,
  const unsigned ldG,
- const unsigned ldV
-)
+ const unsigned ldV)
 {
   const unsigned wpb = (blockDim.x + WARP_SZ_SUB1) >> WARP_SZ_LG;
   const unsigned wid = threadIdx.x >> WARP_SZ_LG;

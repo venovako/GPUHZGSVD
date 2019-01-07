@@ -183,7 +183,7 @@ dSsq32(const double x)
   return dSum32(x * x);
 }
 
-#if ((CVG == 1) || (CVG == 3) || (CVG == 5))
+#if ((CVG == 1) || (CVG == 3) || (CVG == 5) || (CVG == 7))
 MYDEVFN double
 dSUM_PROD_32(const double x, const double y, double &s0, double &s1)
 {

@@ -2,13 +2,11 @@
 #define DEVICE_CODE_CDSORT_HPP
 
 MYDEVFN unsigned dHZ_L0_s
-(
- volatile double *const F,
+(volatile double *const F,
  volatile double *const G,
  volatile double *const V,
  const unsigned x,
- const unsigned y
-)
+ const unsigned y)
 {
   unsigned
     blk_transf_s = 0u,

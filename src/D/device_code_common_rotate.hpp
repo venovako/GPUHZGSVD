@@ -1,10 +1,16 @@
 #ifndef DEVICE_CODE_COMMON_ROTATE_HPP
 #define DEVICE_CODE_COMMON_ROTATE_HPP
 
-MYDEVFN void
-dRot(double &App, double &Aqq,
-     const double Apq, const double Bpq, const double Bpq_,
-     double &CosF, double &SinF, double &CosP, double &SinP)
+MYDEVFN void dRot
+(double &App,
+ double &Aqq,
+ const double Apq,
+ const double Bpq,
+ const double Bpq_,
+ double &CosF,
+ double &SinF,
+ double &CosP,
+ double &SinP)
 {
   const double
     Bpqp = __dsqrt_rn(1.0 + Bpq),

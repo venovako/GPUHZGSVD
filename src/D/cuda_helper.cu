@@ -13,8 +13,8 @@ int configureGPUex(const int dev, const unsigned maxShMemB) throw()
   CUDA_CALL(cudaGetDeviceProperties(&cdp, dev));
   const int dcc = cdp.major * 10 + cdp.minor;
 
-  if (dcc < 20) {
-    (void)snprintf(err_msg, err_msg_size, "CUDA Device %d Compute Capability %d.%d < 2.0", dev, cdp.major, cdp.minor);
+  if (dcc < 30) {
+    (void)snprintf(err_msg, err_msg_size, "CUDA Device %d Compute Capability %d.%d < 3.0", dev, cdp.major, cdp.minor);
     DIE(err_msg);
   }
 
@@ -40,9 +40,7 @@ int configureGPUex(const int dev, const unsigned maxShMemB) throw()
     WARN(err_msg);
   }
   CUDA_CALL(cudaDeviceSetCacheConfig(cacheConfig));
-
-  if (dcc >= 30)
-    CUDA_CALL(cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeEightByte));
+  CUDA_CALL(cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeEightByte));
 
   return dcc;
 }
