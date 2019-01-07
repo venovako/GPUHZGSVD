@@ -88,6 +88,8 @@ MYDEVFN unsigned dHZ_L0_s
         double CosF, SinF, CosP, SinP;
         int fn1, pn1;
         transf_b = dRot(App, Aqq, Apq, Bpq, Bpq_, CosF, SinF, CosP, SinP, fn1, pn1);
+        fn1 = (fabs(CosF) != 1.0);
+        pn1 = (fabs(CosP) != 1.0);
         
         if (transf_b) {
           if (App >= Aqq) {
