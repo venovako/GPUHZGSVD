@@ -1,7 +1,13 @@
 #ifndef DEVICE_CODE_COMMON_ROTATE_HPP
 #define DEVICE_CODE_COMMON_ROTATE_HPP
 
-MYDEVFN void dRot
+MYDEVFN
+#if ((CVG == 4) || (CVG == 5) || (CVG == 6) || (CVG == 7))
+int
+#else // ((CVG == 0) || (CVG == 1) || (CVG == 2) || (CVG == 3))
+void
+#endif // ?CVG
+dRot
 (double &App,
  double &Aqq,
  const double Apq,
@@ -10,8 +16,12 @@ MYDEVFN void dRot
  double &CosF,
  double &SinF,
  double &CosP,
- double &SinP)
-{
+ double &SinP
+#if ((CVG == 4) || (CVG == 5) || (CVG == 6) || (CVG == 7))
+ , int &fn1
+ , int &pn1
+#endif
+ ) {
   const double
     Bpqp = __dsqrt_rn(1.0 + Bpq),
     Bpqm = __dsqrt_rn(1.0 - Bpq),
@@ -46,6 +56,10 @@ MYDEVFN void dRot
       CosP = __fma_rn(__fma_rn(CosT, Eta, SinT), Xi_, CosT);
       SinP = __fma_rn(__fma_rn(SinT, Eta_, CosT), Xi, SinT);
     }
+#if ((CVG == 4) || (CVG == 5) || (CVG == 6) || (CVG == 7))
+    fn1 = (fabs(CosF) != 1.0);
+    pn1 = (fabs(CosP) != 1.0);
+#endif // ?CVG
   }
   else {
     const double
@@ -60,24 +74,38 @@ MYDEVFN void dRot
     else
       TanT = copysign(__drcp_rn(Cot2T_ + __dsqrt_rn(__fma_rn(Cot2T, Cot2T, 1.0))), Cot2T);
     if (fabs(TanT) < SQRT_HEPS) {
-      CosF = __fma_rn(TanT - Eta, Xi, 1.0) * F;
-      SinF = __fma_rn(__fma_rn(TanT, Eta, 1.0), Xi_, TanT) * F;
-      CosP = __fma_rn(TanT + Eta, Xi_, 1.0) * F;
-      SinP = __fma_rn(__fma_rn(TanT, Eta_, 1.0), Xi, TanT) * F;
+      CosF = __fma_rn(TanT - Eta, Xi, 1.0);
+      SinF = __fma_rn(__fma_rn(TanT, Eta, 1.0), Xi_, TanT);
+      CosP = __fma_rn(TanT + Eta, Xi_, 1.0);
+      SinP = __fma_rn(__fma_rn(TanT, Eta_, 1.0), Xi, TanT);
     }
     else {
       const double
         CosT = my_drsqrt_rn(__fma_rn(TanT, TanT, 1.0)),
         SinT = CosT * TanT;
-      CosF = __fma_rn(__fma_rn(CosT, Eta_, SinT), Xi, CosT) * F;
-      SinF = __fma_rn(__fma_rn(SinT, Eta, CosT), Xi_, SinT) * F;
-      CosP = __fma_rn(__fma_rn(CosT, Eta, SinT), Xi_, CosT) * F;
-      SinP = __fma_rn(__fma_rn(SinT, Eta_, CosT), Xi, SinT) * F;
+      CosF = __fma_rn(__fma_rn(CosT, Eta_, SinT), Xi, CosT);
+      SinF = __fma_rn(__fma_rn(SinT, Eta, CosT), Xi_, SinT);
+      CosP = __fma_rn(__fma_rn(CosT, Eta, SinT), Xi_, CosT);
+      SinP = __fma_rn(__fma_rn(SinT, Eta_, CosT), Xi, SinT);
+    }
+#if ((CVG == 4) || (CVG == 5) || (CVG == 6) || (CVG == 7))
+    fn1 = (fabs(CosF) != 1.0);
+    pn1 = (fabs(CosP) != 1.0);
+#endif // ?CVG
+    if (F != 1.0) {
+      CosF *= F;
+      SinF *= F;
+      CosP *= F;
+      SinP *= F;
     }
   }
 
   App = CosF*CosF*App - scalbn(CosF*SinP*Apq, 1) + SinP*SinP*Aqq;
   Aqq = SinF*SinF*App + scalbn(SinF*CosP*Apq, 1) + CosP*CosP*Aqq;
+
+#if ((CVG == 4) || (CVG == 5) || (CVG == 6) || (CVG == 7))
+  return (fn1 || pn1);
+#endif // ?CVG
 }
 
 #endif // !DEVICE_CODE_COMMON_ROTATE_HPP
