@@ -20,7 +20,7 @@ dRot
 #if ((CVG == 4) || (CVG == 5) || (CVG == 6) || (CVG == 7))
  , int &fn1
  , int &pn1
-#endif
+#endif // ?CVG
  ) {
   const double
     Bpqp = __dsqrt_rn(1.0 + Bpq),
