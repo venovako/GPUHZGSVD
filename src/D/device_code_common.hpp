@@ -129,7 +129,7 @@ MYDEVFN void dMultAV
 (double *const A0,
  double *const A1,
  volatile double *const A,
- const double *const B,
+ volatile const double *const B,
  const unsigned x,
  const unsigned y0,
  const unsigned y1)

@@ -23,9 +23,12 @@ MYKERN __launch_bounds__(HZ_L1_MAX_THREADS_PER_BLOCK, HZ_L1_MIN_BLOCKS_PER_SM)
     *const G0 = _G + ix * _ldG,
     *const G1 = _G + jx * _ldG,
     *const V0 = _V + ix * _ldV,
-    *const V1 = _V + jx * _ldV,
-    *const F = shMem,
-    *const G = shMem + 1024u,
+    *const V1 = _V + jx * _ldV;
+  volatile double
+    *const F = shMem;
+  volatile double
+    *const G = shMem + 1024u;
+  volatile double
     *const V = shMem + 2048u;
 
   dFactorize(F0, F1, G0, G1, F, G, V, x, y0, y1);

@@ -10,7 +10,7 @@ MYDEVFN void dMultV
  double *const V1,
  volatile double *const A,
  volatile double *const B,
- const double *const C,
+ volatile const double *const C,
  const unsigned x,
  const unsigned y0,
  const unsigned y1)
