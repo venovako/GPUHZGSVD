@@ -138,7 +138,6 @@ MYDEVFN void dMultAV
   for (unsigned i = x; i < _nRow; i += 32u) {
     F32(A, x, y0) = A0[i];
     F32(A, x, y1) = A1[i];
-
     __syncthreads();
 
     double
@@ -162,6 +161,7 @@ MYDEVFN void dMultAV
 
     A0[i] = Cxy0;
     A1[i] = Cxy1;
+    __syncthreads();
   }
 }
 
