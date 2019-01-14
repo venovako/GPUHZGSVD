@@ -77,12 +77,13 @@ MYDEVFN unsigned dHZ_L0_s
         Bpq_ = fabs(Bpq),
         App_Aqq_ = App_ * Aqq_;
 
-      int transf_s = (!(Bpq_ < HZ_MYTOL) ? 1 : !(Apq_ < (App_Aqq_ * HZ_MYTOL)));
-      int transf_b = 0, chg = 0;
+      const int transf_s = (!(Bpq_ < HZ_MYTOL) ? 1 : !(Apq_ < (App_Aqq_ * HZ_MYTOL)));
+      swp_transf_s += (__syncthreads_count(transf_s) >> WARP_SZ_LGi);
+
+      int transf_b = 0;
       Fp_ = Fp; Fq_ = Fq;
       Gp_ = Gp; Gq_ = Gq;
       Vp_ = Vp; Vq_ = Vq;
-
       if (transf_s) {
         double CosF, SinF, CosP, SinP;
         dRot(App, Aqq, Apq, Bpq, Bpq_, CosF, SinF, CosP, SinP);
@@ -229,59 +230,12 @@ MYDEVFN unsigned dHZ_L0_s
             Vp_ = __fma_rn(SinF, Vp, Vq);
           }
         }
-
-        if (App >= Aqq) {
-          if (Fp != Fp_) {
-            F32(F, x, p) = Fp_;
-            ++chg;
-          }
-          if (Fq != Fq_) {
-            F32(F, x, q) = Fq_;
-            ++chg;
-          }
-          if (Gp != Gp_) {
-            F32(G, x, p) = Gp_;
-            ++chg;
-          }
-          if (Gq != Gq_) {
-            F32(G, x, q) = Gq_;
-            ++chg;
-          }
-          if (Vp != Vp_) {
-            F32(V, x, p) = Vp_;
-            ++chg;
-          }
-          if (Vq != Vq_) {
-            F32(V, x, q) = Vq_;
-            ++chg;
-          }
-        }
-        else {
-          if (Fp != Fq_) {
-            F32(F, x, p) = Fp_;
-            ++chg;
-          }
-          if (Fq != Fp_) {
-            F32(F, x, q) = Fq_;
-            ++chg;
-          }
-          if (Gp != Gq_) {
-            F32(G, x, p) = Gp_;
-            ++chg;
-          }
-          if (Gq != Gp_) {
-            F32(G, x, q) = Gq_;
-            ++chg;
-          }
-          if (Vp != Vq_) {
-            F32(V, x, p) = Vp_;
-            ++chg;
-          }
-          if (Vq != Vp_) {
-            F32(V, x, q) = Vq_;
-            ++chg;
-          }
-        }
+        F32(F, x, p) = Fp_;
+        F32(F, x, q) = Fq_;
+        F32(G, x, p) = Gp_;
+        F32(G, x, q) = Gq_;
+        F32(V, x, p) = Vp_;
+        F32(V, x, q) = Vq_;
       }
       else if (App < Aqq) {
         Fp_ = Fq;
@@ -298,13 +252,7 @@ MYDEVFN unsigned dHZ_L0_s
         F32(V, x, q) = Vq_;
       }
 
-      if (__syncthreads_count(chg)) {
-        const int inc_swp_transf_s = (__syncthreads_count(transf_s) >> WARP_SZ_LGi);
-        if (inc_swp_transf_s) {
-          swp_transf_s += inc_swp_transf_s;
-          swp_transf_b += (__syncthreads_count(transf_b) >> WARP_SZ_LGi);
-        }
-      }
+      swp_transf_b += (__syncthreads_count(transf_b) >> WARP_SZ_LGi);
     }
 
     if (swp_transf_s) {
