@@ -8,7 +8,7 @@ __constant__
 double *_S, *_H, *_K;
 
 __constant__
-volatile unsigned Long *_cvg;
+volatile unsigned long long *_cvg;
 
 __constant__
 unsigned _nRow, _nRank, _ldF, _ldG, _ldV, _nSwp;

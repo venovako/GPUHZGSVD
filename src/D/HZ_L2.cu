@@ -28,13 +28,13 @@ HZ_L2
  double *const hH,           // ||F_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2)
  double *const hK,           // ||G_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2)
  unsigned *const glbSwp,     // OUT, number of sweeps at the outermost level
- unsigned Long *const glb_s, // OUT, number of rotations
- unsigned Long *const glb_b, // OUT, number of ``big'' rotations
+ unsigned long long *const glb_s, // OUT, number of rotations
+ unsigned long long *const glb_b, // OUT, number of ``big'' rotations
  double *const timing        // OUT, optional, in seconds, double[4] ==
  // WALL, SETUP & HOST ==> GPUs, COMPUTATION, CLEANUP & GPUs ==> HOST
 ) throw()
 {
-  Long timers[4] = { MkLong(0) };
+  long long timers[4] = { 0ll };
   stopwatch_reset(timers[0]);
 
   if (routine >= 16u)
@@ -98,8 +98,8 @@ HZ_L2
   double *const dH = allocDeviceVec<double>(static_cast<size_t>(ncol));
   double *const dK = allocDeviceVec<double>(static_cast<size_t>(ncol));
 
-  volatile unsigned Long *cvg_dat = static_cast<volatile unsigned Long*>(NULL);
-  CUDA_CALL(cudaHostAlloc((void**)&cvg_dat, sizeof(unsigned Long), cudaHostAllocPortable | cudaHostAllocMapped));
+  volatile unsigned long long *cvg_dat = static_cast<volatile unsigned long long*>(NULL);
+  CUDA_CALL(cudaHostAlloc((void**)&cvg_dat, sizeof(unsigned long long), cudaHostAllocPortable | cudaHostAllocMapped));
 
   CUDA_CALL(cudaMemcpy2DAsync(dF, lddF * sizeof(double), hF, ldhF * sizeof(double), nrow * sizeof(double), ncol, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaMemcpy2DAsync(dG, lddG * sizeof(double), hG, ldhG * sizeof(double), nrow * sizeof(double), ncol, cudaMemcpyHostToDevice));
@@ -115,9 +115,9 @@ HZ_L2
 
   void (*const HZ_L1)(const unsigned) = HZ_L1_sv;
 
-  *glb_s = MkLong(0u);
-  *glb_b = MkLong(0u);
-  Long swp_tim = MkLong(0);
+  *glb_s = 0ull;
+  *glb_b = 0ull;
+  long long swp_tim = 0ll;
   stopwatch_reset(swp_tim);
 
   const unsigned swp = swp_max[1u];
@@ -203,10 +203,9 @@ HZ_L2
     ++blk_swp;
     CUDA_CALL(cudaDeviceSynchronize());
 
-    const unsigned Long cvg = *cvg_dat;
-    const unsigned cvg_s = static_cast<unsigned>(cvg);
+    const unsigned cvg_s = ((volatile const unsigned*)cvg_dat)[0];
     *glb_s += cvg_s;
-    const unsigned cvg_b = static_cast<unsigned>(cvg >> 32u);
+    const unsigned cvg_b = ((volatile const unsigned*)cvg_dat)[1];
     *glb_b += cvg_b;
     const double tim_s = stopwatch_lap(swp_tim) * TS2S;
     (void)fprintf(stdout, "BLK_SWP(%2u), ROT_S(%10u), ROT_B(%10u), TIME(%#12.6f s)\n", blk_swp, cvg_s, cvg_b, tim_s);

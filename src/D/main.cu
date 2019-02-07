@@ -93,14 +93,14 @@ int main(int argc, char *argv[])
   SYSP_CALL(hK);
 
   unsigned glbSwp = 0u;
-  unsigned Long glb_s = MkLong(0u), glb_b = MkLong(0u);
+  unsigned long long glb_s = 0ull, glb_b = 0ull;
   double timing[4] = { -0.0, -0.0, -0.0, -0.0 };
   int ret = HZ_L2(routine, nrow, ncol, hF, ldhF, hG, ldhG, hV, ldhV, hS, hH, hK, &glbSwp, &glb_s, &glb_b, timing);
 
   if (ret)
     (void)fprintf(stderr, "%s: error %d\n", ca_exe, ret);
   else {
-    (void)fprintf(stdout, "GLB_ROT_S(%20" FmtLong "u), GLB_ROT_B(%20" FmtLong "u)\n", glb_s, glb_b);
+    (void)fprintf(stdout, "GLB_ROT_S(%20llu), GLB_ROT_B(%20llu)\n", glb_s, glb_b);
     (void)fflush(stdout);
     (void)fprintf(stdout, "%#12.6f s %2u sweeps\n", *timing, glbSwp);
     (void)fflush(stdout);

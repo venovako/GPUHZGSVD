@@ -63,38 +63,6 @@
 #error EXTERN_C not definable externally
 #endif // !EXTERN_C
 
-#ifdef TLS
-#error TLS not definable externally
-#endif // TLS
-
-#ifdef USE_MULTI_THR
-#define TLS __thread
-#else // !USE_MULTI_THR
-#define TLS
-#endif // USE_MULTI_THR
-
-#ifdef Long
-#error Long not definable externally
-#endif // Long
-#ifdef Ldiv
-#error Ldiv not definable externally
-#endif // Ldiv
-#ifdef Ldiv_t
-#error Ldiv_t not definable externally
-#endif // Ldiv_t
-#ifdef FmtLong
-#error FmtLong not definable externally
-#endif // FmtLong
-#ifdef MkLong
-#error MkLong not definable externally
-#endif // MkLong
-
-#define Long long
-#define Ldiv ldiv
-#define Ldiv_t ldiv_t
-#define FmtLong "l"
-#define MkLong(x) x ## l
-
 #ifdef VAR_UNUSED
 #error VAR_UNUSED not definable externally
 #endif // VAR_UNUSED

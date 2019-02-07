@@ -21,8 +21,8 @@ HZ_L2
  double *const hH,           // ||F_i||_2/sqrt(||F_i||_2^2 + ||G_i||_2^2)
  double *const hK,           // ||G_i||_2/sqrt(||F_i||_2^2 + ||G_i||_2^2)
  unsigned *const glbSwp,     // OUT, number of sweeps at the outermost level
- unsigned Long *const glb_s, // OUT, number of rotations
- unsigned Long *const glb_b, // OUT, number of ``big'' rotations
+ unsigned long long *const glb_s, // OUT, number of rotations
+ unsigned long long *const glb_b, // OUT, number of ``big'' rotations
  double *const timing        // OUT, optional, in seconds, double[4] ==
  // WALL, SETUP & HOST ==> GPUs, COMPUTATION, CLEANUP & GPUs ==> HOST
 ) throw();

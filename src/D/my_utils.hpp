@@ -9,7 +9,7 @@
 #error err_msg_size not definable externally
 #endif // !err_msg_size
 
-EXTERN_C TLS char err_msg[err_msg_size];
+EXTERN_C char err_msg[err_msg_size];
 
 #ifndef WARN
 #define WARN(msg) {                                                             \
@@ -48,7 +48,7 @@ EXTERN_C TLS char err_msg[err_msg_size];
       exit(EXIT_FAILURE);                                               \
     }									\
   }
-#else
+#else // SYSP_CALL
 #error SYSP_CALL not definable externally
 #endif // !SYSP_CALL
 
@@ -96,13 +96,13 @@ cA(T *const A, const unsigned c, const unsigned ldA) throw()
 #endif // !TS2S
 
 #ifndef TS_S
-#define TS_S MkLong(1000000)
+#define TS_S 1000000ll
 #else // TS_S
 #error TS_S not definable externally
 #endif // !TS_S
 
-extern Long timestamp() throw();
-extern void stopwatch_reset(Long &sw) throw();
-extern Long stopwatch_lap(Long &sw) throw();
+extern long long timestamp() throw();
+extern void stopwatch_reset(long long &sw) throw();
+extern long long stopwatch_lap(long long &sw) throw();
 
 #endif // !MY_UTILS_HPP

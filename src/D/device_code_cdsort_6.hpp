@@ -275,7 +275,7 @@ MYDEVFN unsigned dHZ_L0_s
 
     if (!y && !x) {
       if (blk_transf_b) {
-        unsigned Long blk_transf = blk_transf_b;
+        unsigned long long blk_transf = blk_transf_b;
         blk_transf <<= 32u;
         blk_transf |= blk_transf_s;
         atomicAdd((unsigned long long*)_cvg, blk_transf);

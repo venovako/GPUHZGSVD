@@ -2,7 +2,7 @@
 
 #include <dlfcn.h>
 
-TLS char err_msg[err_msg_size] = { '\0' };
+char err_msg[err_msg_size] = { '\0' };
 
 int fexist(const char *const fn) throw()
 {
@@ -27,21 +27,21 @@ const void *strat_ptr(void *const h, const char *const snp, const unsigned n) th
   return (arrn[11] ? NULL : dlsym(h, arrn));
 }
 
-Long timestamp() throw()
+long long timestamp() throw()
 {
   struct timeval tv;
   SYSI_CALL(gettimeofday(&tv, static_cast<struct timezone*>(NULL)));
   return (tv.tv_sec * TS_S + tv.tv_usec);
 }
 
-void stopwatch_reset(Long &sw) throw()
+void stopwatch_reset(long long &sw) throw()
 {
   sw = timestamp();
 }
 
-Long stopwatch_lap(Long &sw) throw()
+long long stopwatch_lap(long long &sw) throw()
 {
-  const Long
+  const long long
     ts = timestamp(),
     lap = ts - sw;
   sw = ts;
