@@ -274,14 +274,12 @@ MYDEVFN unsigned dHZ_L0_s
       F32(V, x, q) = Vq_ * Vqq_;
 
     if (!y && !x) {
-      if (blk_transf_b) {
-        unsigned long long blk_transf = blk_transf_b;
-        blk_transf <<= 32u;
-        blk_transf |= blk_transf_s;
-        atomicAdd((unsigned long long*)_cvg, blk_transf);
+      if (blk_transf_s) {
+        const unsigned bix2 = (unsigned)(blockIdx.x) << 1u;
+        ((unsigned long long*)_S)[bix2] += blk_transf_s;
+        if (blk_transf_b)
+          ((unsigned long long*)_S)[bix2 + 1u] += blk_transf_b;
       }
-      else
-        atomicAdd((unsigned*)_cvg, blk_transf_s);
     }
   }
 

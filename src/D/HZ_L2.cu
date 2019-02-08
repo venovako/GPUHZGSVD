@@ -98,13 +98,13 @@ HZ_L2
   double *const dH = allocDeviceVec<double>(static_cast<size_t>(ncol));
   double *const dK = allocDeviceVec<double>(static_cast<size_t>(ncol));
 
-  volatile unsigned long long *cvg_dat = static_cast<volatile unsigned long long*>(NULL);
-  CUDA_CALL(cudaHostAlloc((void**)&cvg_dat, sizeof(unsigned long long), cudaHostAllocPortable | cudaHostAllocMapped));
-
   CUDA_CALL(cudaMemcpy2DAsync(dF, lddF * sizeof(double), hF, ldhF * sizeof(double), nrow * sizeof(double), ncol, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaMemcpy2DAsync(dG, lddG * sizeof(double), hG, ldhG * sizeof(double), nrow * sizeof(double), ncol, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaMemset2DAsync(dV, lddV * sizeof(double), 0, ncol * sizeof(double), ncol));
-  initSymbols(dF, dG, dV, dS, dH, dK, cvg_dat, nrow, ncol, static_cast<unsigned>(lddF), static_cast<unsigned>(lddG), static_cast<unsigned>(lddV), swp_max[0u]);
+  CUDA_CALL(cudaMemsetAsync(dS, 0, ncol * sizeof(double)));
+  CUDA_CALL(cudaMemsetAsync(dH, 0, ncol * sizeof(double)));
+  CUDA_CALL(cudaMemsetAsync(dK, 0, ncol * sizeof(double)));
+  initSymbols(dF, dG, dV, dS, dH, dK, nrow, ncol, static_cast<unsigned>(lddF), static_cast<unsigned>(lddG), static_cast<unsigned>(lddV), swp_max[0u]);
 
   CUDA_CALL(cudaDeviceSynchronize());
 
@@ -165,9 +165,12 @@ HZ_L2
 #endif // ?ANIMATE
 #endif // ANIMATE
 
-  while (blk_swp < swp) {
-    *cvg_dat = 0ul;
+  // stats per thread block
+  const unsigned spb = 2u;
+  // stats count
+  const unsigned sc = STRAT1_PAIRS * spb;
 
+  while (blk_swp < swp) {
     for (unsigned blk_stp = 0u; blk_stp < STRAT1_STEPS; ++blk_stp) {
       if (blk_stp)
         CUDA_CALL(cudaDeviceSynchronize());
@@ -203,12 +206,20 @@ HZ_L2
     ++blk_swp;
     CUDA_CALL(cudaDeviceSynchronize());
 
-    const unsigned cvg_s = ((volatile const unsigned*)cvg_dat)[0];
+    CUDA_CALL(cudaMemcpyAsync(hS, dS, sc * sizeof(double), cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaDeviceSynchronize());
+
+    unsigned long long cvg_s = 0ull;
+    unsigned long long cvg_b = 0ull;
+    for (unsigned i = 0u; i < sc; i += spb) {
+      cvg_s += ((const unsigned long long*)hS)[i];
+      cvg_b += ((const unsigned long long*)hS)[i + 1u];
+    }
     *glb_s += cvg_s;
-    const unsigned cvg_b = ((volatile const unsigned*)cvg_dat)[1];
     *glb_b += cvg_b;
+
     const double tim_s = stopwatch_lap(swp_tim) * TS2S;
-    (void)fprintf(stdout, "BLK_SWP(%2u), ROT_S(%10u), ROT_B(%10u), TIME(%#12.6f s)\n", blk_swp, cvg_s, cvg_b, tim_s);
+    (void)fprintf(stdout, "BLK_SWP(%2u), ROT_S(%10llu), ROT_B(%10llu), TIME(%#12.6f s)\n", blk_swp, cvg_s, cvg_b, tim_s);
     (void)fflush(stdout);
     if (!cvg_b)
       break;
@@ -257,7 +268,6 @@ HZ_L2
   CUDA_CALL(cudaMemcpyAsync(hK, dK, ncol * sizeof(double), cudaMemcpyDeviceToHost));
 
   CUDA_CALL(cudaDeviceSynchronize());
-  CUDA_CALL(cudaFreeHost((void*)cvg_dat));
   CUDA_CALL(cudaFree(static_cast<void*>(dK)));
   CUDA_CALL(cudaFree(static_cast<void*>(dH)));
   CUDA_CALL(cudaFree(static_cast<void*>(dS)));
