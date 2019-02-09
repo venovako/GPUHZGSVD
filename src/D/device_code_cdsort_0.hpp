@@ -69,21 +69,30 @@ MYDEVFN unsigned dHZ_L0_s
       Aqq = dSsq32(Fq);
       const double Apq = dSum32(Fp * Fq);
       const double Bpq = dSum32(Gp * Gq);
+      const double Bpq_ = fabs(Bpq);
 
-      const double
-        App_ = __dsqrt_rn(App),
-        Aqq_ = __dsqrt_rn(Aqq),
-        Apq_ = fabs(Apq),
-        Bpq_ = fabs(Bpq),
-        App_Aqq_ = App_ * Aqq_;
-
-      const int transf_s = (!(Bpq_ < HZ_MYTOL) ? 1 : !(Apq_ < (App_Aqq_ * HZ_MYTOL)));
-      swp_transf_s += (__syncthreads_count(transf_s) >> WARP_SZ_LGi);
-
+      int transf_s = !(Bpq_ < HZ_MYTOL);
       int transf_b = 0;
+
+      if (!transf_s) {
+        if (App >= Aqq) {
+          Fp_ = __dsqrt_rn(App);
+          Fq_ = __dsqrt_rn(Aqq);
+        }
+        else {
+          Fp_ = __dsqrt_rn(Aqq);
+          Fq_ = __dsqrt_rn(App);
+        }
+
+        Vq_ = (Fp_ * Fq_) * HZ_MYTOL;
+        transf_s = !(fabs(Apq) < Vq_);
+      }
+
       Fp_ = Fp; Fq_ = Fq;
       Gp_ = Gp; Gq_ = Gq;
       Vp_ = Vp; Vq_ = Vq;
+
+      swp_transf_s += (__syncthreads_count(transf_s) >> WARP_SZ_LGi);
       if (transf_s) {
         double CosF, SinF, CosP, SinP;
         dRot(App, Aqq, Apq, Bpq, Bpq_, CosF, SinF, CosP, SinP);

@@ -48,37 +48,61 @@ MYDEVFN unsigned dHZ_L0_s
       Bqq = dSSQ32(Gq, s0, s1);
       double Apq = dSUM_PROD_32(Fp, Fq, s0, s1);
       double Bpq = dSUM_PROD_32(Gp, Gq, s0, s1);
+      double Bpq_ = fabs(Bpq);
 
-      double App_ = App;
-      if (Bpp != 1.0) {
-        App_ = __ddiv_rn(App_, Bpp);
-        Bpp = my_drsqrt_rn(Bpp);
-        Apq *= Bpp;
-        Bpq *= Bpp;
+      if (Bpp >= Bqq) {
+        Gp_ = __dsqrt_rn(Bpp);
+        Gq_ = __dsqrt_rn(Bqq);
+      }
+      else {
+        Gp_ = __dsqrt_rn(Bqq);
+        Gq_ = __dsqrt_rn(Bpp);
       }
 
-      double Aqq_ = Aqq;
-      if (Bqq != 1.0) {
-        Aqq_ = __ddiv_rn(Aqq_, Bqq);
-        Bqq = my_drsqrt_rn(Bqq);
-        Apq *= Bqq;
-        Bpq *= Bqq;
-      }
-
-      const double Bpq_ = fabs(Bpq);
-
-      const int transf_s = (!(Bpq_ < HZ_MYTOL) ? 1 : !(fabs(Apq) < ((App_ * Aqq_) * HZ_MYTOL)));
-      swp_transf_s += (__syncthreads_count(transf_s) >> WARP_SZ_LGi);
-
+      Vp_ = (Gp_ * Gq_) * HZ_MYTOL;
+      int transf_s = !(Bpq_ < Vp_);
       int transf_b = 0;
+
+      if (!transf_s) {
+        if (App >= Aqq) {
+          Fp_ = __dsqrt_rn(App);
+          Fq_ = __dsqrt_rn(Aqq);
+        }
+        else {
+          Fp_ = __dsqrt_rn(Aqq);
+          Fq_ = __dsqrt_rn(App);
+        }
+
+        Vq_ = (Fp_ * Fq_) * HZ_MYTOL;
+        transf_s = !(fabs(Apq) < Vq_);
+      }
+
       Fp_ = Fp; Fq_ = Fq;
       Gp_ = Gp; Gq_ = Gq;
       Vp_ = Vp; Vq_ = Vq;
 
+      swp_transf_s += (__syncthreads_count(transf_s) >> WARP_SZ_LGi);
       if (transf_s) {
         double CosF, SinF, CosP, SinP;
         int fn1, pn1;
+
+        if (Bpp != 1.0) {
+          App = __ddiv_rn(App, Bpp);
+          Bpp = my_drsqrt_rn(Bpp);
+          Apq *= Bpp;
+          Bpq *= Bpp;
+        }
+
+        if (Bqq != 1.0) {
+          Aqq = __ddiv_rn(Aqq, Bqq);
+          Bqq = my_drsqrt_rn(Bqq);
+          Apq *= Bqq;
+          Bpq *= Bqq;
+        }
+
+        Bpq_ = fabs(Bpq);
         transf_b = dRot(App, Aqq, Apq, Bpq, Bpq_, CosF, SinF, CosP, SinP, fn1, pn1);
+
         if (Bpp != 1.0) {
           CosF *= Bpp;
           SinF *= Bpp;
@@ -91,7 +115,7 @@ MYDEVFN unsigned dHZ_L0_s
         pn1 = (fabs(CosP) != 1.0);
 
         if (fn1 || pn1) {
-          if (App_ >= Aqq_) {
+          if (App >= Aqq) {
             if (fn1) {
               if (SinP == 1.0) {
                 Fp_ = __fma_rn(CosF, Fp, -Fq);
@@ -208,7 +232,7 @@ MYDEVFN unsigned dHZ_L0_s
         }
         else {
           const double SinP_ = -SinP;
-          if (App_ >= Aqq_) {
+          if (App >= Aqq) {
             Fp_ = __fma_rn(SinP_, Fq, Fp);
             Fq_ = __fma_rn(SinF, Fp, Fq);
             Gp_ = __fma_rn(SinP_, Gq, Gp);
