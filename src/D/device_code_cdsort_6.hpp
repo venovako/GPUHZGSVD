@@ -48,34 +48,25 @@ MYDEVFN unsigned dHZ_L0_s
       Bqq = dSsq32(Gq);
       double Apq = dSum32(Fp * Fq);
       double Bpq = dSum32(Gp * Gq);
-      double Bpq_ = fabs(Bpq);
 
-      if (Bpp >= Bqq) {
-        Gp_ = __dsqrt_rn(Bpp);
-        Gq_ = __dsqrt_rn(Bqq);
-      }
-      else {
-        Gp_ = __dsqrt_rn(Bqq);
-        Gq_ = __dsqrt_rn(Bpp);
+      if (Bpp != 1.0) {
+        App = __ddiv_rn(App, Bpp);
+        Bpp = my_drsqrt_rn(Bpp);
+        Apq *= Bpp;
+        Bpq *= Bpp;
       }
 
-      Vp_ = (Gp_ * Gq_) * HZ_MYTOL;
-      int transf_s = !(Bpq_ < Vp_);
+      if (Bqq != 1.0) {
+        Aqq = __ddiv_rn(Aqq, Bqq);
+        Bqq = my_drsqrt_rn(Bqq);
+        Apq *= Bqq;
+        Bpq *= Bqq;
+      }
+
+      const double Bpq_ = fabs(Bpq);
+      int transf_s = (!(Bpq_ < HZ_MYTOL) ? 1 :
+                      !(fabs(Apq) < ((__dsqrt_rn(App) * __dsqrt_rn(Aqq)) * HZ_MYTOL)));
       int transf_b = 0;
-
-      if (!transf_s) {
-        if (App >= Aqq) {
-          Fp_ = __dsqrt_rn(App);
-          Fq_ = __dsqrt_rn(Aqq);
-        }
-        else {
-          Fp_ = __dsqrt_rn(Aqq);
-          Fq_ = __dsqrt_rn(App);
-        }
-
-        Vq_ = (Fp_ * Fq_) * HZ_MYTOL;
-        transf_s = !(fabs(Apq) < Vq_);
-      }
 
       Fp_ = Fp; Fq_ = Fq;
       Gp_ = Gp; Gq_ = Gq;
@@ -86,21 +77,6 @@ MYDEVFN unsigned dHZ_L0_s
         double CosF, SinF, CosP, SinP;
         int fn1, pn1;
 
-        if (Bpp != 1.0) {
-          App = __ddiv_rn(App, Bpp);
-          Bpp = my_drsqrt_rn(Bpp);
-          Apq *= Bpp;
-          Bpq *= Bpp;
-        }
-
-        if (Bqq != 1.0) {
-          Aqq = __ddiv_rn(Aqq, Bqq);
-          Bqq = my_drsqrt_rn(Bqq);
-          Apq *= Bqq;
-          Bpq *= Bqq;
-        }
-
-        Bpq_ = fabs(Bpq);
         transf_b = dRot(App, Aqq, Apq, Bpq, Bpq_, CosF, SinF, CosP, SinP, fn1, pn1);
 
         if (Bpp != 1.0) {
