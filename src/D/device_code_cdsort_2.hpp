@@ -64,8 +64,8 @@ MYDEVFN unsigned dHZ_L0_s
       }
 
       const double Bpq_ = fabs(Bpq);
-      int transf_s = (!(Bpq_ < HZ_MYTOL) ? 1 :
-                      !(fabs(Apq) < ((__dsqrt_rn(App) * __dsqrt_rn(Aqq)) * HZ_MYTOL)));
+      const int transf_s = (!(Bpq_ < HZ_MYTOL) ? 1 :
+                            !(fabs(Apq) < ((__dsqrt_rn(App) * __dsqrt_rn(Aqq)) * HZ_MYTOL)));
       int transf_b = 0;
 
       Fp_ = Fp; Fq_ = Fq;

@@ -69,24 +69,11 @@ MYDEVFN unsigned dHZ_L0_s
       Aqq = dSsq32(Fq);
       const double Apq = dSum32(Fp * Fq);
       const double Bpq = dSum32(Gp * Gq);
+
       const double Bpq_ = fabs(Bpq);
-
-      int transf_s = !(Bpq_ < HZ_MYTOL);
+      const int transf_s = (!(Bpq_ < HZ_MYTOL) ? 1 :
+                            !(fabs(Apq) < ((__dsqrt_rn(App) * __dsqrt_rn(Aqq)) * HZ_MYTOL)));
       int transf_b = 0;
-
-      if (!transf_s) {
-        if (App >= Aqq) {
-          Fp_ = __dsqrt_rn(App);
-          Fq_ = __dsqrt_rn(Aqq);
-        }
-        else {
-          Fp_ = __dsqrt_rn(Aqq);
-          Fq_ = __dsqrt_rn(App);
-        }
-
-        Vq_ = (Fp_ * Fq_) * HZ_MYTOL;
-        transf_s = !(fabs(Apq) < Vq_);
-      }
 
       Fp_ = Fp; Fq_ = Fq;
       Gp_ = Gp; Gq_ = Gq;
