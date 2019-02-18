@@ -40,6 +40,7 @@ HEADERS=				\
 	HZ.hpp				\
 	HZ_L.hpp			\
 	HZ_L2.hpp			\
+	cuZ.hpp                         \
 	cuda_helper.hpp			\
 	cuda_memory_helper.hpp		\
 	defines.hpp			\
