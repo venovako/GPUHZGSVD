@@ -30,10 +30,8 @@ NVCCFLAGS+=-Xcompiler $(HOST_FLAGS)
 endif # HOST_FLAGS
 
 ifdef ANIMATE
-NVPPFLAGS+=-DANIMATE=$(ANIMATE) -DVN_INTEGER_KIND=8 -I../../../GitHub/JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
-NVLDFLAGS=-L../../../GitHub/JACSD -lvn -L${MKLROOT}/lib -Xlinker -rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Xlinker -rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_core -lmkl_intel_thread -liomp5 -lpthread
-else # !ANIMATE
-NVPPFLAGS+=-UANIMATE
+NVPPFLAGS+=-DANIMATE=$(ANIMATE) -DVN_INTEGER_KIND=8 -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
+NVLDFLAGS=-L../../../JACSD -lvn -L${MKLROOT}/lib -Xlinker -rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Xlinker -rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_core -lmkl_intel_thread -liomp5 -lpthread
 endif # ANIMATE
 
 NVLDFLAGS+=-l dl,m
