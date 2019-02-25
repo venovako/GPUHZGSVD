@@ -1,7 +1,7 @@
 #ifndef DEVICE_CODE_CDSORT_HPP
 #define DEVICE_CODE_CDSORT_HPP
 
-MYDEVFN unsigned dHZ_L0_s
+MYDEVFN unsigned dHZ_L0_sv
 (volatile double *const F,
  volatile double *const G,
  volatile double *const V,

@@ -5,8 +5,6 @@
 int configureGPUex(const int dev, const unsigned maxShMemB) throw()
 {
   assert(dev >= 0);
-
-  CUDA_CALL(cudaSetDeviceFlags(cudaDeviceMapHost | cudaDeviceScheduleSpin));
   CUDA_CALL(cudaSetDevice(dev));
 
   cudaDeviceProp cdp;
@@ -20,11 +18,6 @@ int configureGPUex(const int dev, const unsigned maxShMemB) throw()
 
   if (WARP_SZ != static_cast<unsigned>(cdp.warpSize)) {
     (void)snprintf(err_msg, err_msg_size, "CUDA Device %d has %d threads in a warp, must be %u", dev, cdp.warpSize, WARP_SZ);
-    DIE(err_msg);
-  }
-
-  if (!cdp.unifiedAddressing) {
-    (void)snprintf(err_msg, err_msg_size, "CUDA Device %d does not support unified addressing", dev);
     DIE(err_msg);
   }
 

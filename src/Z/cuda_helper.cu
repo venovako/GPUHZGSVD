@@ -5,8 +5,6 @@
 int configureGPUex(const int dev, const unsigned maxShMemB) throw()
 {
   assert(dev >= 0);
-
-  CUDA_CALL(cudaSetDeviceFlags(cudaDeviceMapHost | cudaDeviceScheduleSpin));
   CUDA_CALL(cudaSetDevice(dev));
 
   cudaDeviceProp cdp;

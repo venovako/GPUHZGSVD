@@ -1,8 +1,8 @@
-#ifndef DEVICE_CODE_CDSORT_ACCUMV_HPP
-#define DEVICE_CODE_CDSORT_ACCUMV_HPP
+#ifndef DEVICE_CODE_NOSORT_ACCUMV_HPP
+#define DEVICE_CODE_NOSORT_ACCUMV_HPP
 
 MYKERN __launch_bounds__(HZ_L1_MAX_THREADS_PER_BLOCK, HZ_L1_MIN_BLOCKS_PER_SM)
-  zHZ_L1_sv(const unsigned step)
+  zHZ_L1_v(const unsigned step)
 {
   __shared__ double shMem[3u * 2u * 32u * 32u];
 
@@ -46,8 +46,8 @@ MYKERN __launch_bounds__(HZ_L1_MAX_THREADS_PER_BLOCK, HZ_L1_MIN_BLOCKS_PER_SM)
     *const VJ = static_cast<cuJ*>(shMem + 5u * 32u * 32u);
 
   zFactorize(F0D, F0J, F1D, F1J, G0D, G0J, G1D, G1J, FD, FJ, GD, GJ, x, y0, y1);
-  if (zHZ_L0_s(FD, FJ, GD, GJ, VD, VJ, x, y0))
+  if (zHZ_L0_v(FD, FJ, GD, GJ, VD, VJ, x, y0))
     zMultV(F0D, F0J, F1D, F1J, G0D, G0J, G1D, G1J, V0D, V0J, V1D, V1J, FD, FJ, GD, GJ, VD, VJ, x, y0, y1);
 }
 
-#endif // !DEVICE_CODE_CDSORT_ACCUMV_HPP
+#endif // !DEVICE_CODE_NOSORT_ACCUMV_HPP

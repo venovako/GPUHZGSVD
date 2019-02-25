@@ -1,7 +1,7 @@
-#ifndef DEVICE_CODE_CDSORT_HPP
-#define DEVICE_CODE_CDSORT_HPP
+#ifndef DEVICE_CODE_NOSORT_HPP
+#define DEVICE_CODE_NOSORT_HPP
 
-MYDEVFN unsigned zHZ_L0_s
+MYDEVFN unsigned zHZ_L0_v
 (volatile cuD *const FD, volatile cuJ *const FJ,
  volatile cuD *const GD, volatile cuJ *const GJ,
  volatile cuD *const VD, volatile cuJ *const VJ,
@@ -117,11 +117,12 @@ MYDEVFN unsigned zHZ_L0_s
         double CosF, CosP;
         cuD SinFD, _SinPD;
         cuJ SinFJ, _SinPJ;
-        int fn1, pn1;
 
-        transf_b = zRot(App, Aqq, ApqD, ApqJ, BpqD, BpqJ, Bpq_, CosF, SinFD, SinFJ, CosP, _SinPD, _SinPJ, fn1, pn1);
-        fn1 = (CosF != 1.0);
-        pn1 = (CosP != 1.0);
+        zRot(App, Aqq, ApqD, ApqJ, BpqD, BpqJ, Bpq_, CosF, SinFD, SinFJ, CosP, _SinPD, _SinPJ);
+        const int
+          fn1 = (CosF != 1.0),
+          pn1 = (CosP != 1.0);
+        transf_b = (fn1 || pn1);
 
         if (fn1) {
           if (pn1) {
@@ -167,61 +168,6 @@ MYDEVFN unsigned zHZ_L0_s
             Zfma(Vq_D, Vq_J, VpD, VpJ, SinFD, SinFJ, VqD, VqJ);
           }
         }
-
-        App = zSsq32(Fp_D, Fp_J);
-        assert(App > 0.0);
-        assert(App < INFTY);
-
-        Aqq = zSsq32(Fq_D, Fq_J);
-        assert(Aqq > 0.0);
-        assert(Aqq < INFTY);
-
-        if (App >= Aqq) {
-          F32(FD, x, p) = Fp_D;
-          F32(FJ, x, p) = Fp_J;
-
-          F32(GD, x, p) = Gp_D;
-          F32(GJ, x, p) = Gp_J;
-
-          F32(VD, x, p) = Vp_D;
-          F32(VJ, x, p) = Vp_J;
-
-          F32(FD, x, q) = Fq_D;
-          F32(FJ, x, q) = Fq_J;
-
-          F32(GD, x, q) = Gq_D;
-          F32(GJ, x, q) = Gq_J;
-
-          F32(VD, x, q) = Vq_D;
-          F32(VJ, x, q) = Vq_J;
-        }
-        else { // swap
-          F32(FD, x, p) = Fq_D;
-          F32(FJ, x, p) = Fq_J;
-
-          F32(GD, x, p) = Gq_D;
-          F32(GJ, x, p) = Gq_J;
-
-          F32(VD, x, p) = Vq_D;
-          F32(VJ, x, p) = Vq_J;
-
-          F32(FD, x, q) = Fp_D;
-          F32(FJ, x, q) = Fp_J;
-
-          F32(GD, x, q) = Gp_D;
-          F32(GJ, x, q) = Gp_J;
-
-          F32(VD, x, q) = Vp_D;
-          F32(VJ, x, q) = Vp_J;
-        }
-      }
-      else if (App < Aqq) { // swap
-        Fp_D = FqD; Fp_J = FqJ;
-        Fq_D = FpD; Fq_J = FpJ;
-        Gp_D = GqD; Gp_J = GqJ;
-        Gq_D = GpD; Gq_J = GpJ;
-        Vp_D = VqD; Vp_J = VqJ;
-        Vq_D = VpD; Vq_J = VpJ;
 
         F32(FD, x, p) = Fp_D;
         F32(FJ, x, p) = Fp_J;
@@ -312,4 +258,4 @@ MYDEVFN unsigned zHZ_L0_s
   return blk_transf_s;
 }
 
-#endif // !DEVICE_CODE_CDSORT_HPP
+#endif // !DEVICE_CODE_NOSORT_HPP

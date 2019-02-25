@@ -32,7 +32,7 @@ MYKERN __launch_bounds__(HZ_L1_MAX_THREADS_PER_BLOCK, HZ_L1_MIN_BLOCKS_PER_SM)
     *const V = shMem + 2048u;
 
   dFactorize(F0, F1, G0, G1, F, G, V, x, y0, y1);
-  if (dHZ_L0_s(F, G, V, x, y0))
+  if (dHZ_L0_sv(F, G, V, x, y0))
     dMultV(F0, F1, G0, G1, V0, V1, F, G, V, x, y0, y1);
 }
 

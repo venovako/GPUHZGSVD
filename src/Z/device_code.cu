@@ -28,12 +28,12 @@
 
 static const dim3 hzL1bD(HZ_L1_THREADS_PER_BLOCK_X, HZ_L1_THREADS_PER_BLOCK_Y, 1u);
 
-void HZ_L1_sv(const unsigned step) throw()
+void HZ_L1_v(const unsigned step) throw()
 {
   const dim3 hzL1gD(STRAT1_PAIRS, 1u, 1u);
   CUDA_CALL(cudaConfigureCall(hzL1gD, hzL1bD));
   CUDA_CALL(cudaSetupArgument(step, static_cast<size_t>(0u)));
-  CUDA_CALL(cudaLaunch(zHZ_L1_sv));
+  CUDA_CALL(cudaLaunch(zHZ_L1_v));
 }
 
 void initS(const int full, const unsigned nRank, const cudaStream_t s) throw()
