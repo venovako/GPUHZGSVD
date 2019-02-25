@@ -239,27 +239,25 @@ MYDEVFN unsigned dHZ_L0_sv
       break;
   }
 
-  if (blk_transf_s) {
-    // normalize V
+  // normalize V
 
-    App = dSSQ32(Fp_, s0, s1);
-    Bpp = dSSQ32(Gp_, s0, s1);
-    const double Vpp_ = my_drsqrt_rn(App + Bpp);
-    if (Vpp_ != 1.0)
-      F32(V, x, p) = Vp_ * Vpp_;
+  App = dSSQ32(Fp_, s0, s1);
+  Bpp = dSSQ32(Gp_, s0, s1);
+  const double Vpp_ = my_drsqrt_rn(App + Bpp);
+  if (Vpp_ != 1.0)
+    F32(V, x, p) = Vp_ * Vpp_;
 
-    Aqq = dSSQ32(Fq_, s0, s1);
-    Bqq = dSSQ32(Gq_, s0, s1);
-    const double Vqq_ = my_drsqrt_rn(Aqq + Bqq);
-    if (Vqq_ != 1.0)
-      F32(V, x, q) = Vq_ * Vqq_;
+  Aqq = dSSQ32(Fq_, s0, s1);
+  Bqq = dSSQ32(Gq_, s0, s1);
+  const double Vqq_ = my_drsqrt_rn(Aqq + Bqq);
+  if (Vqq_ != 1.0)
+    F32(V, x, q) = Vq_ * Vqq_;
 
-    if (!y && !x) {
-      const unsigned bix2 = (unsigned)(blockIdx.x) << 1u;
-      ((unsigned long long*)_S)[bix2] += blk_transf_s;
-      if (blk_transf_b)
-        ((unsigned long long*)_S)[bix2 + 1u] += blk_transf_b;
-    }
+  if (!y && !x) {
+    const unsigned bix2 = (unsigned)(blockIdx.x) << 1u;
+    ((unsigned long long*)_S)[bix2] += blk_transf_s;
+    if (blk_transf_b)
+      ((unsigned long long*)_S)[bix2 + 1u] += blk_transf_b;
   }
 
   __syncthreads();

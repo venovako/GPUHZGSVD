@@ -271,51 +271,49 @@ MYDEVFN unsigned zHZ_L0_sv
       break;
   }
 
-  if (blk_transf_s) {
-    // normalize V
+  // normalize V
 
-    App = zSsq32(Fp_D, Fp_J);
-    assert(App > 0.0);
-    assert(App < INFTY);
+  App = zSsq32(Fp_D, Fp_J);
+  assert(App > 0.0);
+  assert(App < INFTY);
 
-    Bpp = zSsq32(Gp_D, Gp_J);
-    assert(Bpp > 0.0);
-    assert(Bpp < INFTY);
+  Bpp = zSsq32(Gp_D, Gp_J);
+  assert(Bpp > 0.0);
+  assert(Bpp < INFTY);
 
-    Vpp = my_drsqrt_rn(App + Bpp);
-    assert(Vpp > 0.0);
-    assert(Vpp < INFTY);
+  Vpp = my_drsqrt_rn(App + Bpp);
+  assert(Vpp > 0.0);
+  assert(Vpp < INFTY);
 
-    if (Vpp != 1.0) {
-      F32(VD, x, p) *= Vpp;
-      F32(VJ, x, p) *= Vpp;
-    }
-    __syncthreads();
+  if (Vpp != 1.0) {
+    F32(VD, x, p) *= Vpp;
+    F32(VJ, x, p) *= Vpp;
+  }
+  __syncthreads();
 
-    Aqq = zSsq32(Fq_D, Fq_J);
-    assert(Aqq > 0.0);
-    assert(Aqq < INFTY);
+  Aqq = zSsq32(Fq_D, Fq_J);
+  assert(Aqq > 0.0);
+  assert(Aqq < INFTY);
 
-    Bqq = zSsq32(Gq_D, Gq_J);
-    assert(Bqq > 0.0);
-    assert(Bqq < INFTY);
+  Bqq = zSsq32(Gq_D, Gq_J);
+  assert(Bqq > 0.0);
+  assert(Bqq < INFTY);
 
-    Vqq = my_drsqrt_rn(Aqq + Bqq);
-    assert(Vqq > 0.0);
-    assert(Vqq < INFTY);
+  Vqq = my_drsqrt_rn(Aqq + Bqq);
+  assert(Vqq > 0.0);
+  assert(Vqq < INFTY);
 
-    if (Vqq != 1.0) {
-      F32(VD, x, q) *= Vqq;
-      F32(VJ, x, q) *= Vqq;
-    }
-    __syncthreads();
+  if (Vqq != 1.0) {
+    F32(VD, x, q) *= Vqq;
+    F32(VJ, x, q) *= Vqq;
+  }
+  __syncthreads();
 
-    if (!y && !x) {
-      const unsigned bix2 = (unsigned)(blockIdx.x) << 1u;
-      ((unsigned long long*)_S)[bix2] += blk_transf_s;
-      if (blk_transf_b)
-        ((unsigned long long*)_S)[bix2 + 1u] += blk_transf_b;
-    }
+  if (!y && !x) {
+    const unsigned bix2 = (unsigned)(blockIdx.x) << 1u;
+    ((unsigned long long*)_S)[bix2] += blk_transf_s;
+    if (blk_transf_b)
+      ((unsigned long long*)_S)[bix2 + 1u] += blk_transf_b;
   }
 
   __syncthreads();
