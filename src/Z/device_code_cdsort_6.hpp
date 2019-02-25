@@ -1,7 +1,7 @@
-#ifndef DEVICE_CODE_NOSORT_HPP
-#define DEVICE_CODE_NOSORT_HPP
+#ifndef DEVICE_CODE_CDSORT_HPP
+#define DEVICE_CODE_CDSORT_HPP
 
-MYDEVFN unsigned zHZ_L0_v
+MYDEVFN unsigned zHZ_L0_sv
 (volatile cuD *const FD, volatile cuJ *const FJ,
  volatile cuD *const GD, volatile cuJ *const GJ,
  volatile cuD *const VD, volatile cuJ *const VJ,
@@ -167,6 +167,70 @@ MYDEVFN unsigned zHZ_L0_v
           }
         }
 
+        App = zSsq32(Fp_D, Fp_J);
+        assert(App > 0.0);
+        assert(App < INFTY);
+
+        Aqq = zSsq32(Fq_D, Fq_J);
+        assert(Aqq > 0.0);
+        assert(Aqq < INFTY);
+
+        if (App >= Aqq) {
+          F32(FD, x, p) = Fp_D;
+          F32(FJ, x, p) = Fp_J;
+
+          F32(GD, x, p) = Gp_D;
+          F32(GJ, x, p) = Gp_J;
+
+          F32(VD, x, p) = Vp_D;
+          F32(VJ, x, p) = Vp_J;
+
+          F32(FD, x, q) = Fq_D;
+          F32(FJ, x, q) = Fq_J;
+
+          F32(GD, x, q) = Gq_D;
+          F32(GJ, x, q) = Gq_J;
+
+          F32(VD, x, q) = Vq_D;
+          F32(VJ, x, q) = Vq_J;
+        }
+        else { // swap
+          FpD = Fp_D; Fp_D = Fq_D; Fq_D = FpD;
+          FpJ = Fp_J; Fp_J = Fq_J; Fq_J = FpJ;
+
+          GpD = Gp_D; Gp_D = Gq_D; Gq_D = GpD;
+          GpJ = Gp_J; Gp_J = Gq_J; Gq_J = GpJ;
+
+          VpD = Vp_D; Vp_D = Vq_D; Vq_D = VpD;
+          VpJ = Vp_J; Vp_J = Vq_J; Vq_J = VpJ;
+
+          F32(FD, x, p) = Fq_D;
+          F32(FJ, x, p) = Fq_J;
+
+          F32(GD, x, p) = Gq_D;
+          F32(GJ, x, p) = Gq_J;
+
+          F32(VD, x, p) = Vq_D;
+          F32(VJ, x, p) = Vq_J;
+
+          F32(FD, x, q) = Fp_D;
+          F32(FJ, x, q) = Fp_J;
+
+          F32(GD, x, q) = Gp_D;
+          F32(GJ, x, q) = Gp_J;
+
+          F32(VD, x, q) = Vp_D;
+          F32(VJ, x, q) = Vp_J;
+        }
+      }
+      else if (App < Aqq) { // swap
+        Fp_D = FqD; Fp_J = FqJ;
+        Fq_D = FpD; Fq_J = FpJ;
+        Gp_D = GqD; Gp_J = GqJ;
+        Gq_D = GpD; Gq_J = GpJ;
+        Vp_D = VqD; Vp_J = VqJ;
+        Vq_D = VpD; Vq_J = VpJ;
+
         F32(FD, x, p) = Fp_D;
         F32(FJ, x, p) = Fp_J;
 
@@ -256,4 +320,4 @@ MYDEVFN unsigned zHZ_L0_v
   return blk_transf_s;
 }
 
-#endif // !DEVICE_CODE_NOSORT_HPP
+#endif // !DEVICE_CODE_CDSORT_HPP

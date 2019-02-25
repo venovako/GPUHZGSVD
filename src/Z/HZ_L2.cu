@@ -167,7 +167,7 @@ HZ_L2
   initV(sclV, ncol, static_cast<cudaStream_t>(NULL));
   CUDA_CALL(cudaDeviceSynchronize());
 
-  void (*const HZ_L1)(const unsigned) = HZ_L1_v;
+  void (*const HZ_L1)(const unsigned) = HZ_L1_sv;
 
   *glb_s = 0ull;
   *glb_b = 0ull;

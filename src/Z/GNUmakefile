@@ -46,8 +46,8 @@ HEADERS=				\
 	defines.hpp			\
 	device_code.hpp			\
 	device_code_accumV.hpp 		\
-	device_code_nosort_$(CVG).hpp	\
-	device_code_nosort_accumV.hpp	\
+	device_code_cdsort_$(CVG).hpp	\
+	device_code_cdsort_accumV.hpp	\
 	device_code_common.hpp		\
 	device_code_globals.hpp		\
 	device_code_common_rotate.hpp	\
