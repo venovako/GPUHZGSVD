@@ -77,8 +77,8 @@ dRot
         SinP = __fma_rn(__fma_rn(SinT, Eta_, CosT), Xi, SinT);
       }
 #if ((CVG == 4) || (CVG == 5) || (CVG == 6) || (CVG == 7))
-      fn1 = (fabs(CosF) != 1.0);
-      pn1 = (fabs(CosP) != 1.0);
+      fn1 = (CosF != 1.0);
+      pn1 = (CosP != 1.0);
 #endif // ?CVG
     }
     else {
@@ -109,8 +109,8 @@ dRot
         SinP = __fma_rn(__fma_rn(SinT, Eta_, CosT), Xi, SinT);
       }
 #if ((CVG == 4) || (CVG == 5) || (CVG == 6) || (CVG == 7))
-      fn1 = (fabs(CosF) != 1.0);
-      pn1 = (fabs(CosP) != 1.0);
+      fn1 = (CosF != 1.0);
+      pn1 = (CosP != 1.0);
 #endif // ?CVG
       if (F != 1.0) {
         CosF *= F;

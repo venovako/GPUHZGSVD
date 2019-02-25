@@ -84,8 +84,8 @@ MYDEVFN unsigned dHZ_L0_s
         double CosF, SinF, CosP, SinP;
         int fn1, pn1;
         transf_b = dRot(App, Aqq, Apq, Bpq, Bpq_, CosF, SinF, CosP, SinP, fn1, pn1);
-        fn1 = (fabs(CosF) != 1.0);
-        pn1 = (fabs(CosP) != 1.0);
+        fn1 = (CosF != 1.0);
+        pn1 = (CosP != 1.0);
 
         if (transf_b) {
           if (App >= Aqq) {
@@ -106,16 +106,11 @@ MYDEVFN unsigned dHZ_L0_s
                 Vp_ = CosF * Vp - SinP * Vq;
               }
             }
-            else if (CosF == 1.0) {
+            else {
               const double SinP_ = -SinP;
               Fp_ = __fma_rn(SinP_, Fq, Fp);
               Gp_ = __fma_rn(SinP_, Gq, Gp);
               Vp_ = __fma_rn(SinP_, Vq, Vp);
-            }
-            else {
-              Fp_ = -__fma_rn(SinP, Fq, Fp);
-              Gp_ = -__fma_rn(SinP, Gq, Gp);
-              Vp_ = -__fma_rn(SinP, Vq, Vp);
             }
             if (pn1) {
               if (SinF == 1.0) {
@@ -134,15 +129,10 @@ MYDEVFN unsigned dHZ_L0_s
                 Vq_ = SinF * Vp + CosP * Vq;
               }
             }
-            else if (CosP == 1.0) {
+            else {
               Fq_ = __fma_rn(SinF, Fp, Fq);
               Gq_ = __fma_rn(SinF, Gp, Gq);
               Vq_ = __fma_rn(SinF, Vp, Vq);
-            }
-            else {
-              Fq_ = __fma_rn(SinF, Fp, -Fq);
-              Gq_ = __fma_rn(SinF, Gp, -Gq);
-              Vq_ = __fma_rn(SinF, Vp, -Vq);
             }
           }
           else {
@@ -163,16 +153,11 @@ MYDEVFN unsigned dHZ_L0_s
                 Vq_ = CosF * Vp - SinP * Vq;
               }
             }
-            else if (CosF == 1.0) {
+            else {
               const double SinP_ = -SinP;
               Fq_ = __fma_rn(SinP_, Fq, Fp);
               Gq_ = __fma_rn(SinP_, Gq, Gp);
               Vq_ = __fma_rn(SinP_, Vq, Vp);
-            }
-            else {
-              Fq_ = -__fma_rn(SinP, Fq, Fp);
-              Gq_ = -__fma_rn(SinP, Gq, Gp);
-              Vq_ = -__fma_rn(SinP, Vq, Vp);
             }
             if (pn1) {
               if (SinF == 1.0) {
@@ -191,15 +176,10 @@ MYDEVFN unsigned dHZ_L0_s
                 Vp_ = SinF * Vp + CosP * Vq;
               }
             }
-            else if (CosP == 1.0) {
+            else {
               Fp_ = __fma_rn(SinF, Fp, Fq);
               Gp_ = __fma_rn(SinF, Gp, Gq);
               Vp_ = __fma_rn(SinF, Vp, Vq);
-            }
-            else {
-              Fp_ = __fma_rn(SinF, Fp, -Fq);
-              Gp_ = __fma_rn(SinF, Gp, -Gq);
-              Vp_ = __fma_rn(SinF, Vp, -Vq);
             }
           }
         }
