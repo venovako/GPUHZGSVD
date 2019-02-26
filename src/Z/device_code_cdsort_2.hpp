@@ -107,7 +107,7 @@ MYDEVFN unsigned zHZ_L0_sv
         cuJ SinFJ, _SinPJ;
 
         zRot(App, Aqq, ApqD, ApqJ, BpqD, BpqJ, Bpq_, CosF, SinFD, SinFJ, CosP, _SinPD, _SinPJ);
-        transf_b = (fn1 || pn1);
+        transf_b = ((CosF != 1.0) || (CosP != 1.0));
 
         if (Bpp != 1.0) {
           CosF *= Bpp;
