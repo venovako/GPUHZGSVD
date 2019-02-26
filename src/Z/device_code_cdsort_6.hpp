@@ -204,23 +204,23 @@ MYDEVFN unsigned zHZ_L0_sv
           VpD = Vp_D; Vp_D = Vq_D; Vq_D = VpD;
           VpJ = Vp_J; Vp_J = Vq_J; Vq_J = VpJ;
 
-          F32(FD, x, p) = Fq_D;
-          F32(FJ, x, p) = Fq_J;
+          F32(FD, x, p) = Fp_D;
+          F32(FJ, x, p) = Fp_J;
 
-          F32(GD, x, p) = Gq_D;
-          F32(GJ, x, p) = Gq_J;
+          F32(GD, x, p) = Gp_D;
+          F32(GJ, x, p) = Gp_J;
 
-          F32(VD, x, p) = Vq_D;
-          F32(VJ, x, p) = Vq_J;
+          F32(VD, x, p) = Vp_D;
+          F32(VJ, x, p) = Vp_J;
 
-          F32(FD, x, q) = Fp_D;
-          F32(FJ, x, q) = Fp_J;
+          F32(FD, x, q) = Fq_D;
+          F32(FJ, x, q) = Fq_J;
 
-          F32(GD, x, q) = Gp_D;
-          F32(GJ, x, q) = Gp_J;
+          F32(GD, x, q) = Gq_D;
+          F32(GJ, x, q) = Gq_J;
 
-          F32(VD, x, q) = Vp_D;
-          F32(VJ, x, q) = Vp_J;
+          F32(VD, x, q) = Vq_D;
+          F32(VJ, x, q) = Vq_J;
         }
       }
       else if (App < Aqq) { // swap
