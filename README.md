@@ -14,12 +14,17 @@ In fact only the ``strat.so`` library is needed.
 
 ### Make options
 
-To build the test executable, do the following:
+To build the test executable in double precision, do the following:
 ```bash
 cd src
 ./mk.sh D SM OPT CVG
 ```
-where ``SM`` is the target GPU architecture (e.g., for a Maxwell card it might be ``52``, for a Pascal one ``60``, etc.), ``OPT`` is the optimization level (``3`` should be fine), and ``CVG`` is the algorithm requested (``0``, ``1``, ``2``, ``3``, ``4``, ``5``, ``6``, or ``7``).
+or, for double complex,
+```bash
+cd src
+./mk.sh Z SM OPT CVG
+```
+where ``SM`` is the target GPU architecture (e.g., for a Maxwell card it might be ``52``, for a Volta one ``70``, etc.), ``OPT`` is the optimization level (``3`` should be fine), and ``CVG`` is the algorithm requested (``0``, ``1``, ``2``, ``3``, ``4``, ``5``, ``6``, or ``7``).
 
 It is also possible to append ``clean`` to the invocation above, to remove the executable, or such cleanup can be done manually.
 
