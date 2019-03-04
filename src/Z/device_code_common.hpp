@@ -63,6 +63,10 @@
 #error WARP_SZ_SUB1 not definable externally
 #endif // !WARP_SZ_SUB1
 
+#ifndef INFTY
+#define INFTY CUDART_INF
+#endif // !INFTY
+
 #ifndef F32
 #define F32(A, r, c) ((A)[(c) * 32u + (r)])
 #else // F32

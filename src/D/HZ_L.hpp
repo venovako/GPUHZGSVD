@@ -33,24 +33,6 @@
 #error HZ_BLK_ORI not definable externally
 #endif // !HZ_BLK_ORI
 
-#ifndef HZ_ACCUMV_2
-#define HZ_ACCUMV_2 4u
-#else // HZ_ACCUMV_2
-#error HZ_ACCUMV_2 not definable externally
-#endif // !HZ_ACCUMV_2
-
-#ifndef HZ_FULL_SVD
-#define HZ_FULL_SVD 2u
-#else // HZ_FULL_SVD
-#error HZ_FULL_SVD not definable externally
-#endif // !HZ_FULL_SVD
-
-#ifndef HZ_CDSORT_1
-#define HZ_CDSORT_1 1u
-#else // HZ_CDSORT_1
-#error HZ_CDSORT_1 not definable externally
-#endif // !HZ_CDSORT_1
-
 #ifndef HZ_L1_NCOLB
 #define HZ_L1_NCOLB 16u
 #else // HZ_L1_NCOLB

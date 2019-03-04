@@ -5,16 +5,20 @@ NVCC=nvcc
 endif # !NVCC
 
 ifndef GPU_ARCH
-GPU_ARCH=sm_30
+GPU_ARCH=30
 endif # !GPU_ARCH
 
 ifndef CVG
 CVG=0
 endif # !CVG
 
+ifndef STD
+STD=11
+endif # !STD
+
 NVPPFLAGS=-I. -DCVG=$(CVG)
-NVCCFLAGS=-std c++14 -arch $(GPU_ARCH) -restrict -res-usage -Xcompiler -march=native
-NVLDFLAGS= #-ewp
+NVCCFLAGS=-std c++$(STD) -arch sm_$(GPU_ARCH) -restrict -res-usage -Xcompiler -march=native
+NVLDFLAGS=
 
 ifdef NDEBUG
 NVPPFLAGS+=-DNDEBUG
@@ -31,7 +35,7 @@ endif # HOST_FLAGS
 
 ifdef ANIMATE
 NVPPFLAGS+=-DUSE_MKL -DANIMATE=$(ANIMATE) -DVN_INTEGER_KIND=8 -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
-NVLDFLAGS=-L../../../JACSD -lvn -L${MKLROOT}/lib -Xlinker -rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Xlinker -rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_core -lmkl_intel_thread -liomp5 -lpthread
+NVLDFLAGS+=-L../../../JACSD -lvn -L${MKLROOT}/lib -Xlinker -rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Xlinker -rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_core -lmkl_intel_thread -liomp5 -lpthread
 endif # ANIMATE
 
 NVLDFLAGS+=-l dl,m

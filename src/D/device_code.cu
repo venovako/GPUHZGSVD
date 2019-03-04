@@ -31,31 +31,23 @@ static const dim3 hzL1bD(HZ_L1_THREADS_PER_BLOCK_X, HZ_L1_THREADS_PER_BLOCK_Y, 1
 void HZ_L1_sv(const unsigned step) throw()
 {
   const dim3 hzL1gD(STRAT1_PAIRS, 1u, 1u);
-  CUDA_CALL(cudaConfigureCall(hzL1gD, hzL1bD));
-  CUDA_CALL(cudaSetupArgument(step, static_cast<size_t>(0u)));
-  CUDA_CALL(cudaLaunch(dHZ_L1_sv));
+  dHZ_L1_sv<<< hzL1gD, hzL1bD >>>(step);
 }
 
-void initS(const int full, const unsigned nRank, const cudaStream_t s) throw()
+void initS(const int full, const unsigned nRank) throw()
 {
   const dim3 bD(2u * WARP_SZ, 1u, 1u);
   const dim3 gD(udiv_ceil(nRank * WARP_SZ, bD.x), 1u, 1u);
   const size_t shmD = static_cast<size_t>(0u);
-
-  CUDA_CALL(cudaConfigureCall(gD, bD, shmD, s));
-  CUDA_CALL(cudaSetupArgument(full, static_cast<size_t>(0u)));
-  CUDA_CALL(cudaLaunch(dInitS));
+  dInitS<<< gD, bD, shmD >>>(full);
 }
 
-void initV(const int sclV, const unsigned nRank, const cudaStream_t s) throw()
+void initV(const int sclV, const unsigned nRank) throw()
 {
   const dim3 bD(2u * WARP_SZ, 1u, 1u);
   const dim3 gD(udiv_ceil(nRank * WARP_SZ, bD.x), 1u, 1u);
   const size_t shmD = static_cast<size_t>(0u);
-
-  CUDA_CALL(cudaConfigureCall(gD, bD, shmD, s));
-  CUDA_CALL(cudaSetupArgument(sclV, static_cast<size_t>(0u)));
-  CUDA_CALL(cudaLaunch(dInitV));
+  dInitV<<< gD, bD, shmD >>>(sclV);
 }
 
 void initSymbols

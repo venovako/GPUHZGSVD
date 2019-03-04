@@ -8,52 +8,16 @@
 
 // HEPS = DBL_EPSILON / 2 = 2^(-53) (* Lapack/RN Epsilon *)
 
-// sqrt(HEPS)
-#ifndef SQRT_HEPS
-#define SQRT_HEPS 1.05367121277235087E-08
-#else // SQRT_HEPS
-#error SQRT_HEPS not definable externally
-#endif // !SQRT_HEPS
-
-// sqrt(2 / HEPS)
-#ifndef SQRT_2_HEPS
-#define SQRT_2_HEPS 1.34217728000000000E+08
-#else // SQRT_2_HEPS
-#error SQRT_2_HEPS not definable externally
-#endif // !SQRT_2_HEPS
-
 // sqrt(32) * HEPS
 #ifndef HZ_MYTOL
 #define HZ_MYTOL 6.28036983473510067E-16
 #endif // !HZ_MYTOL
-
-#ifndef INFTY
-#define INFTY __builtin_inf()
-#endif // !INFTY
 
 #ifndef HZ_BLK_ORI
 #define HZ_BLK_ORI 8u
 #else // HZ_BLK_ORI
 #error HZ_BLK_ORI not definable externally
 #endif // !HZ_BLK_ORI
-
-#ifndef HZ_ACCUMV_2
-#define HZ_ACCUMV_2 4u
-#else // HZ_ACCUMV_2
-#error HZ_ACCUMV_2 not definable externally
-#endif // !HZ_ACCUMV_2
-
-#ifndef HZ_FULL_SVD
-#define HZ_FULL_SVD 2u
-#else // HZ_FULL_SVD
-#error HZ_FULL_SVD not definable externally
-#endif // !HZ_FULL_SVD
-
-#ifndef HZ_CDSORT_1
-#define HZ_CDSORT_1 1u
-#else // HZ_CDSORT_1
-#error HZ_CDSORT_1 not definable externally
-#endif // !HZ_CDSORT_1
 
 #ifndef HZ_L1_NCOLB
 #define HZ_L1_NCOLB 16u

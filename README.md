@@ -7,7 +7,7 @@ The Hari–Zimmermann generalized SVD for CUDA.
 
 ### Prerequisites
 
-A reasonably recent (e.g., 10.0) full CUDA installation on a 64-bit Linux or macOS is required.
+A reasonably recent (e.g., 10.1) full CUDA installation on a 64-bit Linux or macOS is required.
 
 Then, clone and build [GPUJACHx](https://github.com/venovako/GPUJACHx).
 In fact only the ``strat.so`` library is needed.

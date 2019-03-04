@@ -110,7 +110,7 @@ HZ_L2
 
   timers[1] = stopwatch_lap(timers[3]);
   
-  initV(sclV, ncol, static_cast<cudaStream_t>(NULL));
+  initV(sclV, ncol);
   CUDA_CALL(cudaDeviceSynchronize());
 
   void (*const HZ_L1)(const unsigned) = HZ_L1_sv;
@@ -224,12 +224,12 @@ HZ_L2
     if (!cvg_b)
       break;
 
-    initS(0, ncol, static_cast<cudaStream_t>(NULL));
+    initS(0, ncol);
     CUDA_CALL(cudaDeviceSynchronize());
   }
 
   *glbSwp = blk_swp;
-  initS(1, ncol, static_cast<cudaStream_t>(NULL));
+  initS(1, ncol);
   CUDA_CALL(cudaDeviceSynchronize());
 
 #ifdef ANIMATE
