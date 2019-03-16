@@ -190,9 +190,9 @@ MYDEVFN double zSsq32(const cuD D, const cuJ J)
 
 MYDEVFN void zDot32(cuD &cD, cuJ &cJ, const cuD aD, const cuJ aJ, const cuD bD, const cuJ bJ)
 {
-  cuD x = +0.0;
-  cuJ y = +0.0;
-  Zfma(x, y, aD, -aJ, bD, bJ, x, y);
+  cuD x;
+  cuJ y;
+  Zmul(x, y, aD, -aJ, bD, bJ);
   cD = dSum32(x);
   cJ = dSum32(y);
 }
