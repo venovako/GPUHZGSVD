@@ -26,6 +26,8 @@ cd src
 ```
 where ``SM`` is the target GPU architecture (e.g., for a Maxwell card it might be ``52``, for a Volta one ``70``, etc.), ``OPT`` is the optimization level (``3`` should be fine), and ``CVG`` is the algorithm requested (``0``, ``1``, ``2``, ``3``, ``4``, ``5``, ``6``, or ``7``).
 
+It is also possible to append ``clean`` to the invocation above, to remove the executable, or such cleanup can be done manually.
+
 ## Execution
 
 ### Command line
@@ -38,10 +40,8 @@ where ``DEV`` is the CUDA device number, ``SDY`` is a path to ``strat.so``, ``SN
 
 ### Data format
 
-Data should be contained in ``FN.Y`` and ``FN.W`` binary, Fortran-array-order files, where the first one stores the matrix ``F`` and the second one the matrix ``G``.
+Data should be contained in ``FN.Y`` and ``FN.W`` binary, Fortran-array-order files, where the first one stores the matrix ``F`` and the second one the matrix ``G``, and both matrices are expected to have ``M`` rows and ``N`` columns.
 
-The output comprises ``FN.YU``, ``FN.WV``, ``FN.SY``, ``FN.SW``, ``FN.SS``, for the matrices ``U`` and ``V``, and the vectors ``\Sigma_F``, ``\Sigma_G``, and ``\Sigma``, respectively.
-
-It is also possible to append ``clean`` to the invocation above, to remove the executable, or such cleanup can be done manually.
+The output comprises ``FN.YU``, ``FN.WV``, ``FN.Z``, for the matrices ``U``, ``V``, and ``Z``; and ``FN.SY``, ``FN.SW``, ``FN.SS``, for the vectors ``\Sigma_F``, ``\Sigma_G``, and ``\Sigma``, respectively.
 
 This work has been supported in part by Croatian Science Foundation under the project IP-2014-09-3670 ([MFBDA](https://web.math.pmf.unizg.hr/mfbda/)).
