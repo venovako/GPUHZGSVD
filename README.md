@@ -1,8 +1,6 @@
 # GPUHZGSVD
 The Hari–Zimmermann generalized SVD for CUDA.
 
-...work in progress...
-
 ## Building
 
 ### Prerequisites
@@ -14,12 +12,12 @@ In fact only the ``strat.so`` library is needed to be built there.
 
 ### Make options
 
-To build the test executable in double precision, do the following:
+To build the test executable in ``double`` precision, do the following:
 ```bash
 cd src
 ./mk.sh D SM OPT CVG
 ```
-or, for double complex,
+or, for ``double complex``,
 ```bash
 cd src
 ./mk.sh Z SM OPT CVG
@@ -40,8 +38,8 @@ where ``DEV`` is the CUDA device number, ``SDY`` is a path to ``strat.so``, ``SN
 
 ### Data format
 
-Data should be contained in ``FN.Y`` and ``FN.W`` binary, Fortran-array-order files, where the first one stores the matrix ``F`` and the second one the matrix ``G``, and both matrices are expected to have ``M`` rows and ``N`` columns.
+Data should be contained in ``FN.Y`` and ``FN.W`` binary, Fortran-array-order files, where the first one stores the matrix ``F`` and the second one the matrix ``G``, and both matrices are either ``double`` or ``double complex`` and are expected to have ``M`` rows and ``N`` columns.
 
-The output comprises ``FN.YU``, ``FN.WV``, ``FN.Z``, for the matrices ``U``, ``V``, and ``Z``; and ``FN.SY``, ``FN.SW``, ``FN.SS``, for the vectors ``\Sigma_F``, ``\Sigma_G``, and ``\Sigma``, respectively.
+The output comprises ``FN.YU``, ``FN.WV``, ``FN.Z``, for the ``double`` or ``double complex`` matrices ``U``, ``V`` (both ``M x N``), and ``Z`` (``N x N``); and ``FN.SY``, ``FN.SW``, ``FN.SS``, for the ``double`` vectors ``\Sigma_F``, ``\Sigma_G``, and ``\Sigma``, respectively, where all vectors are of length ``N``.
 
 This work has been supported in part by Croatian Science Foundation under the project IP-2014-09-3670 ([MFBDA](https://web.math.pmf.unizg.hr/mfbda/)).
