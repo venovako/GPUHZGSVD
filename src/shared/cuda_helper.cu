@@ -40,6 +40,10 @@ int configureGPUex(const int dev, const unsigned maxShMemB) throw()
 
 int configureGPU(const int dev) throw()
 {
+#ifdef USE_COMPLEX
   static const unsigned maxShMemB = 49152u; // 48 kB
+#else // !USE_COMPLEX
+  static const unsigned maxShMemB = 24576u; // 24 kB
+#endif // ?USE_COMPLEX
   return configureGPUex(dev, maxShMemB);
 }

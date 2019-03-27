@@ -16,7 +16,7 @@ ifndef STD
 STD=11
 endif # !STD
 
-NVPPFLAGS=-I. -DCVG=$(CVG)
+NVPPFLAGS=-I. -I../shared -DCVG=$(CVG)
 NVCCFLAGS=-std c++$(STD) -arch sm_$(GPU_ARCH) -restrict -res-usage -Xcompiler -march=native
 NVLDFLAGS=
 
@@ -41,12 +41,12 @@ endif # ANIMATE
 NVLDFLAGS+=-l dl,m
 
 HEADERS=				\
-	HZ.hpp				\
-	HZ_L.hpp			\
+	../shared/HZ.hpp		\
+	../shared/HZ_L.hpp		\
 	HZ_L2.hpp			\
-	cuda_helper.hpp			\
-	cuda_memory_helper.hpp		\
-	defines.hpp			\
+	../shared/cuda_helper.hpp	\
+	../shared/cuda_memory_helper.hpp\
+	../shared/defines.hpp		\
 	device_code.hpp			\
 	device_code_accumV.hpp 		\
 	device_code_cdsort_$(CVG).hpp	\
@@ -56,15 +56,15 @@ HEADERS=				\
 	device_code_common_rotate.hpp	\
 	device_code_common_Kepler.hpp	\
 	device_code_common_Cholesky.hpp	\
-	my_utils.hpp
+	../shared/my_utils.hpp
 
-SOURCES=		\
-	HZ_L.cu		\
-	HZ_L2.cu	\
-	cuda_helper.cu	\
-	device_code.cu	\
-	main.cu		\
-	my_utils.cu
+SOURCES=			\
+	../shared/HZ_L.cu	\
+	HZ_L2.cu		\
+	../shared/cuda_helper.cu\
+	device_code.cu		\
+	main.cu			\
+	../shared/my_utils.cu
 
 EXE=HZ$(CVG).exe
 

@@ -6,6 +6,11 @@
 #include <cuda_runtime.h>
 #include <math_constants.h>
 
+#ifdef USE_COMPLEX
+typedef double cuD;
+typedef double cuJ;
+#endif // USE_COMPLEX
+
 #ifndef CUDA_CALL
 #define CUDA_CALL(call) {						\
     const cudaError_t err = (call);					\
