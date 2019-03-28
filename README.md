@@ -42,4 +42,6 @@ Data should be contained in ``FN.Y`` and ``FN.W`` binary, Fortran-array-order fi
 
 The output comprises ``FN.YU``, ``FN.WV``, ``FN.Z``, for the ``double`` or ``double complex`` matrices ``U``, ``V`` (both ``M x N``), and ``Z`` (``N x N``); and ``FN.SY``, ``FN.SW``, ``FN.SS``, for the ``double`` vectors ``\Sigma_F``, ``\Sigma_G``, and ``\Sigma``, respectively, where all vectors are of length ``N``.
 
+Please, consult also [FLAPWxHZ](https://github.com/venovako/FLAPWxHZ) repository.
+
 This work has been supported in part by Croatian Science Foundation under the project IP-2014-09-3670 ([MFBDA](https://web.math.pmf.unizg.hr/mfbda/)).
