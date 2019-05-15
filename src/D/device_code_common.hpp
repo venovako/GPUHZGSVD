@@ -232,7 +232,8 @@ MYDEVFN void dGlobalPostScaleFast
  double *const G,
  double *const V,
  double *const S,
- const unsigned nRow,
+ const unsigned nRowF,
+ const unsigned nRowG,
  const unsigned nRank,
  const unsigned ldF,
  const unsigned ldG,
@@ -245,9 +246,9 @@ MYDEVFN void dGlobalPostScaleFast
   if (cix < nRank) {
     const unsigned lid = static_cast<unsigned>(threadIdx.x) & WARP_SZ_SUB1;
     double *const bFi = F + (cix * ldF + lid);
-    const double *const eFi = F + (cix * ldF + nRow);
+    const double *const eFi = F + (cix * ldF + nRowF);
     double *const bGi = G + (cix * ldG + lid);
-    const double *const eGi = G + (cix * ldG + nRow);
+    const double *const eGi = G + (cix * ldG + nRowG);
     const double Fi_ssq = dSsqC(bFi, eFi);
     const double Gi_ssq = dSsqC(bGi, eGi);
     const double Rhyp = my_drsqrt_rn(Fi_ssq + Gi_ssq);
@@ -268,7 +269,8 @@ MYDEVFN void dGlobalPostScaleFull
  double *const S,
  double *const H,
  double *const K,
- const unsigned nRow,
+ const unsigned nRowF,
+ const unsigned nRowG,
  const unsigned nRank,
  const unsigned ldF,
  const unsigned ldG,
@@ -281,9 +283,9 @@ MYDEVFN void dGlobalPostScaleFull
   if (cix < nRank) {
     const unsigned lid = static_cast<unsigned>(threadIdx.x) & WARP_SZ_SUB1;
     double *const bFi = F + (cix * ldF + lid);
-    const double *const eFi = F + (cix * ldF + nRow);
+    const double *const eFi = F + (cix * ldF + nRowF);
     double *const bGi = G + (cix * ldG + lid);
-    const double *const eGi = G + (cix * ldG + nRow);
+    const double *const eGi = G + (cix * ldG + nRowG);
     double Fi_ssq, Fi_nrm, Fi_inv_nrm;
     dNrm2InvC(bFi, eFi, Fi_ssq, Fi_nrm, Fi_inv_nrm);
     double Gi_ssq, Gi_nrm, Gi_inv_nrm;
@@ -316,14 +318,13 @@ MYDEVFN void dGlobalPostScaleFull
 MYKERN dInitS(const int full)
 {
   if (full)
-    dGlobalPostScaleFull(_F, _G, _V, _S, _H, _K, _nRow, _nRank, _ldF, _ldG, _ldV);
+    dGlobalPostScaleFull(_F, _G, _V, _S, _H, _K, _nRowF, _nRowG, _nRank, _ldF, _ldG, _ldV);
   else
-    dGlobalPostScaleFast(_F, _G, _V, _S, _nRow, _nRank, _ldF, _ldG, _ldV);
+    dGlobalPostScaleFast(_F, _G, _V, _S, _nRowF, _nRowG, _nRank, _ldF, _ldG, _ldV);
 }
 
 MYDEVFN void dGlobalInitV
 (double *const V,
- const unsigned nRow,
  const unsigned nRank,
  const unsigned ldV)
 {
@@ -342,7 +343,8 @@ MYDEVFN void dGlobalInitVscl
 (double *const F,
  double *const G,
  double *const V,
- const unsigned nRow,
+ const unsigned nRowF,
+ const unsigned nRowG,
  const unsigned nRank,
  const unsigned ldF,
  const unsigned ldG,
@@ -355,12 +357,12 @@ MYDEVFN void dGlobalInitVscl
   if (cix < nRank) {
     const unsigned lid = static_cast<unsigned>(threadIdx.x) & WARP_SZ_SUB1;
     double *const bGi = G + (cix * ldG + lid);
-    const double *const eGi = G + (cix * ldG + nRow);
+    const double *const eGi = G + (cix * ldG + nRowG);
     double Gi_ssq, Gi_inv_nrm;
     dInvNrm2C(bGi, eGi, Gi_ssq, Gi_inv_nrm);
     if (Gi_inv_nrm != 1.0) {
       double *const bFi = F + (cix * ldF + lid);
-      const double *const eFi = F + (cix * ldF + nRow);
+      const double *const eFi = F + (cix * ldF + nRowF);
       dScalC(bFi, eFi, Gi_inv_nrm);
       dScalC(bGi, eGi, Gi_inv_nrm);
     }
@@ -372,9 +374,9 @@ MYDEVFN void dGlobalInitVscl
 MYKERN dInitV(const int sclV)
 {
   if (sclV)
-    dGlobalInitVscl(_F, _G, _V, _nRow, _nRank, _ldF, _ldG, _ldV);
+    dGlobalInitVscl(_F, _G, _V, _nRowF, _nRowG, _nRank, _ldF, _ldG, _ldV);
   else
-    dGlobalInitV(_V, _nRow, _nRank, _ldV);
+    dGlobalInitV(_V, _nRank, _ldV);
 }
 
 #endif // !DEVICE_CODE_COMMON_HPP

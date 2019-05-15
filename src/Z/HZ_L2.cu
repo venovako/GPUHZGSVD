@@ -14,16 +14,17 @@ int // 0 if OK, < 0 if invalid argument, > 0 if error
 HZ_L2
 (const unsigned routine,         // IN, routine ID, <= 15, (B___)_2
  // B: block-oriented or full-block
- const unsigned nrow,            // IN, number of rows of G, == 0 (mod 256)
- const unsigned ncol,            // IN, number of columns of G, <= nrow, == 0 (mod 128)
+ const unsigned nrowF,           // IN, number of rows of F, == 0 (mod 256)
+ const unsigned nrowG,           // IN, number of rows of G, == 0 (mod 256)
+ const unsigned ncol,            // IN, number of columns of <= min(nrowF, nrowG), == 0 (mod 128)
  std::complex<double> *const hF, // INOUT, ldhF x ncol host array in Fortran order,
- const unsigned ldhF,            // IN, leading dimension of F, >= nrow
+ const unsigned ldhF,            // IN, leading dimension of F, >= nrowF
  std::complex<double> *const hG, // INOUT, ldhG x ncol host array in Fortran order,
- // IN: factor G, OUT: U \Sigma of G = U \Sigma V^T
- const unsigned ldhG,            // IN, leading dimension of G, >= nrow
+ // IN: factor G, OUT: U \Sigma of G = U \Sigma V^H
+ const unsigned ldhG,            // IN, leading dimension of G, >= nrowG
  std::complex<double> *const hV, // OUT, ldhV x ncol host array in Fortran order,
- // V^{-T} of G = U \Sigma V^T
- const unsigned ldhV,            // IN, leading dimension of V^{-T}, >= nrow
+ // V^{-H} of G = U \Sigma V^H
+ const unsigned ldhV,            // IN, leading dimension of V^{-H}, >= ncol
  double *const hS,               // OUT, the generalized singular values, optionally sorted in descending order
  double *const hH,               // ||F_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2)
  double *const hK,               // ||G_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2)
@@ -43,55 +44,58 @@ HZ_L2
   const bool blk_ori = (routine & HZ_BLK_ORI);
   const int sclV = ((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5));
 
-  if (!nrow || (nrow % 64u))
+  if (!nrowF || (nrowF % 64u))
     return -2;
 
-  if (!ncol || (ncol > nrow) || (ncol % 32u))
+  if (!nrowG || (nrowG % 64u))
     return -3;
 
-  if (!hF)
+  if (!ncol || (ncol > nrowF) || (ncol > nrowG) || (ncol % 32u))
     return -4;
 
-  if (ldhF < nrow)
+  if (!hF)
     return -5;
 
-  if (!hG)
+  if (ldhF < nrowF)
     return -6;
 
-  if (ldhG < nrow)
+  if (!hG)
     return -7;
 
-  if (!hV)
+  if (ldhG < nrowG)
     return -8;
-  if (ldhV < nrow)
+
+  if (!hV)
     return -9;
+  if (ldhV < ncol)
+    return -10;
 
   if (!hS)
-    return -10;
-  if (!hH)
     return -11;
-  if (!hK)
+  if (!hH)
     return -12;
+  if (!hK)
+    return -13;
 
   if (!glbSwp)
-    return -13;
-  if (!glb_s)
     return -14;
-  if (!glb_b)
+  if (!glb_s)
     return -15;
+  if (!glb_b)
+    return -16;
 
   stopwatch_reset(timers[3]);
 
   const unsigned
     swp_max[HZ_MAX_LEVELS] = { (blk_ori ? 1u : HZ_NSWEEP), HZ_NSWEEP };
 
-  size_t lddF = static_cast<size_t>(nrow);
-  cuD *const dFD = allocDeviceMtx<cuD>(lddF, static_cast<size_t>(nrow), static_cast<size_t>(ncol), true);
-  cuJ *const dFJ = allocDeviceMtx<cuJ>(lddF, static_cast<size_t>(nrow), static_cast<size_t>(ncol), true);
+  size_t lddF = static_cast<size_t>(nrowF);
+  cuD *const dFD = allocDeviceMtx<cuD>(lddF, static_cast<size_t>(nrowF), static_cast<size_t>(ncol), true);
+  cuJ *const dFJ = allocDeviceMtx<cuJ>(lddF, static_cast<size_t>(nrowF), static_cast<size_t>(ncol), true);
 
-  size_t lddG = static_cast<size_t>(nrow);
-  cuD *const dGD = allocDeviceMtx<cuD>(lddG, static_cast<size_t>(nrow), static_cast<size_t>(ncol), true);
-  cuJ *const dGJ = allocDeviceMtx<cuJ>(lddG, static_cast<size_t>(nrow), static_cast<size_t>(ncol), true);
+  size_t lddG = static_cast<size_t>(nrowG);
+  cuD *const dGD = allocDeviceMtx<cuD>(lddG, static_cast<size_t>(nrowG), static_cast<size_t>(ncol), true);
+  cuJ *const dGJ = allocDeviceMtx<cuJ>(lddG, static_cast<size_t>(nrowG), static_cast<size_t>(ncol), true);
 
   size_t lddV = static_cast<size_t>(ncol);
   cuD *const dVD = allocDeviceMtx<cuD>(lddV, static_cast<size_t>(ncol), static_cast<size_t>(ncol), true);
@@ -102,54 +106,55 @@ HZ_L2
   double *const dK = allocDeviceVec<double>(static_cast<size_t>(ncol));
 
   size_t ldhDJ = ((ldhF <= ldhG) ? ldhF : ldhG);
-  double *const hDJ = allocHostMtx<double>(ldhDJ, static_cast<size_t>(nrow), static_cast<size_t>(ncol), true);
+  const size_t nrowFG = ((nrowF >= nrowG) ? nrowF : nrowG);
+  double *const hDJ = allocHostMtx<double>(ldhDJ, static_cast<size_t>(nrowFG), static_cast<size_t>(ncol), true);
 
   for (unsigned j = 0u; j < ncol; ++j) {
     const size_t offDJ = ldhDJ * j;
     const size_t offF = ldhF * j;
-    for (unsigned i = 0u; i < nrow; ++i) {
+    for (unsigned i = 0u; i < nrowF; ++i) {
       const size_t ixDJ = offDJ + i;
       const size_t ixF = offF + i;
       hDJ[ixDJ] = (hF[ixF]).real();
     }
   }
-  CUDA_CALL(cudaMemcpy2DAsync(dFD, lddF * sizeof(cuD), hDJ, ldhDJ * sizeof(double), nrow * sizeof(cuD), ncol, cudaMemcpyHostToDevice));
+  CUDA_CALL(cudaMemcpy2DAsync(dFD, lddF * sizeof(cuD), hDJ, ldhDJ * sizeof(double), nrowF * sizeof(cuD), ncol, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaDeviceSynchronize());
 
   for (unsigned j = 0u; j < ncol; ++j) {
     const size_t offDJ = ldhDJ * j;
     const size_t offF = ldhF * j;
-    for (unsigned i = 0u; i < nrow; ++i) {
+    for (unsigned i = 0u; i < nrowF; ++i) {
       const size_t ixDJ = offDJ + i;
       const size_t ixF = offF + i;
       hDJ[ixDJ] = (hF[ixF]).imag();
     }
   }
-  CUDA_CALL(cudaMemcpy2DAsync(dFJ, lddF * sizeof(cuJ), hDJ, ldhDJ * sizeof(double), nrow * sizeof(cuJ), ncol, cudaMemcpyHostToDevice));
+  CUDA_CALL(cudaMemcpy2DAsync(dFJ, lddF * sizeof(cuJ), hDJ, ldhDJ * sizeof(double), nrowF * sizeof(cuJ), ncol, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaDeviceSynchronize());
 
   for (unsigned j = 0u; j < ncol; ++j) {
     const size_t offDJ = ldhDJ * j;
     const size_t offG = ldhG * j;
-    for (unsigned i = 0u; i < nrow; ++i) {
+    for (unsigned i = 0u; i < nrowG; ++i) {
       const size_t ixDJ = offDJ + i;
       const size_t ixG = offG + i;
       hDJ[ixDJ] = (hG[ixG]).real();
     }
   }
-  CUDA_CALL(cudaMemcpy2DAsync(dGD, lddG * sizeof(cuD), hDJ, ldhDJ * sizeof(double), nrow * sizeof(cuD), ncol, cudaMemcpyHostToDevice));
+  CUDA_CALL(cudaMemcpy2DAsync(dGD, lddG * sizeof(cuD), hDJ, ldhDJ * sizeof(double), nrowG * sizeof(cuD), ncol, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaDeviceSynchronize());
 
   for (unsigned j = 0u; j < ncol; ++j) {
     const size_t offDJ = ldhDJ * j;
     const size_t offG = ldhG * j;
-    for (unsigned i = 0u; i < nrow; ++i) {
+    for (unsigned i = 0u; i < nrowG; ++i) {
       const size_t ixDJ = offDJ + i;
       const size_t ixG = offG + i;
       hDJ[ixDJ] = (hG[ixG]).imag();
     }
   }
-  CUDA_CALL(cudaMemcpy2DAsync(dGJ, lddG * sizeof(cuJ), hDJ, ldhDJ * sizeof(double), nrow * sizeof(cuJ), ncol, cudaMemcpyHostToDevice));
+  CUDA_CALL(cudaMemcpy2DAsync(dGJ, lddG * sizeof(cuJ), hDJ, ldhDJ * sizeof(double), nrowG * sizeof(cuJ), ncol, cudaMemcpyHostToDevice));
 
   CUDA_CALL(cudaMemset2DAsync(dVD, lddV * sizeof(cuD), 0, ncol * sizeof(cuD), ncol));
   CUDA_CALL(cudaMemset2DAsync(dVJ, lddV * sizeof(cuJ), 0, ncol * sizeof(cuJ), ncol));
@@ -158,7 +163,7 @@ HZ_L2
   CUDA_CALL(cudaMemsetAsync(dH, 0, ncol * sizeof(double)));
   CUDA_CALL(cudaMemsetAsync(dK, 0, ncol * sizeof(double)));
 
-  initSymbols(dFD, dFJ, dGD, dGJ, dVD, dVJ, dS, dH, dK, nrow, ncol, static_cast<unsigned>(lddF), static_cast<unsigned>(lddG), static_cast<unsigned>(lddV), swp_max[0u]);
+  initSymbols(dFD, dFJ, dGD, dGJ, dVD, dVJ, dS, dH, dK, nrowF, nrowG, ncol, static_cast<unsigned>(lddF), static_cast<unsigned>(lddG), static_cast<unsigned>(lddV), swp_max[0u]);
 
   CUDA_CALL(cudaDeviceSynchronize());
 
@@ -182,53 +187,53 @@ HZ_L2
   if (ncol < 10000u) {
     char fname[8] = { '\0' };
     (void)sprintf(fname, "FG%x%04u", routine, ncol);
-    SYSI_CALL(vn_cmplxvis_start(&ctx, fname, (VN_CMPLXVIS_OP_AhA | VN_CMPLXVIS_FN_Lg), nrow, ncol, 1, 1, 7));
+    SYSI_CALL(vn_cmplxvis_start(&ctx, fname, (VN_CMPLXVIS_OP_AhA | VN_CMPLXVIS_FN_Lg), ncol, ncol, 1, 1, 7));
     if (ctx) {
       SYSI_CALL(vn_cmplxvis_frame(ctx, (const vn_complex*)hF, ldhF));
       SYSI_CALL(vn_cmplxvis_frame(ctx, (const vn_complex*)hG, ldhG));
 
-      CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dFD, lddF * sizeof(cuD), nrow * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
+      CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dFD, lddF * sizeof(cuD), nrowF * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
       CUDA_CALL(cudaDeviceSynchronize());
       for (unsigned j = 0u; j < ncol; ++j) {
         const size_t offDJ = ldhDJ * j;
         const size_t offF = ldhF * j;
-        for (unsigned i = 0u; i < nrow; ++i) {
+        for (unsigned i = 0u; i < nrowF; ++i) {
           const size_t ixDJ = offDJ + i;
           const size_t ixF = offF + i;
           (hF[ixF]).real(hDJ[ixDJ]);
         }
       }
 
-      CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dFJ, lddF * sizeof(cuJ), nrow * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
+      CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dFJ, lddF * sizeof(cuJ), nrowF * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
       CUDA_CALL(cudaDeviceSynchronize());
       for (unsigned j = 0u; j < ncol; ++j) {
         const size_t offDJ = ldhDJ * j;
         const size_t offF = ldhF * j;
-        for (unsigned i = 0u; i < nrow; ++i) {
+        for (unsigned i = 0u; i < nrowF; ++i) {
           const size_t ixDJ = offDJ + i;
           const size_t ixF = offF + i;
           (hF[ixF]).imag(hDJ[ixDJ]);
         }
       }
 
-      CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dGD, lddG * sizeof(cuD), nrow * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
+      CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dGD, lddG * sizeof(cuD), nrowG * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
       CUDA_CALL(cudaDeviceSynchronize());
       for (unsigned j = 0u; j < ncol; ++j) {
         const size_t offDJ = ldhDJ * j;
         const size_t offG = ldhG * j;
-        for (unsigned i = 0u; i < nrow; ++i) {
+        for (unsigned i = 0u; i < nrowG; ++i) {
           const size_t ixDJ = offDJ + i;
           const size_t ixG = offG + i;
           (hG[ixG]).real(hDJ[ixDJ]);
         }
       }
 
-      CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dGJ, lddG * sizeof(cuJ), nrow * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
+      CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dGJ, lddG * sizeof(cuJ), nrowG * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
       CUDA_CALL(cudaDeviceSynchronize());
       for (unsigned j = 0u; j < ncol; ++j) {
         const size_t offDJ = ldhDJ * j;
         const size_t offG = ldhG * j;
-        for (unsigned i = 0u; i < nrow; ++i) {
+        for (unsigned i = 0u; i < nrowG; ++i) {
           const size_t ixDJ = offDJ + i;
           const size_t ixG = offG + i;
           (hG[ixG]).imag(hDJ[ixDJ]);
@@ -256,48 +261,48 @@ HZ_L2
       if (ctx) {
         CUDA_CALL(cudaDeviceSynchronize());
 
-        CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dFD, lddF * sizeof(cuD), nrow * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
+        CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dFD, lddF * sizeof(cuD), nrowF * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
         CUDA_CALL(cudaDeviceSynchronize());
         for (unsigned j = 0u; j < ncol; ++j) {
           const size_t offDJ = ldhDJ * j;
           const size_t offF = ldhF * j;
-          for (unsigned i = 0u; i < nrow; ++i) {
+          for (unsigned i = 0u; i < nrowF; ++i) {
             const size_t ixDJ = offDJ + i;
             const size_t ixF = offF + i;
             (hF[ixF]).real(hDJ[ixDJ]);
           }
         }
 
-        CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dFJ, lddF * sizeof(cuJ), nrow * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
+        CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dFJ, lddF * sizeof(cuJ), nrowF * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
         CUDA_CALL(cudaDeviceSynchronize());
         for (unsigned j = 0u; j < ncol; ++j) {
           const size_t offDJ = ldhDJ * j;
           const size_t offF = ldhF * j;
-          for (unsigned i = 0u; i < nrow; ++i) {
+          for (unsigned i = 0u; i < nrowF; ++i) {
             const size_t ixDJ = offDJ + i;
             const size_t ixF = offF + i;
             (hF[ixF]).imag(hDJ[ixDJ]);
           }
         }
 
-        CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dGD, lddG * sizeof(cuD), nrow * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
+        CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dGD, lddG * sizeof(cuD), nrowG * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
         CUDA_CALL(cudaDeviceSynchronize());
         for (unsigned j = 0u; j < ncol; ++j) {
           const size_t offDJ = ldhDJ * j;
           const size_t offG = ldhG * j;
-          for (unsigned i = 0u; i < nrow; ++i) {
+          for (unsigned i = 0u; i < nrowG; ++i) {
             const size_t ixDJ = offDJ + i;
             const size_t ixG = offG + i;
             (hG[ixG]).real(hDJ[ixDJ]);
           }
         }
 
-        CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dGJ, lddG * sizeof(cuJ), nrow * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
+        CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dGJ, lddG * sizeof(cuJ), nrowG * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
         CUDA_CALL(cudaDeviceSynchronize());
         for (unsigned j = 0u; j < ncol; ++j) {
           const size_t offDJ = ldhDJ * j;
           const size_t offG = ldhG * j;
-          for (unsigned i = 0u; i < nrow; ++i) {
+          for (unsigned i = 0u; i < nrowG; ++i) {
             const size_t ixDJ = offDJ + i;
             const size_t ixG = offG + i;
             (hG[ixG]).imag(hDJ[ixDJ]);
@@ -336,48 +341,48 @@ HZ_L2
 
 #ifdef ANIMATE
     if (ctx) {
-      CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dFD, lddF * sizeof(cuD), nrow * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
+      CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dFD, lddF * sizeof(cuD), nrowF * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
       CUDA_CALL(cudaDeviceSynchronize());
       for (unsigned j = 0u; j < ncol; ++j) {
         const size_t offDJ = ldhDJ * j;
         const size_t offF = ldhF * j;
-        for (unsigned i = 0u; i < nrow; ++i) {
+        for (unsigned i = 0u; i < nrowF; ++i) {
           const size_t ixDJ = offDJ + i;
           const size_t ixF = offF + i;
           (hF[ixF]).real(hDJ[ixDJ]);
         }
       }
 
-      CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dFJ, lddF * sizeof(cuJ), nrow * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
+      CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dFJ, lddF * sizeof(cuJ), nrowF * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
       CUDA_CALL(cudaDeviceSynchronize());
       for (unsigned j = 0u; j < ncol; ++j) {
         const size_t offDJ = ldhDJ * j;
         const size_t offF = ldhF * j;
-        for (unsigned i = 0u; i < nrow; ++i) {
+        for (unsigned i = 0u; i < nrowF; ++i) {
           const size_t ixDJ = offDJ + i;
           const size_t ixF = offF + i;
           (hF[ixF]).imag(hDJ[ixDJ]);
         }
       }
 
-      CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dGD, lddG * sizeof(cuD), nrow * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
+      CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dGD, lddG * sizeof(cuD), nrowG * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
       CUDA_CALL(cudaDeviceSynchronize());
       for (unsigned j = 0u; j < ncol; ++j) {
         const size_t offDJ = ldhDJ * j;
         const size_t offG = ldhG * j;
-        for (unsigned i = 0u; i < nrow; ++i) {
+        for (unsigned i = 0u; i < nrowG; ++i) {
           const size_t ixDJ = offDJ + i;
           const size_t ixG = offG + i;
           (hG[ixG]).real(hDJ[ixDJ]);
         }
       }
 
-      CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dGJ, lddG * sizeof(cuJ), nrow * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
+      CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dGJ, lddG * sizeof(cuJ), nrowG * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
       CUDA_CALL(cudaDeviceSynchronize());
       for (unsigned j = 0u; j < ncol; ++j) {
         const size_t offDJ = ldhDJ * j;
         const size_t offG = ldhG * j;
-        for (unsigned i = 0u; i < nrow; ++i) {
+        for (unsigned i = 0u; i < nrowG; ++i) {
           const size_t ixDJ = offDJ + i;
           const size_t ixG = offG + i;
           (hG[ixG]).imag(hDJ[ixDJ]);
@@ -396,48 +401,48 @@ HZ_L2
 
   timers[2] = stopwatch_lap(timers[3]);
 
-  CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dFD, lddF * sizeof(cuD), nrow * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
+  CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dFD, lddF * sizeof(cuD), nrowF * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
   CUDA_CALL(cudaDeviceSynchronize());
   for (unsigned j = 0u; j < ncol; ++j) {
     const size_t offDJ = ldhDJ * j;
     const size_t offF = ldhF * j;
-    for (unsigned i = 0u; i < nrow; ++i) {
+    for (unsigned i = 0u; i < nrowF; ++i) {
       const size_t ixDJ = offDJ + i;
       const size_t ixF = offF + i;
       (hF[ixF]).real(hDJ[ixDJ]);
     }
   }
 
-  CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dFJ, lddF * sizeof(cuJ), nrow * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
+  CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dFJ, lddF * sizeof(cuJ), nrowF * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
   CUDA_CALL(cudaDeviceSynchronize());
   for (unsigned j = 0u; j < ncol; ++j) {
     const size_t offDJ = ldhDJ * j;
     const size_t offF = ldhF * j;
-    for (unsigned i = 0u; i < nrow; ++i) {
+    for (unsigned i = 0u; i < nrowF; ++i) {
       const size_t ixDJ = offDJ + i;
       const size_t ixF = offF + i;
       (hF[ixF]).imag(hDJ[ixDJ]);
     }
   }
 
-  CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dGD, lddG * sizeof(cuD), nrow * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
+  CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dGD, lddG * sizeof(cuD), nrowG * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
   CUDA_CALL(cudaDeviceSynchronize());
   for (unsigned j = 0u; j < ncol; ++j) {
     const size_t offDJ = ldhDJ * j;
     const size_t offG = ldhG * j;
-    for (unsigned i = 0u; i < nrow; ++i) {
+    for (unsigned i = 0u; i < nrowG; ++i) {
       const size_t ixDJ = offDJ + i;
       const size_t ixG = offG + i;
       (hG[ixG]).real(hDJ[ixDJ]);
     }
   }
 
-  CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dGJ, lddG * sizeof(cuJ), nrow * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
+  CUDA_CALL(cudaMemcpy2DAsync(hDJ, ldhDJ * sizeof(double), dGJ, lddG * sizeof(cuJ), nrowG * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
   CUDA_CALL(cudaDeviceSynchronize());
   for (unsigned j = 0u; j < ncol; ++j) {
     const size_t offDJ = ldhDJ * j;
     const size_t offG = ldhG * j;
-    for (unsigned i = 0u; i < nrow; ++i) {
+    for (unsigned i = 0u; i < nrowG; ++i) {
       const size_t ixDJ = offDJ + i;
       const size_t ixG = offG + i;
       (hG[ixG]).imag(hDJ[ixDJ]);

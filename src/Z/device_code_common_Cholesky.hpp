@@ -5,6 +5,7 @@ MYDEVFN void zAhA
 (const cuD *const A0D, const cuJ *const A0J,
  const cuD *const A1D, const cuJ *const A1J,
  volatile cuD *const AD, volatile cuJ *const AJ,
+ const unsigned m,
  const unsigned x,
  const unsigned y0,
  const unsigned y1)
@@ -19,7 +20,7 @@ MYDEVFN void zAhA
   const unsigned
     x32 = x + 32u;
 
-  for (unsigned i = x; i < _nRow; i += 32u) {
+  for (unsigned i = x; i < m; i += 32u) {
     F64(AD, x, y0) = A0D[i];
     F64(AJ, x, y0) = A0J[i];
     F64(AD, x, y1) = A1D[i];
@@ -212,8 +213,8 @@ MYDEVFN void zFactorize
  const unsigned y0,
  const unsigned y1)
 {
-  zAhA(F0D, F0J, F1D, F1J, AD, AJ, x, y0, y1);
-  zAhA(G0D, G0J, G1D, G1J, BD, BJ, x, y0, y1);
+  zAhA(F0D, F0J, F1D, F1J, AD, AJ, _nRowF, x, y0, y1);
+  zAhA(G0D, G0J, G1D, G1J, BD, BJ, _nRowG, x, y0, y1);
   zCholesky32(AD, AJ, x, y0, y1);
   zCholesky32(BD, BJ, x, y0, y1);
 }

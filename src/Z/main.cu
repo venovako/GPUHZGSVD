@@ -8,8 +8,8 @@
 
 int main(int argc, char *argv[])
 {
-  if (9 != argc) {
-    (void)fprintf(stderr, "%s DEV SDY SNP0 SNP1 ALG M N FN\n", argv[0]);
+  if (10 != argc) {
+    (void)fprintf(stderr, "%s DEV SDY SNP0 SNP1 ALG MF MG N FN\n", argv[0]);
     return EXIT_FAILURE;
   }
 
@@ -19,17 +19,23 @@ int main(int argc, char *argv[])
   const char *const ca_snp0 = argv[3];
   const char *const ca_snp1 = argv[4];
   const char *const ca_alg = argv[5];
-  const char *const ca_m = argv[6];
-  const char *const ca_n = argv[7];
-  const char *const ca_fn = argv[8];
+  const char *const ca_mF = argv[6];
+  const char *const ca_mG = argv[7];
+  const char *const ca_n = argv[8];
+  const char *const ca_fn = argv[9];
 
-  const unsigned nrow = static_cast<unsigned>(atoi(ca_m));
-  if (!nrow)
+  const unsigned nrowF = static_cast<unsigned>(atoi(ca_mF));
+  if (!nrowF)
+    return EXIT_SUCCESS;
+  const unsigned nrowG = static_cast<unsigned>(atoi(ca_mG));
+  if (!nrowG)
     return EXIT_SUCCESS;
   const unsigned ncol = static_cast<unsigned>(atoi(ca_n));
   if (!ncol)
     return EXIT_SUCCESS;
-  if (ncol > nrow)
+  if (ncol > nrowF)
+    return EXIT_FAILURE;
+  if (ncol > nrowG)
     return EXIT_FAILURE;
 
   const unsigned routine = static_cast<unsigned>(atoi(ca_alg));
@@ -47,36 +53,38 @@ int main(int argc, char *argv[])
   const unsigned n1 = (ncol + HZ_L1_NCOLB - 1u) / HZ_L1_NCOLB;
   init_strats(ca_sdy, ca_snp0, n0, ca_snp1, n1);
 
-  const size_t m = static_cast<size_t>(nrow);
+  const size_t mF = static_cast<size_t>(nrowF);
+  const size_t mG = static_cast<size_t>(nrowG);
   const size_t n = static_cast<size_t>(ncol);
-  const size_t mn = m * n;
+  const size_t mFn = mF * n;
+  const size_t mGn = mG * n;
   const size_t nn = n * n;
 
   unsigned
-    ldhF = nrow,
-    ldhG = nrow,
-    ldhV = nrow;
+    ldhF = nrowF,
+    ldhG = nrowG,
+    ldhV = ncol;
 
   size_t ldA = static_cast<size_t>(0u);
   FILE *f = static_cast<FILE*>(NULL);
   char *const buf = static_cast<char*>(calloc(strlen(ca_fn) + 4u, sizeof(char)));
 
   ldA = static_cast<size_t>(ldhF);
-  std::complex<double> *const hF = allocHostMtx<std::complex<double>>(ldA, m, n, true);
+  std::complex<double> *const hF = allocHostMtx<std::complex<double>>(ldA, mF, n, true);
   SYSP_CALL(hF);
   ldhF = static_cast<unsigned>(ldA);
 
   SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".Y"), "rb"));
-  SYSI_CALL(mn != fread(hF, sizeof(*hF), mn, f));
+  SYSI_CALL(mFn != fread(hF, sizeof(*hF), mFn, f));
   SYSI_CALL(fclose(f));
 
   ldA = static_cast<size_t>(ldhG);
-  std::complex<double> *const hG = allocHostMtx<std::complex<double>>(ldA, m, n, true);
+  std::complex<double> *const hG = allocHostMtx<std::complex<double>>(ldA, mG, n, true);
   SYSP_CALL(hG);
   ldhG = static_cast<unsigned>(ldA);
 
   SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".W"), "rb"));
-  SYSI_CALL(mn != fread(hG, sizeof(*hG), mn, f));
+  SYSI_CALL(mGn != fread(hG, sizeof(*hG), mGn, f));
   SYSI_CALL(fclose(f));
 
   std::complex<double> *hV = static_cast<std::complex<double>*>(NULL);
@@ -95,7 +103,7 @@ int main(int argc, char *argv[])
   unsigned glbSwp = 0u;
   unsigned long long glb_s = 0ull, glb_b = 0ull;
   double timing[4] = { -0.0, -0.0, -0.0, -0.0 };
-  int ret = HZ_L2(routine, nrow, ncol, hF, ldhF, hG, ldhG, hV, ldhV, hS, hH, hK, &glbSwp, &glb_s, &glb_b, timing);
+  int ret = HZ_L2(routine, nrowF, nrowG, ncol, hF, ldhF, hG, ldhG, hV, ldhV, hS, hH, hK, &glbSwp, &glb_s, &glb_b, timing);
 
   if (ret)
     (void)fprintf(stderr, "%s: error %d\n", ca_exe, ret);
@@ -107,11 +115,11 @@ int main(int argc, char *argv[])
   }
 
   SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".YU"), "wb"));
-  SYSI_CALL(mn != fwrite(hF, sizeof(*hF), mn, f));
+  SYSI_CALL(mFn != fwrite(hF, sizeof(*hF), mFn, f));
   SYSI_CALL(fclose(f));
 
   SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".WV"), "wb"));
-  SYSI_CALL(mn != fwrite(hG, sizeof(*hG), mn, f));
+  SYSI_CALL(mGn != fwrite(hG, sizeof(*hG), mGn, f));
   SYSI_CALL(fclose(f));
 
   SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".Z"), "wb"));

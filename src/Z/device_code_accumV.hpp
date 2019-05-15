@@ -15,8 +15,8 @@ MYDEVFN void zMultV
  const unsigned y0,
  const unsigned y1)
 {
-  zMultAV(F0D, F0J, F1D, F1J, AD, AJ, CD, CJ, x, y0, y1, _nRow);
-  zMultAV(G0D, G0J, G1D, G1J, BD, BJ, CD, CJ, x, y0, y1, _nRow);
+  zMultAV(F0D, F0J, F1D, F1J, AD, AJ, CD, CJ, x, y0, y1, _nRowF);
+  zMultAV(G0D, G0J, G1D, G1J, BD, BJ, CD, CJ, x, y0, y1, _nRowG);
   zMultAV(V0D, V0J, V1D, V1J, AD, AJ, CD, CJ, x, y0, y1, _nRank);
 }
 

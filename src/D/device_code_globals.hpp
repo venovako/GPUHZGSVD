@@ -8,7 +8,7 @@ __constant__
 double *_S, *_H, *_K;
 
 __constant__
-unsigned _nRow, _nRank, _ldF, _ldG, _ldV, _nSwp;
+unsigned _nRowF, _nRowG, _nRank, _ldF, _ldG, _ldV, _nSwp;
 
 __constant__
 unsigned _STRAT0_STEPS, _STRAT0_PAIRS;

@@ -279,7 +279,8 @@ MYDEVFN void zGlobalPostScaleFast
  cuD *const GD, cuJ *const GJ,
  cuD *const VD, cuJ *const VJ,
  double *const S,
- const unsigned nRow,
+ const unsigned nRowF,
+ const unsigned nRowG,
  const unsigned nRank,
  const unsigned ldF,
  const unsigned ldG,
@@ -294,12 +295,12 @@ MYDEVFN void zGlobalPostScaleFast
     unsigned off = cix * ldF + lid;
     cuD *const bFiD = FD + off;
     cuJ *const bFiJ = FJ + off;
-    off = cix * ldF + nRow;
+    off = cix * ldF + nRowF;
     const cuD *const eFiD = FD + off;
     off = cix * ldG + lid;
     cuD *const bGiD = GD + off;
     cuJ *const bGiJ = GJ + off;
-    off = cix * ldG + nRow;
+    off = cix * ldG + nRowG;
     const cuD *const eGiD = GD + off;
     const double Fi_ssq = zSsqC(bFiD, eFiD, bFiJ);
     const double Gi_ssq = zSsqC(bGiD, eGiD, bGiJ);
@@ -324,7 +325,8 @@ MYDEVFN void zGlobalPostScaleFull
  double *const S,
  double *const H,
  double *const K,
- const unsigned nRow,
+ const unsigned nRowF,
+ const unsigned nRowG,
  const unsigned nRank,
  const unsigned ldF,
  const unsigned ldG,
@@ -339,12 +341,12 @@ MYDEVFN void zGlobalPostScaleFull
     unsigned off = cix * ldF + lid;
     cuD *const bFiD = FD + off;
     cuJ *const bFiJ = FJ + off;
-    off = cix * ldF + nRow;
+    off = cix * ldF + nRowF;
     const cuD *const eFiD = FD + off;
     off = cix * ldG + lid;
     cuD *const bGiD = GD + off;
     cuJ *const bGiJ = GJ + off;
-    off = cix * ldG + nRow;
+    off = cix * ldG + nRowG;
     const cuD *const eGiD = GD + off;
     double Fi_ssq, Fi_nrm, Fi_inv_nrm;
     zNrm2InvC(bFiD, eFiD, bFiJ, Fi_ssq, Fi_nrm, Fi_inv_nrm);
@@ -381,14 +383,13 @@ MYDEVFN void zGlobalPostScaleFull
 MYKERN zInitS(const int full)
 {
   if (full)
-    zGlobalPostScaleFull(_FD, _FJ, _GD, _GJ, _VD, _VJ, _S, _H, _K, _nRow, _nRank, _ldF, _ldG, _ldV);
+    zGlobalPostScaleFull(_FD, _FJ, _GD, _GJ, _VD, _VJ, _S, _H, _K, _nRowF, _nRowG, _nRank, _ldF, _ldG, _ldV);
   else
-    zGlobalPostScaleFast(_FD, _FJ, _GD, _GJ, _VD, _VJ, _S, _nRow, _nRank, _ldF, _ldG, _ldV);
+    zGlobalPostScaleFast(_FD, _FJ, _GD, _GJ, _VD, _VJ, _S, _nRowF, _nRowG, _nRank, _ldF, _ldG, _ldV);
 }
 
 MYDEVFN void zGlobalInitV
 (cuD *const VD,
- const unsigned nRow,
  const unsigned nRank,
  const unsigned ldV)
 {
@@ -407,7 +408,8 @@ MYDEVFN void zGlobalInitVscl
 (cuD *const FD, cuJ *const FJ,
  cuD *const GD, cuJ *const GJ,
  cuD *const VD,
- const unsigned nRow,
+ const unsigned nRowF,
+ const unsigned nRowG,
  const unsigned nRank,
  const unsigned ldF,
  const unsigned ldG,
@@ -422,7 +424,7 @@ MYDEVFN void zGlobalInitVscl
     unsigned off = cix * ldG + lid;
     cuD *const bGiD = GD + off;
     cuJ *const bGiJ = GJ + off;
-    off = cix * ldG + nRow;
+    off = cix * ldG + nRowG;
     const cuD *const eGiD = GD + off;
     double Gi_ssq, Gi_inv_nrm;
     zInvNrm2C(bGiD, eGiD, bGiJ, Gi_ssq, Gi_inv_nrm);
@@ -430,7 +432,7 @@ MYDEVFN void zGlobalInitVscl
       off = cix * ldF + lid;
       cuD *const bFiD = FD + off;
       cuJ *const bFiJ = FJ + off;
-      off = cix * ldF + nRow;
+      off = cix * ldF + nRowF;
       const cuD *const eFiD = FD + off;
       zScalC(bFiD, eFiD, bFiJ, Gi_inv_nrm);
       zScalC(bGiD, eGiD, bGiJ, Gi_inv_nrm);
@@ -443,9 +445,9 @@ MYDEVFN void zGlobalInitVscl
 MYKERN zInitV(const int sclV)
 {
   if (sclV)
-    zGlobalInitVscl(_FD, _FJ, _GD, _GJ, _VD, _nRow, _nRank, _ldF, _ldG, _ldV);
+    zGlobalInitVscl(_FD, _FJ, _GD, _GJ, _VD, _nRowF, _nRowG, _nRank, _ldF, _ldG, _ldV);
   else
-    zGlobalInitV(_VD, _nRow, _nRank, _ldV);
+    zGlobalInitV(_VD, _nRank, _ldV);
 }
 
 #endif // !DEVICE_CODE_COMMON_HPP

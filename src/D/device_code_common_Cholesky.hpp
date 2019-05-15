@@ -5,6 +5,7 @@ MYDEVFN void dAtA
 (const double *const A0,
  const double *const A1,
  volatile double *const A,
+ const unsigned m,
  const unsigned x,
  const unsigned y0,
  const unsigned y1)
@@ -16,7 +17,7 @@ MYDEVFN void dAtA
   const unsigned
     x32 = x + 32u;
 
-  for (unsigned i = x; i < _nRow; i += 32u) {
+  for (unsigned i = x; i < m; i += 32u) {
     F64(A, x, y0) = A0[i];
     F64(A, x, y1) = A1[i];
 
@@ -143,8 +144,8 @@ MYDEVFN void dFactorize
  const unsigned y0,
  const unsigned y1)
 {
-  dAtA(F0, F1, A, x, y0, y1);
-  dAtA(G0, G1, B, x, y0, y1);
+  dAtA(F0, F1, A, _nRowF, x, y0, y1);
+  dAtA(G0, G1, B, _nRowG, x, y0, y1);
   dCholesky32(A, x, y0, y1);
   dCholesky32(B, x, y0, y1);
 }

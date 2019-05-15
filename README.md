@@ -32,16 +32,14 @@ It is also possible to append ``clean`` to the invocation above, to remove the e
 
 To run the executable, say, e.g.
 ```bash
-/path/to/HZ0.exe DEV SDY SNP0 SNP1 ALG M N FN
+/path/to/HZ0.exe DEV SDY SNP0 SNP1 ALG MF MG N FN
 ```
-where ``DEV`` is the CUDA device number, ``SDY`` is a path to ``strat.so``, ``SNP0`` is the inner and ``SNP1`` outer strategy name (``cycwor`` or ``mmstep``), ``ALG`` is ``0`` for full block or ``8`` for block-oriented, ``M`` and ``N`` are the number of rows and columns, respectively, and ``FN`` is the file name prefix (without an extension) containing the input data.
+where ``DEV`` is the CUDA device number, ``SDY`` is a path to ``strat.so``, ``SNP0`` is the inner and ``SNP1`` outer strategy name (``cycwor`` or ``mmstep``), ``ALG`` is ``0`` for full block or ``8`` for block-oriented, ``MF`` and ``MG`` are the number of rows of the first and the second matrix, respectively, ``N`` is the number of columns, and ``FN`` is the file name prefix (without an extension) containing the input data.
 
 ### Data format
 
-Data should be contained in ``FN.Y`` and ``FN.W`` binary, Fortran-array-order files, where the first one stores the matrix ``F`` and the second one the matrix ``G``, and both matrices are either ``double`` or ``double complex`` and are expected to have ``M`` rows and ``N`` columns.
+Data should be contained in ``FN.Y`` and ``FN.W`` binary, Fortran-array-order files, where the first one stores the matrix ``F`` and the second one the matrix ``G``, and both matrices are either ``double`` or ``double complex`` and are expected to have ``MF`` (first matrix) or ``MG`` (second matrix) rows and ``N`` columns.
 
-The output comprises ``FN.YU``, ``FN.WV``, ``FN.Z``, for the ``double`` or ``double complex`` matrices ``U``, ``V`` (both ``M x N``), and ``Z`` (``N x N``); and ``FN.SY``, ``FN.SW``, ``FN.SS``, for the ``double`` vectors ``\Sigma_F``, ``\Sigma_G``, and ``\Sigma``, respectively, where all vectors are of length ``N``.
-
-Please, consult also [FLAPWxHZ](https://github.com/venovako/FLAPWxHZ) repository.
+The output comprises ``FN.YU``, ``FN.WV``, ``FN.Z``, for the ``double`` or ``double complex`` matrices ``U`` (``MF x N``), ``V`` (``MG x N``), and ``Z`` (``N x N``); and ``FN.SY``, ``FN.SW``, ``FN.SS``, for the ``double`` vectors ``\Sigma_F``, ``\Sigma_G``, and ``\Sigma``, respectively, where all vectors are of length ``N``.
 
 This work has been supported in part by Croatian Science Foundation under the project IP-2014-09-3670 ([MFBDA](https://web.math.pmf.unizg.hr/mfbda/)).
