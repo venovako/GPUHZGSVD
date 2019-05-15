@@ -33,9 +33,9 @@ int main(int argc, char *argv[])
   const unsigned ncol = static_cast<unsigned>(atoi(ca_n));
   if (!ncol)
     return EXIT_SUCCESS;
-  if (ncol > nrowF)
-    return EXIT_FAILURE;
-  if (ncol > nrowG)
+
+  unsigned nrowF_ = 0u, nrowG_ = 0u, ncol_ = 0u;
+  if (border_sz(nrowF, nrowG, ncol, nrowF_, nrowG_, ncol_))
     return EXIT_FAILURE;
 
   const unsigned routine = static_cast<unsigned>(atoi(ca_alg));

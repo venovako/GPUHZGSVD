@@ -65,28 +65,16 @@ T udiv_ceil(const T a, const T b) throw()
 }
 
 template <typename T>
-T inc_mod(const T a, const T m) throw()
+T dimToMod(const T dim, const T mod) throw()
 {
-  return (m ? ((a < (m - static_cast<T>(1u))) ? (a + static_cast<T>(1u)) : static_cast<T>(0u)) : a);
-}
+  T ret = static_cast<T>(0u);
 
-template <typename T>
-T dec_mod(const T a, const T m) throw()
-{
-  return (m ? (a ? (a - static_cast<T>(1u)) : (m - static_cast<T>(1u))) : a);
-}
+  if (mod) {
+    const T o = dim % mod;
+    ret = (o ? dim + (mod - o) : dim);
+  }
 
-inline unsigned
-bc2c(const unsigned bc, const unsigned nc_bc) throw()
-{
-  return (bc * nc_bc);
-}
-
-template <typename T>
-inline T*
-cA(T *const A, const unsigned c, const unsigned ldA) throw()
-{
-  return (A + c * ldA);
+  return ret;
 }
 
 #ifndef TS2S
@@ -104,5 +92,7 @@ cA(T *const A, const unsigned c, const unsigned ldA) throw()
 extern long long timestamp() throw();
 extern void stopwatch_reset(long long &sw) throw();
 extern long long stopwatch_lap(long long &sw) throw();
+
+extern int border_sz(const unsigned mF, const unsigned mG, const unsigned n, unsigned &mF_, unsigned &mG_, unsigned &n_);
 
 #endif // !MY_UTILS_HPP

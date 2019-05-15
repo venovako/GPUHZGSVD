@@ -28,19 +28,6 @@ T *allocHostVec(const size_t m) throw()
 }
 
 template <typename T>
-T dimToMod(const T dim, const T mod) throw()
-{
-  T ret = static_cast<T>(0u);
-
-  if (mod) {
-    const T o = dim % mod;
-    ret = (o ? dim + (mod - o) : dim);
-  }
-
-  return ret;
-}
-
-template <typename T>
 T *allocDeviceMtx(size_t &ldm, const size_t m, const size_t n, const bool f) throw()
 {
   T *ret = static_cast<T*>(NULL);

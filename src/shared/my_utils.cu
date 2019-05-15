@@ -47,3 +47,23 @@ long long stopwatch_lap(long long &sw) throw()
   sw = ts;
   return lap;
 }
+
+int border_sz(const unsigned mF, const unsigned mG, const unsigned n, unsigned &mF_, unsigned &mG_, unsigned &n_)
+{
+  if (!mF)
+    return -1;
+  if (!mG)
+    return -2;
+  if (!n)
+    return -3;
+  if (n > mF)
+    return -3;
+  if (n > mG)
+    return -3;
+
+  mF_ = dimToMod(mF, 64u);
+  mG_ = dimToMod(mG, 64u);
+  n_ = dimToMod(n, 32u);
+
+  return 0;
+}

@@ -33,9 +33,9 @@ int main(int argc, char *argv[])
   const unsigned ncol = static_cast<unsigned>(atoi(ca_n));
   if (!ncol)
     return EXIT_SUCCESS;
-  if (ncol > nrowF)
-    return EXIT_FAILURE;
-  if (ncol > nrowG)
+
+  unsigned nrowF_ = 0u, nrowG_ = 0u, ncol_ = 0u;
+  if (border_sz(nrowF, nrowG, ncol, nrowF_, nrowG_, ncol_))
     return EXIT_FAILURE;
 
   const unsigned routine = static_cast<unsigned>(atoi(ca_alg));
@@ -44,10 +44,10 @@ int main(int argc, char *argv[])
   if (dev < 0)
     return EXIT_FAILURE;
   const int dcc = configureGPU(dev);
-  if (dcc < 30) {
-    (void)fprintf(stderr, "Device %d has CC %d < 30", dev, dcc);
-    return EXIT_FAILURE;
-  }
+#ifndef NDEBUG
+  (void)fprintf(stdout, "Device %d has CC %d\n", dev, dcc);
+  (void)fflush(stdout);
+#endif // !NDEBUG
 
   const unsigned n0 = (HZ_L1_NCOLB << 1u);
   const unsigned n1 = (ncol + HZ_L1_NCOLB - 1u) / HZ_L1_NCOLB;
