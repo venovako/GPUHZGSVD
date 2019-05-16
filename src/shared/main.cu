@@ -95,7 +95,6 @@ int CT_main(int argc, char *argv[])
   hV = allocHostMtx<CT>(ldA, n_, n_, true);
   SYSP_CALL(hV);
   ldhV = static_cast<unsigned>(ldA);
-  SYSI_CALL(bdinit(n, n_, hV, ldA));
 
   double *const hS = allocHostVec<double>(n_);
   SYSP_CALL(hS);
@@ -163,14 +162,14 @@ int CT_main(int argc, char *argv[])
   return ret;
 }
 
-#ifdef CT
-#error CT already defined
-#else // !CT
+#ifndef CT
 #ifdef USE_COMPLEX
 #define CT std::complex<double>
 #else // !USE_COMPLEX
 #define CT double
 #endif // ?USE_COMPLEX
+#else // CT
+#error CT not definable externally
 #endif // ?CT
 
 int main(int argc, char *argv[])

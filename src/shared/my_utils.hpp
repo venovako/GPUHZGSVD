@@ -52,11 +52,11 @@ EXTERN_C char err_msg[err_msg_size];
 #error SYSP_CALL not definable externally
 #endif // !SYSP_CALL
 
-extern int fexist(const char *const fn) throw();
+EXTERN_C int fexist(const char *const fn) throw();
 
-extern void *strat_open(const char *const sdy) throw();
-extern int strat_close(void *const h) throw();
-extern const void *strat_ptr(void *const h, const char *const snp, const unsigned n) throw();
+EXTERN_C void *strat_open(const char *const sdy) throw();
+EXTERN_C int strat_close(void *const h) throw();
+EXTERN_C const void *strat_ptr(void *const h, const char *const snp, const unsigned n) throw();
 
 template <typename T>
 T udiv_ceil(const T a, const T b) throw()
@@ -89,14 +89,14 @@ T dimToMod(const T dim, const T mod) throw()
 #error TS_S not definable externally
 #endif // !TS_S
 
-extern long long timestamp() throw();
-extern void stopwatch_reset(long long &sw) throw();
-extern long long stopwatch_lap(long long &sw) throw();
+EXTERN_C long long timestamp() throw();
+EXTERN_C void stopwatch_reset(long long &sw) throw();
+EXTERN_C long long stopwatch_lap(long long &sw) throw();
 
-extern int border1sz(const unsigned mF, const unsigned mG, const unsigned n, unsigned &mF_, unsigned &mG_, unsigned &n_);
+EXTERN_C int border1sz(const unsigned mF, const unsigned mG, const unsigned n, unsigned &mF_, unsigned &mG_, unsigned &n_) throw();
 
 template <typename CT>
-int fread_bycol(FILE *const f, const size_t m, const size_t n, CT *const A, const size_t ldA)
+int fread_bycol(FILE *const f, const size_t m, const size_t n, CT *const A, const size_t ldA) throw()
 {
   if (!f)
     return -1;
@@ -121,7 +121,7 @@ int fread_bycol(FILE *const f, const size_t m, const size_t n, CT *const A, cons
 }
 
 template <typename CT>
-int fwrite_bycol(FILE *const f, const size_t m, const size_t n, const CT *const A, const size_t ldA)
+int fwrite_bycol(FILE *const f, const size_t m, const size_t n, const CT *const A, const size_t ldA) throw()
 {
   if (!f)
     return -1;
@@ -146,7 +146,7 @@ int fwrite_bycol(FILE *const f, const size_t m, const size_t n, const CT *const 
 }
 
 template <typename CT>
-int bdinit(const size_t n, const size_t n_, CT *const A, const size_t ldA)
+int bdinit(const size_t n, const size_t n_, CT *const A, const size_t ldA) throw()
 {
   static const CT one(1.0);
 
