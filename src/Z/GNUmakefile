@@ -17,7 +17,7 @@ STD=11
 endif # !STD
 
 NVPPFLAGS=-I. -I../shared -DCVG=$(CVG) -DUSE_COMPLEX
-NVCCFLAGS=-std c++$(STD) -arch sm_$(GPU_ARCH) -restrict -res-usage -Xcompiler -march=native
+NVCCFLAGS=-std c++$(STD) -arch sm_$(GPU_ARCH) -restrict -res-usage -Xcompiler -march=native -Xcompiler -pthread
 NVLDFLAGS=
 
 ifdef NDEBUG
@@ -64,15 +64,30 @@ SOURCES=			\
 	HZ_L2.cu		\
 	../shared/cuda_helper.cu\
 	device_code.cu		\
-	../shared/main.cu	\
 	../shared/my_utils.cu
 
 EXE=HZ$(CVG).exe
+ifdef MPI
+ifndef MPIINC
+MPIINC=-DUSE_MPI -I$(MPI)/include
+endif # !MPIINC
+ifndef MPILIB
+MPILIB=-Xlinker -rpath,$(MPI)/lib -Xlinker --enable-new-dtags -L$(MPI)/lib -lmpi
+endif # !MPILIB
+MPIHDR= \
+	../shared/mpi_helper.hpp
+MPISRC= \
+	../shared/mpi_helper.cu
+EXE+=MHZ$(CVG).exe
+endif # MPI
 
 all: $(EXE)
 
-$(EXE): $(HEADERS) $(SOURCES) GNUmakefile
-	$(NVCC) $(NVPPFLAGS) $(NVCCFLAGS) $(SOURCES) -o $@ $(NVLDFLAGS)
+HZ$(CVG).exe: $(HEADERS) $(SOURCES) ../shared/main.cu GNUmakefile
+	$(NVCC) $(NVPPFLAGS) $(NVCCFLAGS) $(SOURCES) ../shared/main.cu -o $@ $(NVLDFLAGS)
+
+MHZ$(CVG).exe: $(MPIHDR) $(HEADERS) $(MPISRC) $(SOURCES) ../shared/mpi_main.cu GNUmakefile
+	$(NVCC) $(MPIINC) $(NVPPFLAGS) $(NVCCFLAGS) $(MPISRC) $(SOURCES) ../shared/mpi_main.cu -o $@ $(MPILIB) $(NVLDFLAGS)
 
 clean:
 	-$(RM) $(EXE)
