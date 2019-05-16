@@ -6,7 +6,8 @@
 #include "cuda_memory_helper.hpp"
 #include "my_utils.hpp"
 
-int main(int argc, char *argv[])
+template <typename CT>
+int CT_main(int argc, char *argv[])
 {
   if (10 != argc) {
     (void)fprintf(stderr, "%s DEV SDY SNP0 SNP1 ALG MF MG N FN\n", argv[0]);
@@ -35,7 +36,7 @@ int main(int argc, char *argv[])
     return EXIT_SUCCESS;
 
   unsigned nrowF_ = 0u, nrowG_ = 0u, ncol_ = 0u;
-  if (border_sz(nrowF, nrowG, ncol, nrowF_, nrowG_, ncol_))
+  if (border1sz(nrowF, nrowG, ncol, nrowF_, nrowG_, ncol_))
     return EXIT_FAILURE;
 
   const unsigned routine = static_cast<unsigned>(atoi(ca_alg));
@@ -70,7 +71,7 @@ int main(int argc, char *argv[])
   char *const buf = static_cast<char*>(calloc(strlen(ca_fn) + 4u, sizeof(char)));
 
   ldA = static_cast<size_t>(ldhF);
-  double *const hF = allocHostMtx<double>(ldA, mF, n, true);
+  CT *const hF = allocHostMtx<CT>(ldA, mF, n, true);
   SYSP_CALL(hF);
   ldhF = static_cast<unsigned>(ldA);
 
@@ -79,7 +80,7 @@ int main(int argc, char *argv[])
   SYSI_CALL(fclose(f));
 
   ldA = static_cast<size_t>(ldhG);
-  double *const hG = allocHostMtx<double>(ldA, mG, n, true);
+  CT *const hG = allocHostMtx<CT>(ldA, mG, n, true);
   SYSP_CALL(hG);
   ldhG = static_cast<unsigned>(ldA);
 
@@ -87,9 +88,9 @@ int main(int argc, char *argv[])
   SYSI_CALL(mGn != fread(hG, sizeof(*hG), mGn, f));
   SYSI_CALL(fclose(f));
 
-  double *hV = static_cast<double*>(NULL);
+  CT *hV = static_cast<CT*>(NULL);
   ldA = static_cast<size_t>(ldhV);
-  hV = allocHostMtx<double>(ldA, n, n, true);
+  hV = allocHostMtx<CT>(ldA, n, n, true);
   SYSP_CALL(hV);
   ldhV = static_cast<unsigned>(ldA);
 
@@ -157,4 +158,19 @@ int main(int argc, char *argv[])
   CUDA_CALL(cudaDeviceReset());
 
   return ret;
+}
+
+#ifdef CT
+#error CT already defined
+#else // !CT
+#ifdef USE_COMPLEX
+#define CT std::complex<double>
+#else // !USE_COMPLEX
+#define CT double
+#endif // ?USE_COMPLEX
+#endif // ?CT
+
+int main(int argc, char *argv[])
+{
+  return CT_main<CT>(argc, argv);
 }

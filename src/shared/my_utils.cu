@@ -48,7 +48,7 @@ long long stopwatch_lap(long long &sw) throw()
   return lap;
 }
 
-int border_sz(const unsigned mF, const unsigned mG, const unsigned n, unsigned &mF_, unsigned &mG_, unsigned &n_)
+int border1sz(const unsigned mF, const unsigned mG, const unsigned n, unsigned &mF_, unsigned &mG_, unsigned &n_)
 {
   if (!mF)
     return -1;

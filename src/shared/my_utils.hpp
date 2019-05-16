@@ -93,6 +93,6 @@ extern long long timestamp() throw();
 extern void stopwatch_reset(long long &sw) throw();
 extern long long stopwatch_lap(long long &sw) throw();
 
-extern int border_sz(const unsigned mF, const unsigned mG, const unsigned n, unsigned &mF_, unsigned &mG_, unsigned &n_);
+extern int border1sz(const unsigned mF, const unsigned mG, const unsigned n, unsigned &mF_, unsigned &mG_, unsigned &n_);
 
 #endif // !MY_UTILS_HPP

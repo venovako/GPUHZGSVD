@@ -63,7 +63,7 @@ SOURCES=			\
 	HZ_L2.cu		\
 	../shared/cuda_helper.cu\
 	device_code.cu		\
-	main.cu			\
+	../shared/main.cu	\
 	../shared/my_utils.cu
 
 EXE=HZ$(CVG).exe
