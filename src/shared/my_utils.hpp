@@ -95,4 +95,78 @@ extern long long stopwatch_lap(long long &sw) throw();
 
 extern int border1sz(const unsigned mF, const unsigned mG, const unsigned n, unsigned &mF_, unsigned &mG_, unsigned &n_);
 
+template <typename CT>
+int fread_bycol(FILE *const f, const size_t m, const size_t n, CT *const A, const size_t ldA)
+{
+  if (!f)
+    return -1;
+  if (!m)
+    return -2;
+  if (!n)
+    return -3;
+  if (!A)
+    return -4;
+  if (!ldA)
+    return -5;
+  if (ldA < m)
+    return -5;
+
+  for (size_t j = 0u; j < n; ++j) {
+    CT *const c = A + j * ldA;
+    if (fread(c, sizeof(CT), m, f) != m)
+      return (static_cast<int>(j) + 1);
+  }
+
+  return 0;
+}
+
+template <typename CT>
+int fwrite_bycol(FILE *const f, const size_t m, const size_t n, const CT *const A, const size_t ldA)
+{
+  if (!f)
+    return -1;
+  if (!m)
+    return -2;
+  if (!n)
+    return -3;
+  if (!A)
+    return -4;
+  if (!ldA)
+    return -5;
+  if (ldA < m)
+    return -5;
+
+  for (size_t j = 0u; j < n; ++j) {
+    const CT *const c = A + j * ldA;
+    if (fwrite(c, sizeof(CT), m, f) != m)
+      return (static_cast<int>(j) + 1);
+  }
+
+  return 0;
+}
+
+template <typename CT>
+int bdinit(const size_t n, const size_t n_, CT *const A, const size_t ldA)
+{
+  static const CT one(1.0);
+
+  if (!n)
+    return -1;
+  if (!n_)
+    return -2;
+  if (n_ < n)
+    return -2;
+  if (!A)
+    return -3;
+  if (!ldA)
+    return -4;
+  if (ldA < n_)
+    return -4;
+
+  for (size_t j = n; j < n_; ++j)
+    A[j * ldA + j] = one;
+
+  return 0;
+}
+
 #endif // !MY_UTILS_HPP

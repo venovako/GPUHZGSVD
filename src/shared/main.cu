@@ -51,60 +51,63 @@ int CT_main(int argc, char *argv[])
 #endif // !NDEBUG
 
   const unsigned n0 = (HZ_L1_NCOLB << 1u);
-  const unsigned n1 = (ncol + HZ_L1_NCOLB - 1u) / HZ_L1_NCOLB;
+  const unsigned n1 = udiv_ceil(ncol_, HZ_L1_NCOLB);
   init_strats(ca_sdy, ca_snp0, n0, ca_snp1, n1);
 
   const size_t mF = static_cast<size_t>(nrowF);
+  const size_t mF_ = static_cast<size_t>(nrowF_);
   const size_t mG = static_cast<size_t>(nrowG);
+  const size_t mG_ = static_cast<size_t>(nrowG_);
+  const size_t n_ = static_cast<size_t>(ncol_);
   const size_t n = static_cast<size_t>(ncol);
-  const size_t mFn = mF * n;
-  const size_t mGn = mG * n;
-  const size_t nn = n * n;
 
   unsigned
-    ldhF = nrowF,
-    ldhG = nrowG,
-    ldhV = ncol;
+    ldhF = nrowF_,
+    ldhG = nrowG_,
+    ldhV = ncol_;
 
   size_t ldA = static_cast<size_t>(0u);
   FILE *f = static_cast<FILE*>(NULL);
   char *const buf = static_cast<char*>(calloc(strlen(ca_fn) + 4u, sizeof(char)));
 
   ldA = static_cast<size_t>(ldhF);
-  CT *const hF = allocHostMtx<CT>(ldA, mF, n, true);
+  CT *const hF = allocHostMtx<CT>(ldA, mF_, n_, true);
   SYSP_CALL(hF);
   ldhF = static_cast<unsigned>(ldA);
 
   SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".Y"), "rb"));
-  SYSI_CALL(mFn != fread(hF, sizeof(*hF), mFn, f));
+  SYSI_CALL(fread_bycol(f, mF, n, hF, ldA));
   SYSI_CALL(fclose(f));
+  SYSI_CALL(bdinit(n, n_, hF, ldA));
 
   ldA = static_cast<size_t>(ldhG);
-  CT *const hG = allocHostMtx<CT>(ldA, mG, n, true);
+  CT *const hG = allocHostMtx<CT>(ldA, mG_, n_, true);
   SYSP_CALL(hG);
   ldhG = static_cast<unsigned>(ldA);
 
   SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".W"), "rb"));
-  SYSI_CALL(mGn != fread(hG, sizeof(*hG), mGn, f));
+  SYSI_CALL(fread_bycol(f, mG, n, hG, ldA));
   SYSI_CALL(fclose(f));
+  SYSI_CALL(bdinit(n, n_, hG, ldA));
 
   CT *hV = static_cast<CT*>(NULL);
   ldA = static_cast<size_t>(ldhV);
-  hV = allocHostMtx<CT>(ldA, n, n, true);
+  hV = allocHostMtx<CT>(ldA, n_, n_, true);
   SYSP_CALL(hV);
   ldhV = static_cast<unsigned>(ldA);
+  SYSI_CALL(bdinit(n, n_, hV, ldA));
 
-  double *const hS = allocHostVec<double>(n);
+  double *const hS = allocHostVec<double>(n_);
   SYSP_CALL(hS);
-  double *const hH = allocHostVec<double>(n);
+  double *const hH = allocHostVec<double>(n_);
   SYSP_CALL(hH);
-  double *const hK = allocHostVec<double>(n);
+  double *const hK = allocHostVec<double>(n_);
   SYSP_CALL(hK);
 
   unsigned glbSwp = 0u;
   unsigned long long glb_s = 0ull, glb_b = 0ull;
   double timing[4] = { -0.0, -0.0, -0.0, -0.0 };
-  int ret = HZ_L2(routine, nrowF, nrowG, ncol, hF, ldhF, hG, ldhG, hV, ldhV, hS, hH, hK, &glbSwp, &glb_s, &glb_b, timing);
+  int ret = HZ_L2(routine, nrowF_, nrowG_, ncol_, hF, ldhF, hG, ldhG, hV, ldhV, hS, hH, hK, &glbSwp, &glb_s, &glb_b, timing);
 
   if (ret)
     (void)fprintf(stderr, "%s: error %d\n", ca_exe, ret);
@@ -116,15 +119,15 @@ int CT_main(int argc, char *argv[])
   }
 
   SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".YU"), "wb"));
-  SYSI_CALL(mFn != fwrite(hF, sizeof(*hF), mFn, f));
+  SYSI_CALL(fwrite_bycol(f, mF, n, const_cast<const CT*>(hF), static_cast<size_t>(ldhF)));
   SYSI_CALL(fclose(f));
 
   SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".WV"), "wb"));
-  SYSI_CALL(mGn != fwrite(hG, sizeof(*hG), mGn, f));
+  SYSI_CALL(fwrite_bycol(f, mG, n, const_cast<const CT*>(hG), static_cast<size_t>(ldhG)));
   SYSI_CALL(fclose(f));
 
   SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".Z"), "wb"));
-  SYSI_CALL(nn != fwrite(hV, sizeof(*hV), nn, f));
+  SYSI_CALL(fwrite_bycol(f, n, n, const_cast<const CT*>(hV), static_cast<size_t>(ldhV)));
   SYSI_CALL(fclose(f));
 
   SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".SS"), "wb"));

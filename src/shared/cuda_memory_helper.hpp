@@ -12,7 +12,7 @@ T *allocHostMtx(size_t &ldm, const size_t m, const size_t n, const bool f) throw
   if (b && (ldm >= (f ? m : n)))
     CUDA_CALL(cudaHostAlloc(&ret, b, cudaHostAllocPortable));
 
-  return ret;
+  return static_cast<T*>(ret ? memset(ret, 0, b) : NULL);
 }
 
 template <typename T>
@@ -24,7 +24,7 @@ T *allocHostVec(const size_t m) throw()
   if (b)
     CUDA_CALL(cudaHostAlloc(&ret, b, cudaHostAllocPortable));
 
-  return ret;
+  return static_cast<T*>(ret ? memset(ret, 0, b) : NULL);
 }
 
 template <typename T>
