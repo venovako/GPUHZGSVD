@@ -96,7 +96,7 @@ EXTERN_C long long stopwatch_lap(long long &sw) throw();
 EXTERN_C int border1sz(const unsigned mF, const unsigned mG, const unsigned n, unsigned &mF_, unsigned &mG_, unsigned &n_) throw();
 
 template <typename CT>
-int fread_bycol(FILE *const f, const size_t m, const size_t n, CT *const A, const size_t ldA) throw()
+int fread_bycol(FILE *const f, const size_t m, const size_t n, CT *const A, const size_t ldA, const long off = 0l) throw()
 {
   if (!f)
     return -1;
@@ -110,6 +110,13 @@ int fread_bycol(FILE *const f, const size_t m, const size_t n, CT *const A, cons
     return -5;
   if (ldA < m)
     return -5;
+  if (off < 0l)
+    return -6;
+
+  const long o = ftell(f);
+  SYSI_CALL(o < 0l);
+  if (o != off)
+    SYSI_CALL(fseek(f, off, SEEK_SET));
 
   for (size_t j = 0u; j < n; ++j) {
     CT *const c = A + j * ldA;
@@ -121,7 +128,7 @@ int fread_bycol(FILE *const f, const size_t m, const size_t n, CT *const A, cons
 }
 
 template <typename CT>
-int fwrite_bycol(FILE *const f, const size_t m, const size_t n, const CT *const A, const size_t ldA) throw()
+int fwrite_bycol(FILE *const f, const size_t m, const size_t n, const CT *const A, const size_t ldA, const long off = 0l) throw()
 {
   if (!f)
     return -1;
@@ -135,6 +142,13 @@ int fwrite_bycol(FILE *const f, const size_t m, const size_t n, const CT *const 
     return -5;
   if (ldA < m)
     return -5;
+  if (off < 0l)
+    return -6;
+
+  const long o = ftell(f);
+  SYSI_CALL(o < 0l);
+  if (o != off)
+    SYSI_CALL(fseek(f, off, SEEK_SET));
 
   for (size_t j = 0u; j < n; ++j) {
     const CT *const c = A + j * ldA;

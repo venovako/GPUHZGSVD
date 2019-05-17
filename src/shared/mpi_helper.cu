@@ -35,9 +35,12 @@ bool mpi_cuda() throw()
 {
 #if (defined(MPIX_CUDA_AWARE_SUPPORT) && MPIX_CUDA_AWARE_SUPPORT)
   return (1 == MPIX_Query_cuda_support());
-#else // !MPIX_CUDA_AWARE_SUPPORT
+#elif (defined(MVAPICH2_NUMVERSION) && (MVAPICH2_NUMVERSION >= 20000000))
+  const char *const e = getenv("MV2_USE_CUDA");
+  return (e && atoi(e));
+#else // only OpenMPI and MVAPICH2 so far
   return false;
-#endif // ?MPIX_CUDA_AWARE_SUPPORT
+#endif // TODO: any other MPI?
 }
 
 #ifndef DEV_HOST_NAME_LEN
