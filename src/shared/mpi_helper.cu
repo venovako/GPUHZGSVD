@@ -3,7 +3,11 @@
 #include "cuda_helper.hpp"
 #include "my_utils.hpp"
 
-int init_MPI(int *const argc, char ***const argv) throw()
+#ifdef OMPI_MPI_H
+#include <mpi-ext.h>
+#endif // OMPI_MPI_H
+
+int init_MPI(int *const argc, char ***const argv, bool &cuda) throw()
 {
   int i = 0, f = 0, e = MPI_SUCCESS;
   if ((e = MPI_Initialized(&i)))
@@ -14,6 +18,11 @@ int init_MPI(int *const argc, char ***const argv) throw()
     return e;
   if (f)
     return -1;
+#if (defined(MPIX_CUDA_AWARE_SUPPORT) && MPIX_CUDA_AWARE_SUPPORT)
+  cuda = (1 == MPIX_Query_cuda_support());
+#else // !MPIX_CUDA_AWARE_SUPPORT
+  cuda = false;
+#endif // ?MPIX_CUDA_AWARE_SUPPORT
   return MPI_Init(argc, argv);
 }
 

@@ -4,10 +4,12 @@
 #include "mpi_helper.hpp"
 #include "my_utils.hpp"
 
+static bool mpi_cuda = false;
+
 template <typename CT>
 int CT_main(int argc, char *argv[])
 {
-  if (init_MPI(&argc, &argv))
+  if (init_MPI(&argc, &argv, mpi_cuda))
     return fini_MPI();
   const int dev = assign_dev2host();
   if (dev < 0)
