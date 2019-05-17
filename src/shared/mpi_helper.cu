@@ -115,9 +115,10 @@ int assign_dev2host() throw()
   if (!dh)
     return -1;
 
-  qsort(dh, static_cast<size_t>(size), sizeof(dev_host), (int (*)(const void*, const void*))dev_host_cmp);
+  if (size > 1)
+    qsort(dh, static_cast<size_t>(size), sizeof(dev_host), (int (*)(const void*, const void*))dev_host_cmp);
 
-  int dev = -4;
+  int dev = -3;
   if (!rank)
     (void)fprintf(stderr, "\nRANK,GPUS,LGPU,HOSTNAME\n");
   dh[0].dev = 0;
@@ -133,22 +134,23 @@ int assign_dev2host() throw()
       if (dh[i].dev_count != dh[i-1].dev_count)
         err = -2;
       dh[i].dev = (dh[i-1].dev + 1);
-      // more processes than devices per host
+      // more processes than devices per host, wrap around
       if (dh[i].dev >= dh[i].dev_count)
-        err = -3;
+        dh[i].dev = 0;
     }
     else
       dh[i].dev = 0;
     if (!rank)
       (void)fprintf(stderr, "%4d,%4d,%4d,%s\n", dh[i].rank, dh[i].dev_count, dh[i].dev, dh[i].host);
     if (err) {
-      free(dh);
-      return err;
+      dev = err;
+      goto end;
     }
     if (dh[i].rank == rank)
-      dev = dh[i].rank;
+      dev = dh[i].dev;
   }
 
+ end:
   free(dh);
   return dev;
 }
