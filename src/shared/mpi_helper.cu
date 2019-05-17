@@ -9,6 +9,10 @@
 
 int init_MPI(int *const argc, char ***const argv) throw()
 {
+  if (!argc)
+    return -1;
+  if (!argv)
+    return -2;
   int i = 0, f = 0, e = MPI_SUCCESS;
   if ((e = MPI_Initialized(&i)))
     return e;
@@ -17,7 +21,7 @@ int init_MPI(int *const argc, char ***const argv) throw()
   if ((e = MPI_Finalized(&f)))
     return e;
   if (f)
-    return -1;
+    return -3;
   return MPI_Init(argc, argv);
 }
 
@@ -56,29 +60,27 @@ typedef struct {
 
 static int dev_host_cmp(const dev_host *const a, const dev_host *const b) throw()
 {
+  assert(a);
+  assert(b);
   if (a == b)
     return 0;
-  if (!b)
-    return -1;
-  if (!a)
-    return 1;
   const int hc = strcmp(a->host, b->host);
   if (hc < 0)
-    return -2;
+    return -1;
   if (hc > 0)
-    return 2;
+    return 1;
   if (a->rank < b->rank)
-    return -3;
+    return -2;
   if (a->rank > b->rank)
-    return 3;
+    return 2;
   if (a->dev_count < b->dev_count)
-    return -4;
+    return -3;
   if (a->dev_count > b->dev_count)
-    return 4;
+    return 3;
   if (a->dev < b->dev)
-    return -5;
+    return -4;
   if (a->dev > b->dev)
-    return 5;
+    return 4;
   return 0;
 }
 
@@ -103,7 +105,8 @@ static dev_host *get_dev_hosts(int &size, int &rank) throw()
   SYSI_CALL(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
 
   dev_host my;
-  (void)dev_host_get(my, rank);
+  if (dev_host_get(my, rank) <= 0)
+    (void)fprintf(stderr, "Cannot query the host information (%d)\n", my.dev_count);
 
   dev_host *const rcv = static_cast<dev_host*>(malloc(static_cast<unsigned>(size) * sizeof(dev_host)));
   SYSP_CALL(rcv);

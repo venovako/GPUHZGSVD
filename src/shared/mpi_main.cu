@@ -13,14 +13,18 @@ int CT_main(int argc, char *argv[])
   }
   if (!mpi_cuda()) {
     (void)fprintf(stderr, "%s: mpi_cuda failed\n", argv[0]);
-    // TODO: return fini_MPI();
+    return fini_MPI();
   }
   const int dev = assign_dev2host();
   if (dev < 0) {
     (void)fprintf(stderr, "%s: assign_dev2host failed (%d)\n", argv[0], dev);
     return fini_MPI();
   }
-  CUDA_CALL(cudaSetDevice(dev));
+  const int dcc = configureGPU(dev);
+#ifndef NDEBUG
+  (void)fprintf(stdout, "Device %d has CC %d\n", dev, dcc);
+  (void)fflush(stdout);
+#endif // !NDEBUG
   return fini_MPI();
 }
 

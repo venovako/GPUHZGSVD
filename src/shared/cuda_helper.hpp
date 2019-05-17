@@ -31,10 +31,7 @@ typedef double cuJ;
 #error WARP_SZ not definable externally
 #endif // !WARP_SZ
 
-EXTERN_C int
-configureGPU(const int dev) throw();
-
-EXTERN_C int
-configureGPUex(const int dev, const unsigned maxShMemB) throw();
+EXTERN_C int configureGPU(const int dev) throw();
+EXTERN_C int configureGPUex(const int dev, const unsigned maxShMemB) throw();
 
 #endif // !CUDA_HELPER_HPP

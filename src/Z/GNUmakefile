@@ -16,7 +16,7 @@ ifndef STD
 STD=11
 endif # !STD
 
-NVPPFLAGS=-I. -I../shared -DCVG=$(CVG) -DUSE_COMPLEX
+NVPPFLAGS=-I. -I../shared -DCVG=$(CVG) -DUSE_COMPLEX -DGPU_ARCH=$(GPU_ARCH)
 NVCCFLAGS=-std c++$(STD) -arch sm_$(GPU_ARCH) -restrict -res-usage -Xcompiler -march=native -Xcompiler -pthread
 NVLDFLAGS=
 
