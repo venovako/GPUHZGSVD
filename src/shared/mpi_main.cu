@@ -4,17 +4,23 @@
 #include "mpi_helper.hpp"
 #include "my_utils.hpp"
 
-static bool mpi_cuda = false;
-
 template <typename CT>
 int CT_main(int argc, char *argv[])
 {
-  if (init_MPI(&argc, &argv, mpi_cuda))
+  if (init_MPI(&argc, &argv)) {
+    (void)fprintf(stderr, "%s: init_MPI failed\n", argv[0]);
     return fini_MPI();
+  }
+  if (!mpi_cuda()) {
+    (void)fprintf(stderr, "%s: mpi_cuda failed\n", argv[0]);
+    // TODO: return fini_MPI();
+  }
   const int dev = assign_dev2host();
-  if (dev < 0)
+  if (dev < 0) {
+    (void)fprintf(stderr, "%s: assign_dev2host failed (%d)\n", argv[0], dev);
     return fini_MPI();
-
+  }
+  CUDA_CALL(cudaSetDevice(dev));
   return fini_MPI();
 }
 

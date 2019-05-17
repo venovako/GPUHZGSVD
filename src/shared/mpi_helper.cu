@@ -7,7 +7,7 @@
 #include <mpi-ext.h>
 #endif // OMPI_MPI_H
 
-int init_MPI(int *const argc, char ***const argv, bool &cuda) throw()
+int init_MPI(int *const argc, char ***const argv) throw()
 {
   int i = 0, f = 0, e = MPI_SUCCESS;
   if ((e = MPI_Initialized(&i)))
@@ -18,11 +18,6 @@ int init_MPI(int *const argc, char ***const argv, bool &cuda) throw()
     return e;
   if (f)
     return -1;
-#if (defined(MPIX_CUDA_AWARE_SUPPORT) && MPIX_CUDA_AWARE_SUPPORT)
-  cuda = (1 == MPIX_Query_cuda_support());
-#else // !MPIX_CUDA_AWARE_SUPPORT
-  cuda = false;
-#endif // ?MPIX_CUDA_AWARE_SUPPORT
   return MPI_Init(argc, argv);
 }
 
@@ -34,6 +29,15 @@ int fini_MPI() throw()
   if (f)
     return MPI_SUCCESS;
   return MPI_Finalize();
+}
+
+bool mpi_cuda() throw()
+{
+#if (defined(MPIX_CUDA_AWARE_SUPPORT) && MPIX_CUDA_AWARE_SUPPORT)
+  return (1 == MPIX_Query_cuda_support());
+#else // !MPIX_CUDA_AWARE_SUPPORT
+  return false;
+#endif // ?MPIX_CUDA_AWARE_SUPPORT
 }
 
 #ifndef DEV_HOST_NAME_LEN
