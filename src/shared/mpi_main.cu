@@ -8,23 +8,23 @@ template <typename CT>
 int CT_main(int argc, char *argv[])
 {
   if (init_MPI(&argc, &argv)) {
-    (void)fprintf(stderr, "%s: init_MPI failed\n", argv[0]);
+    (void)fprintf(stderr, "[%d] %s: init_MPI failed\n", mpi_rank, argv[0]);
     return fini_MPI();
   }
-  if (!mpi_cuda()) {
-    (void)fprintf(stderr, "%s: mpi_cuda failed\n", argv[0]);
-    return fini_MPI();
+  if (!mpi_cuda_aware) {
+    (void)fprintf(stderr, "[%d] %s: MPI is not CUDA aware\n", mpi_rank, argv[0]);
+    // return fini_MPI();
   }
   const int dev = assign_dev2host();
   if (dev < 0) {
-    (void)fprintf(stderr, "%s: assign_dev2host failed (%d)\n", argv[0], dev);
+    (void)fprintf(stderr, "[%d] %s: assign_dev2host failed (%d)\n", mpi_rank, argv[0], dev);
     return fini_MPI();
   }
+
   const int dcc = configureGPU(dev);
-#ifndef NDEBUG
-  (void)fprintf(stdout, "Device %d has CC %d\n", dev, dcc);
+  (void)fprintf(stdout, "[%d] Device %d has CC %d\n", mpi_rank, dev, dcc);
   (void)fflush(stdout);
-#endif // !NDEBUG
+
   return fini_MPI();
 }
 
