@@ -16,21 +16,28 @@ void init_strats(const char *const sdy, const char *const snp0, const unsigned n
 void init_strats(const char *const sdy, const char *const snp0, const unsigned n0, const char *const snp1, const unsigned n1) throw()
 #endif // ?USE_MPI
 {
-  if (!sdy || !*sdy)
+  if (!sdy || !*sdy) {
     DIE("SDY empty");
-  if (!snp0 || !*snp0)
+  }
+  if (!snp0 || !*snp0) {
     DIE("SNP0 empty");
-  if (!n0 || (n0 & 1u))
+  }
+  if (!n0 || (n0 & 1u)) {
     DIE("n0 not positive even");
-  if (!snp1 || !*snp1)
+  }
+  if (!snp1 || !*snp1) {
     DIE("SNP1 empty");
-  if (!n1 || (n1 & 1u))
+  }
+  if (!n1 || (n1 & 1u)) {
     DIE("n1 not positive even");
+  }
 #ifdef USE_MPI
-  if (!snp2 || !*snp2)
+  if (!snp2 || !*snp2) {
     DIE("SNP2 empty");
-  if (!n2 || (n2 & 1u))
+  }
+  if (!n2 || (n2 & 1u)) {
     DIE("n2 not positive even");
+  }
 #endif // USE_MPI
 
   if (!strcmp(snp0, "mmstep")) {
@@ -57,8 +64,9 @@ void init_strats(const char *const sdy, const char *const snp0, const unsigned n
     STRAT0 = STRAT_CYCWOR;
     STRAT0_STEPS = n0 - 1u;
   }
-  else
+  else {
     DIE("SNP0 unknown");
+  }
 
   STRAT0_PAIRS = (n0 >> 1u);
   (void)memset(strat0, 0, sizeof(strat0));
@@ -87,8 +95,9 @@ void init_strats(const char *const sdy, const char *const snp0, const unsigned n
     STRAT1 = STRAT_CYCWOR;
     STRAT1_STEPS = n1 - 1u;
   }
-  else
+  else {
     DIE("SNP1 unknown");
+  }
 
   STRAT1_PAIRS = (n1 >> 1u);
   (void)memset(strat1, 0, sizeof(strat1));
@@ -118,8 +127,9 @@ void init_strats(const char *const sdy, const char *const snp0, const unsigned n
     STRAT2 = STRAT_CYCWOR;
     STRAT2_STEPS = n2 - 1u;
   }
-  else
+  else {
     DIE("SNP2 unknown");
+  }
 
   STRAT2_PAIRS = (n2 >> 1u);
   (void)memset(strat2, 0, sizeof(strat2));

@@ -59,6 +59,7 @@ HEADERS=				\
 	../shared/my_utils.hpp
 
 SOURCES=			\
+	../shared/HZ.cu		\
 	../shared/HZ_L.cu	\
 	HZ_L2.cu		\
 	../shared/cuda_helper.cu\

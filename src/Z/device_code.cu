@@ -1,4 +1,5 @@
 #include "HZ.hpp"
+#include "HZ_L.hpp"
 
 #include "device_code.hpp"
 #include "device_code_common.hpp"

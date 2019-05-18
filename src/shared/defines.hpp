@@ -68,4 +68,9 @@
 #endif // VAR_UNUSED
 #define VAR_UNUSED __attribute__ ((unused))
 
+#ifdef USE_COMPLEX
+typedef double cuD;
+typedef double cuJ;
+#endif // USE_COMPLEX
+
 #endif // !DEFINES_HPP
