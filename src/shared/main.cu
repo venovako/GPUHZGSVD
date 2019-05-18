@@ -6,8 +6,13 @@
 #include "cuda_memory_helper.hpp"
 #include "my_utils.hpp"
 
-template <typename CT>
-int CT_main(int argc, char *argv[])
+#ifdef USE_COMPLEX
+typedef std::complex<double> CT;
+#else // !USE_COMPLEX
+typedef double CT;
+#endif // ?USE_COMPLEX
+
+int main(int argc, char *argv[])
 {
   if (10 != argc) {
     (void)fprintf(stderr, "%s DEV SDY SNP0 SNP1 ALG MF MG N FN\n", argv[0]);
@@ -160,19 +165,4 @@ int CT_main(int argc, char *argv[])
   CUDA_CALL(cudaDeviceReset());
 
   return ret;
-}
-
-#ifndef CT
-#ifdef USE_COMPLEX
-#define CT std::complex<double>
-#else // !USE_COMPLEX
-#define CT double
-#endif // ?USE_COMPLEX
-#else // CT
-#error CT not definable externally
-#endif // ?CT
-
-int main(int argc, char *argv[])
-{
-  return CT_main<CT>(argc, argv);
 }

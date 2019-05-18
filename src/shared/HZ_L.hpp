@@ -117,6 +117,24 @@ extern unsigned STRAT1, STRAT1_STEPS, STRAT1_PAIRS;
 extern unsigned STRAT0_DTYPE strat0[STRAT0_MAX_STEPS][STRAT0_MAX_PAIRS][2u];
 extern unsigned STRAT1_DTYPE strat1[STRAT1_MAX_STEPS][STRAT1_MAX_PAIRS][2u];
 
+#ifdef USE_MPI
+#ifndef STRAT2_MAX_STEPS
+#define STRAT2_MAX_STEPS 1024u
+#endif // !STRAT2_MAX_STEPS
+#ifndef STRAT2_MAX_PAIRS
+#define STRAT2_MAX_PAIRS 512u
+#endif // !STRAT2_MAX_PAIRS
+#ifndef STRAT2_STORAGE
+#define STRAT2_STORAGE
+#endif // !STRAT2_STORAGE
+#ifndef STRAT2_DTYPE
+#define STRAT2_DTYPE short
+#endif // !STRAT2_DTYPE
+extern unsigned STRAT2, STRAT2_STEPS, STRAT2_PAIRS;
+extern unsigned STRAT2_DTYPE strat2[STRAT2_MAX_STEPS][STRAT2_MAX_PAIRS][2u];
+extern void init_strats(const char *const sdy, const char *const snp0, const unsigned n0, const char *const snp1, const unsigned n1, const char *const snp2, const unsigned n2) throw();
+#else // !USE_MPI
 extern void init_strats(const char *const sdy, const char *const snp0, const unsigned n0, const char *const snp1, const unsigned n1) throw();
+#endif // ?USE_MPI
 
 #endif // !HZ_L_HPP
