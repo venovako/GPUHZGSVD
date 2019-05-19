@@ -7,12 +7,8 @@
 #include "cuda_memory_helper.hpp"
 #include "my_utils.hpp"
 
-#ifdef ANIMATE
-#include "vn_lib.h"
-#endif // ANIMATE
-
 int // 0 if OK, < 0 if invalid argument, > 0 if error
-HZ_L2
+HZ_L2_gpu
 (const unsigned routine,         // IN, routine ID, <= 15, (B___)_2
  // B: block-oriented or full-block
  const unsigned nrowF,            // IN, number of rows of F, == 0 (mod 64)
@@ -20,111 +16,43 @@ HZ_L2
  const unsigned ncol,             // IN, number of columns of <= min(nrowF, nrowG), == 0 (mod 32)
  cuD *const hFD,                  // INOUT, ldhF x ncol host array in Fortran order,
  cuJ *const hFJ,                  // INOUT, ldhF x ncol host array in Fortran order,
- const unsigned ldhF,             // IN, leading dimension of F, >= nrowF
+ const unsigned ldhF,             // IN, leading dimension of hF, >= nrowF
+ cuD *const dFD,                  // INOUT, lddF x ncol device array in Fortran order,
+ cuJ *const dFJ,                  // INOUT, lddF x ncol device array in Fortran order,
+ const unsigned lddF,             // IN, leading dimension of dF, >= nrowF
  cuD *const hGD,                  // INOUT, ldhG x ncol host array in Fortran order,
  cuJ *const hGJ,                  // INOUT, ldhG x ncol host array in Fortran order,
- const unsigned ldhG,             // IN, leading dimension of G, >= nrowG
+ const unsigned ldhG,             // IN, leading dimension of hG, >= nrowG
+ cuD *const dGD,                  // INOUT, lddG x ncol device array in Fortran order,
+ cuJ *const dGJ,                  // INOUT, lddG x ncol device array in Fortran order,
+ const unsigned lddG,             // IN, leading dimension of dG, >= nrowG
  cuD *const hVD,                  // OUT, ldhV x ncol host array in Fortran order,
  cuJ *const hVJ,                  // OUT, ldhV x ncol host array in Fortran order,
- const unsigned ldhV,             // IN, leading dimension of V, >= ncol
+ const unsigned ldhV,             // IN, leading dimension of hV, >= ncol
+ cuD *const dVD,                  // OUT, lddV x ncol host array in Fortran order,
+ cuJ *const dVJ,                  // OUT, lddV x ncol host array in Fortran order,
+ const unsigned lddV,             // IN, leading dimension of dV, >= ncol
  double *const hS,                // OUT, the generalized singular values, optionally sorted in descending order
+ double *const dS,                // OUT, the generalized singular values, optionally sorted in descending order
  double *const hH,                // ||F_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2)
+ double *const dH,                // ||F_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2)
  double *const hK,                // ||G_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2)
+ double *const dK,                // ||G_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2)
  unsigned *const glbSwp,          // OUT, number of sweeps at the outermost level
  unsigned long long *const glb_s, // OUT, number of rotations
- unsigned long long *const glb_b, // OUT, number of ``big'' rotations
- double *const timing             // OUT, optional, in seconds, double[4] ==
- // WALL, SETUP & HOST ==> GPUs, COMPUTATION, CLEANUP & GPUs ==> HOST
-) throw()
+ unsigned long long *const glb_b  // OUT, number of ``big'' rotations
+#ifdef ANIMATE
+ , vn_cmplxvis_ctx *const ctx
+ , std::complex<double> *const hDJ
+ , const size_t nrow
+#endif // ANIMATE
+ ) throw()
 {
-  long long timers[4] = { 0ll };
-  stopwatch_reset(timers[0]);
-
-  if (routine >= 16u)
-    return -1;
-
   const bool blk_ori = (routine & HZ_BLK_ORI);
-  const int sclV = ((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5));
-
-  if (!nrowF || (nrowF % 64u))
-    return -2;
-
-  if (!nrowG || (nrowG % 64u))
-    return -3;
-
-  if (!ncol || (ncol > nrowF) || (ncol > nrowG) || (ncol % 32u))
-    return -4;
-
-  if (!hFD)
-    return -5;
-  if (!hFJ)
-    return -6;
-  if (ldhF < nrowF)
-    return -7;
-
-  if (!hGD)
-    return -8;
-  if (!hGJ)
-    return -9;
-  if (ldhG < nrowG)
-    return -10;
-
-  if (!hVD)
-    return -11;
-  if (!hVJ)
-    return -12;
-  if (ldhV < ncol)
-    return -13;
-
-  if (!hS)
-    return -14;
-  if (!hH)
-    return -15;
-  if (!hK)
-    return -16;
-
-  if (!glbSwp)
-    return -17;
-  if (!glb_s)
-    return -18;
-  if (!glb_b)
-    return -19;
-
-  stopwatch_reset(timers[3]);
-
-  const unsigned
-    swp_max[2] = { (blk_ori ? 1u : HZ_NSWEEP), HZ_NSWEEP };
-
-  size_t lddF = static_cast<size_t>(nrowF);
-  cuD *const dFD = allocDeviceMtx<cuD>(lddF, static_cast<size_t>(nrowF), static_cast<size_t>(ncol), true);
-  cuJ *const dFJ = allocDeviceMtx<cuJ>(lddF, static_cast<size_t>(nrowF), static_cast<size_t>(ncol), true);
-
-  size_t lddG = static_cast<size_t>(nrowG);
-  cuD *const dGD = allocDeviceMtx<cuD>(lddG, static_cast<size_t>(nrowG), static_cast<size_t>(ncol), true);
-  cuJ *const dGJ = allocDeviceMtx<cuJ>(lddG, static_cast<size_t>(nrowG), static_cast<size_t>(ncol), true);
-
-  size_t lddV = static_cast<size_t>(ncol);
-  cuD *const dVD = allocDeviceMtx<cuD>(lddV, static_cast<size_t>(ncol), static_cast<size_t>(ncol), true);
-  cuJ *const dVJ = allocDeviceMtx<cuJ>(lddV, static_cast<size_t>(ncol), static_cast<size_t>(ncol), true);
-
-  double *const dS = allocDeviceVec<double>(static_cast<size_t>(ncol));
-  double *const dH = allocDeviceVec<double>(static_cast<size_t>(ncol));
-  double *const dK = allocDeviceVec<double>(static_cast<size_t>(ncol));
-
-  CUDA_CALL(cudaMemcpy2DAsync(dFD, lddF * sizeof(cuD), hFD, ldhF * sizeof(double), nrowF * sizeof(cuD), ncol, cudaMemcpyHostToDevice));
-  CUDA_CALL(cudaMemcpy2DAsync(dFJ, lddF * sizeof(cuJ), hFJ, ldhF * sizeof(double), nrowF * sizeof(cuJ), ncol, cudaMemcpyHostToDevice));
-  CUDA_CALL(cudaMemcpy2DAsync(dGD, lddG * sizeof(cuD), hGD, ldhG * sizeof(double), nrowG * sizeof(cuD), ncol, cudaMemcpyHostToDevice));
-  CUDA_CALL(cudaMemcpy2DAsync(dGJ, lddG * sizeof(cuJ), hGJ, ldhG * sizeof(double), nrowG * sizeof(cuJ), ncol, cudaMemcpyHostToDevice));
-  CUDA_CALL(cudaMemset2DAsync(dVD, lddV * sizeof(cuD), 0, ncol * sizeof(cuD), ncol));
-  CUDA_CALL(cudaMemset2DAsync(dVJ, lddV * sizeof(cuJ), 0, ncol * sizeof(cuJ), ncol));
-  CUDA_CALL(cudaMemsetAsync(dS, 0, ncol * sizeof(double)));
-  CUDA_CALL(cudaMemsetAsync(dH, 0, ncol * sizeof(double)));
-  CUDA_CALL(cudaMemsetAsync(dK, 0, ncol * sizeof(double)));
-  initSymbols(dFD, dFJ, dGD, dGJ, dVD, dVJ, dS, dH, dK, nrowF, nrowG, ncol, static_cast<unsigned>(lddF), static_cast<unsigned>(lddG), static_cast<unsigned>(lddV), swp_max[0u]);
+  initSymbols(dFD, dFJ, dGD, dGJ, dVD, dVJ, dS, dH, dK, nrowF, nrowG, ncol, static_cast<unsigned>(lddF), static_cast<unsigned>(lddG), static_cast<unsigned>(lddV), (blk_ori ? 1u : HZ_NSWEEP));
   CUDA_CALL(cudaDeviceSynchronize());
-
-  timers[1] = stopwatch_lap(timers[3]);
   
+  const int sclV = ((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5));
   initV(sclV, ncol);
   CUDA_CALL(cudaDeviceSynchronize());
 
@@ -135,53 +63,8 @@ HZ_L2
   long long swp_tim = 0ll;
   stopwatch_reset(swp_tim);
 
-  const unsigned swp = swp_max[1u];
+  const unsigned swp = HZ_NSWEEP;
   unsigned blk_swp = 0u;
-
-#ifdef ANIMATE
-  // it is meant to work only for nrowF == nrowG
-  size_t nrow = ((nrowF <= nrowG) ? nrowF : nrowG);
-  std::complex<double> *const hDJ = allocHostMtx<std::complex<double>>(nrow, nrow, static_cast<size_t>(ncol), true);
-
-  vn_cmplxvis_ctx *ctx = static_cast<vn_cmplxvis_ctx*>(NULL);
-  if (ncol < 10000u) {
-    char fname[8] = { '\0' };
-    (void)sprintf(fname, "FG%x%04u", routine, ncol);
-    SYSI_CALL(vn_cmplxvis_start(&ctx, fname, (VN_CMPLXVIS_OP_AhA | VN_CMPLXVIS_FN_Lg), ncol, ncol, 1, 1, 7));
-    if (ctx) {
-      CUDA_CALL(cudaMemcpy2DAsync(hFD, ldhF * sizeof(double), dFD, lddF * sizeof(cuD), nrowF * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
-      CUDA_CALL(cudaMemcpy2DAsync(hFJ, ldhF * sizeof(double), dFJ, lddF * sizeof(cuJ), nrowF * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
-      CUDA_CALL(cudaMemcpy2DAsync(hGD, ldhG * sizeof(double), dGD, lddG * sizeof(cuD), nrowG * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
-      CUDA_CALL(cudaMemcpy2DAsync(hGJ, ldhG * sizeof(double), dGJ, lddG * sizeof(cuJ), nrowG * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
-      CUDA_CALL(cudaDeviceSynchronize());
-
-      for (unsigned j = 0u; j < ncol; ++j) {
-        const size_t offDJ = ldhDJ * j;
-        const size_t offhF = ldhF * j;
-        for (unsigned i = 0u; i < nrow; ++i) {
-          const size_t ixDJ = offDJ + i;
-          const size_t ixhF = offhF + i;
-          hDJ[ixDJ].real(hFD[ixhF]);
-          hDJ[ixDJ].imag(hFJ[ixhF]);
-        }
-      }
-      SYSI_CALL(vn_cmplxvis_frame(ctx, (const vn_complex*)hDJ, nrow));
-
-      for (unsigned j = 0u; j < ncol; ++j) {
-        const size_t offDJ = ldhDJ * j;
-        const size_t offhG = ldhG * j;
-        for (unsigned i = 0u; i < nrow; ++i) {
-          const size_t ixDJ = offDJ + i;
-          const size_t ixhG = offhG + i;
-          hDJ[ixDJ].real(hGD[ixhG]);
-          hDJ[ixDJ].imag(hGJ[ixhG]);
-        }
-      }
-      SYSI_CALL(vn_cmplxvis_frame(ctx, (const vn_complex*)hDJ, nrow));
-    }
-  }
-#endif // ANIMATE
-
   // stats per thread block
   const unsigned spb = 2u;
   // stats count
@@ -192,7 +75,6 @@ HZ_L2
       if (blk_stp)
         CUDA_CALL(cudaDeviceSynchronize());
       HZ_L1(blk_stp);
-
 #ifdef ANIMATE
       if (ctx) {
         CUDA_CALL(cudaDeviceSynchronize());
@@ -253,7 +135,6 @@ HZ_L2
 
     initS(0, ncol);
     CUDA_CALL(cudaDeviceSynchronize());
-
 #ifdef ANIMATE
     if (ctx) {
       CUDA_CALL(cudaMemcpy2DAsync(hFD, ldhF * sizeof(double), dFD, lddF * sizeof(cuD), nrowF * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
@@ -292,7 +173,167 @@ HZ_L2
   *glbSwp = blk_swp;
   initS(1, ncol);
   CUDA_CALL(cudaDeviceSynchronize());
+  return 0;
+}
 
+int // 0 if OK, < 0 if invalid argument, > 0 if error
+HZ_L2
+(const unsigned routine,         // IN, routine ID, <= 15, (B___)_2
+ // B: block-oriented or full-block
+ const unsigned nrowF,            // IN, number of rows of F, == 0 (mod 64)
+ const unsigned nrowG,            // IN, number of rows of G, == 0 (mod 64)
+ const unsigned ncol,             // IN, number of columns of <= min(nrowF, nrowG), == 0 (mod 32)
+ cuD *const hFD,                  // INOUT, ldhF x ncol host array in Fortran order,
+ cuJ *const hFJ,                  // INOUT, ldhF x ncol host array in Fortran order,
+ const unsigned ldhF,             // IN, leading dimension of F, >= nrowF
+ cuD *const hGD,                  // INOUT, ldhG x ncol host array in Fortran order,
+ cuJ *const hGJ,                  // INOUT, ldhG x ncol host array in Fortran order,
+ const unsigned ldhG,             // IN, leading dimension of G, >= nrowG
+ cuD *const hVD,                  // OUT, ldhV x ncol host array in Fortran order,
+ cuJ *const hVJ,                  // OUT, ldhV x ncol host array in Fortran order,
+ const unsigned ldhV,             // IN, leading dimension of V, >= ncol
+ double *const hS,                // OUT, the generalized singular values, optionally sorted in descending order
+ double *const hH,                // ||F_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2)
+ double *const hK,                // ||G_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2)
+ unsigned *const glbSwp,          // OUT, number of sweeps at the outermost level
+ unsigned long long *const glb_s, // OUT, number of rotations
+ unsigned long long *const glb_b, // OUT, number of ``big'' rotations
+ double *const timing             // OUT, optional, in seconds, double[4] ==
+ // WALL, SETUP & HOST ==> GPUs, COMPUTATION, CLEANUP & GPUs ==> HOST
+) throw()
+{
+  long long timers[4] = { 0ll };
+  stopwatch_reset(timers[0]);
+
+  if (routine >= 16u)
+    return -1;
+
+  if (!nrowF || (nrowF % 64u))
+    return -2;
+  if (!nrowG || (nrowG % 64u))
+    return -3;
+  if (!ncol || (ncol > nrowF) || (ncol > nrowG) || (ncol % 32u))
+    return -4;
+
+  if (!hFD)
+    return -5;
+  if (!hFJ)
+    return -6;
+  if (ldhF < nrowF)
+    return -7;
+
+  if (!hGD)
+    return -8;
+  if (!hGJ)
+    return -9;
+  if (ldhG < nrowG)
+    return -10;
+
+  if (!hVD)
+    return -11;
+  if (!hVJ)
+    return -12;
+  if (ldhV < ncol)
+    return -13;
+
+  if (!hS)
+    return -14;
+  if (!hH)
+    return -15;
+  if (!hK)
+    return -16;
+
+  if (!glbSwp)
+    return -17;
+  if (!glb_s)
+    return -18;
+  if (!glb_b)
+    return -19;
+
+  stopwatch_reset(timers[3]);
+
+  size_t lddF = static_cast<size_t>(nrowF);
+  cuD *const dFD = allocDeviceMtx<cuD>(lddF, static_cast<size_t>(nrowF), static_cast<size_t>(ncol), true);
+  cuJ *const dFJ = allocDeviceMtx<cuJ>(lddF, static_cast<size_t>(nrowF), static_cast<size_t>(ncol), true);
+
+  size_t lddG = static_cast<size_t>(nrowG);
+  cuD *const dGD = allocDeviceMtx<cuD>(lddG, static_cast<size_t>(nrowG), static_cast<size_t>(ncol), true);
+  cuJ *const dGJ = allocDeviceMtx<cuJ>(lddG, static_cast<size_t>(nrowG), static_cast<size_t>(ncol), true);
+
+  size_t lddV = static_cast<size_t>(ncol);
+  cuD *const dVD = allocDeviceMtx<cuD>(lddV, static_cast<size_t>(ncol), static_cast<size_t>(ncol), true);
+  cuJ *const dVJ = allocDeviceMtx<cuJ>(lddV, static_cast<size_t>(ncol), static_cast<size_t>(ncol), true);
+
+  double *const dS = allocDeviceVec<double>(static_cast<size_t>(ncol));
+  double *const dH = allocDeviceVec<double>(static_cast<size_t>(ncol));
+  double *const dK = allocDeviceVec<double>(static_cast<size_t>(ncol));
+
+  CUDA_CALL(cudaMemcpy2DAsync(dFD, lddF * sizeof(cuD), hFD, ldhF * sizeof(double), nrowF * sizeof(cuD), ncol, cudaMemcpyHostToDevice));
+  CUDA_CALL(cudaMemcpy2DAsync(dFJ, lddF * sizeof(cuJ), hFJ, ldhF * sizeof(double), nrowF * sizeof(cuJ), ncol, cudaMemcpyHostToDevice));
+  CUDA_CALL(cudaMemcpy2DAsync(dGD, lddG * sizeof(cuD), hGD, ldhG * sizeof(double), nrowG * sizeof(cuD), ncol, cudaMemcpyHostToDevice));
+  CUDA_CALL(cudaMemcpy2DAsync(dGJ, lddG * sizeof(cuJ), hGJ, ldhG * sizeof(double), nrowG * sizeof(cuJ), ncol, cudaMemcpyHostToDevice));
+  CUDA_CALL(cudaMemset2DAsync(dVD, lddV * sizeof(cuD), 0, ncol * sizeof(cuD), ncol));
+  CUDA_CALL(cudaMemset2DAsync(dVJ, lddV * sizeof(cuJ), 0, ncol * sizeof(cuJ), ncol));
+  CUDA_CALL(cudaMemsetAsync(dS, 0, ncol * sizeof(double)));
+  CUDA_CALL(cudaMemsetAsync(dH, 0, ncol * sizeof(double)));
+  CUDA_CALL(cudaMemsetAsync(dK, 0, ncol * sizeof(double)));
+  CUDA_CALL(cudaDeviceSynchronize());
+
+#ifdef ANIMATE
+  vn_cmplxvis_ctx *ctx = static_cast<vn_cmplxvis_ctx*>(NULL);
+  std::complex<double> *hDJ = static_cast<std::complex<double>>(NULL);
+  size_t nrow = 0u;
+  // it is meant to work only for nrowF == nrowG
+  if (nrowF == nrowG) {
+    nrow = nrowF;
+    hDJ = allocHostMtx<std::complex<double>>(nrow, nrow, static_cast<size_t>(ncol), true);
+  }
+  if (ncol < 10000u) {
+    char fname[8] = { '\0' };
+    (void)sprintf(fname, "FG%x%04u", routine, ncol);
+    if (hDJ)
+      SYSI_CALL(vn_cmplxvis_start(&ctx, fname, (VN_CMPLXVIS_OP_AhA | VN_CMPLXVIS_FN_Lg), ncol, ncol, 1, 1, 7));
+    if (ctx) {
+      CUDA_CALL(cudaMemcpy2DAsync(hFD, ldhF * sizeof(double), dFD, lddF * sizeof(cuD), nrowF * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
+      CUDA_CALL(cudaMemcpy2DAsync(hFJ, ldhF * sizeof(double), dFJ, lddF * sizeof(cuJ), nrowF * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
+      CUDA_CALL(cudaMemcpy2DAsync(hGD, ldhG * sizeof(double), dGD, lddG * sizeof(cuD), nrowG * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
+      CUDA_CALL(cudaMemcpy2DAsync(hGJ, ldhG * sizeof(double), dGJ, lddG * sizeof(cuJ), nrowG * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
+      CUDA_CALL(cudaDeviceSynchronize());
+
+      for (unsigned j = 0u; j < ncol; ++j) {
+        const size_t offDJ = ldhDJ * j;
+        const size_t offhF = ldhF * j;
+        for (unsigned i = 0u; i < nrow; ++i) {
+          const size_t ixDJ = offDJ + i;
+          const size_t ixhF = offhF + i;
+          hDJ[ixDJ].real(hFD[ixhF]);
+          hDJ[ixDJ].imag(hFJ[ixhF]);
+        }
+      }
+      SYSI_CALL(vn_cmplxvis_frame(ctx, (const vn_complex*)hDJ, nrow));
+
+      for (unsigned j = 0u; j < ncol; ++j) {
+        const size_t offDJ = ldhDJ * j;
+        const size_t offhG = ldhG * j;
+        for (unsigned i = 0u; i < nrow; ++i) {
+          const size_t ixDJ = offDJ + i;
+          const size_t ixhG = offhG + i;
+          hDJ[ixDJ].real(hGD[ixhG]);
+          hDJ[ixDJ].imag(hGJ[ixhG]);
+        }
+      }
+      SYSI_CALL(vn_cmplxvis_frame(ctx, (const vn_complex*)hDJ, nrow));
+    }
+  }
+#endif // ANIMATE
+
+  timers[1] = stopwatch_lap(timers[3]);
+  const int ret = HZ_L2_gpu
+    (routine, nrowF,nrowG,ncol, hFD,hFJ,ldhF, dFD,dFJ,lddF, hGD,hGJ,ldhG, dGD,dGJ,lddG, hVD,hVJ,ldhV, dVD,dVJ,lddV, hS,dS, hH,dH, hK,dK, glbSwp,glb_s,glb_b
+#ifdef ANIMATE
+     , ctx,hDJ,nrow
+#endif // ANIMATE
+     );
   timers[2] = stopwatch_lap(timers[3]);
 
   CUDA_CALL(cudaMemcpy2DAsync(hFD, ldhF * sizeof(double), dFD, lddF * sizeof(cuD), nrowF * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
@@ -355,5 +396,5 @@ HZ_L2
     for (unsigned i = 0u; i < 4u; ++i)
       timing[i] = timers[i] * TS2S;
 
-  return 0;
+  return ret;
 }

@@ -2,6 +2,7 @@
 
 #include "HZ.hpp"
 #include "HZ_L.hpp"
+#include "HZ_L3.hpp"
 
 #include "cuda_memory_helper.hpp"
 #include "mpi_helper.hpp"

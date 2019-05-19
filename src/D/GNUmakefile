@@ -47,6 +47,7 @@ HEADERS=				\
 	../shared/cuda_memory_helper.hpp\
 	../shared/defines.hpp		\
 	../shared/my_utils.hpp		\
+	HZ_L2.hpp			\
 	device_code.hpp			\
 	device_code_accumV.hpp 		\
 	device_code_cdsort_$(CVG).hpp	\
@@ -62,6 +63,7 @@ SOURCES=			\
 	../shared/HZ_L.cu	\
 	../shared/cuda_helper.cu\
 	../shared/my_utils.cu	\
+	HZ_L2.cu		\
 	device_code.cu
 
 ifdef MPI
@@ -80,8 +82,7 @@ MPISRC= \
 	HZ_L3.cu
 EXE=MHZ$(CVG).exe
 else # !MPI
-HEADERS+=HZ_L2.hpp
-SOURCES+=../shared/main.cu HZ_L2.cu
+SOURCES+=../shared/main.cu
 EXE=HZ$(CVG).exe
 endif # MPI
 
