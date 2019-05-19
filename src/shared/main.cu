@@ -77,8 +77,8 @@ int main(int argc, char *argv[])
   const size_t mF_ = static_cast<size_t>(nrowF_);
   const size_t mG = static_cast<size_t>(nrowG);
   const size_t mG_ = static_cast<size_t>(nrowG_);
-  const size_t n_ = static_cast<size_t>(ncol_);
   const size_t n = static_cast<size_t>(ncol);
+  const size_t n_ = static_cast<size_t>(ncol_);
 
   unsigned
     ldhF = nrowF_,
@@ -89,9 +89,9 @@ int main(int argc, char *argv[])
   const unsigned n1 = udiv_ceil(ncol_, HZ_L1_NCOLB);
   init_strats(ca_sdy, ca_snp0, n0, ca_snp1, n1);
 
+  char *const buf = static_cast<char*>(calloc(strlen(ca_fn) + 4u, sizeof(char)));
   size_t ldA = static_cast<size_t>(0u);
   FILE *f = static_cast<FILE*>(NULL);
-  char *const buf = static_cast<char*>(calloc(strlen(ca_fn) + 4u, sizeof(char)));
 
   ldA = static_cast<size_t>(ldhF);
 #ifdef USE_COMPLEX
@@ -114,9 +114,9 @@ int main(int argc, char *argv[])
 #endif // ?USE_COMPLEX
   SYSI_CALL(fclose(f));
 #ifdef USE_COMPLEX
-  SYSI_CALL(bdinit(n, n_, hFD, ldA));
+  SYSI_CALL(bdinit(mF, n, n_, hFD, ldA));
 #else // !USE_COMPLEX
-  SYSI_CALL(bdinit(n, n_, hF, ldA));
+  SYSI_CALL(bdinit(mF, n, n_, hF, ldA));
 #endif // ?USE_COMPLEX
 
   ldA = static_cast<size_t>(ldhG);
@@ -140,9 +140,9 @@ int main(int argc, char *argv[])
 #endif // ?USE_COMPLEX
   SYSI_CALL(fclose(f));
 #ifdef USE_COMPLEX
-  SYSI_CALL(bdinit(n, n_, hGD, ldA));
+  SYSI_CALL(bdinit(mG, n, n_, hGD, ldA));
 #else // !USE_COMPLEX
-  SYSI_CALL(bdinit(n, n_, hG, ldA));
+  SYSI_CALL(bdinit(mG, n, n_, hG, ldA));
 #endif // ?USE_COMPLEX
 
   ldA = static_cast<size_t>(ldhV);

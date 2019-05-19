@@ -24,6 +24,6 @@
 #endif // !HZ_MAX_LEVELS
 
 EXTERN_C void border_sizes(const unsigned gpus, const unsigned mF, const unsigned mG, const unsigned n, unsigned &mF_, unsigned &mG_, unsigned &n_) throw();
-EXTERN_C int bdinit(const size_t n, const size_t n_, double *const A, const size_t ldA) throw();
+EXTERN_C int bdinit(const size_t m, const size_t n, const size_t n_, double *const A, const size_t ldA) throw();
 
 #endif // !HZ_HPP

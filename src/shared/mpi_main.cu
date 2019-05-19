@@ -87,18 +87,76 @@ int main(int argc, char *argv[])
 
   unsigned nrowF_ = 0u, nrowG_ = 0u, ncol_ = 0u;
   border_sizes(mpi_size, nrowF, nrowG, ncol, nrowF_, nrowG_, ncol_);
+  const unsigned ncol_gpu = ncol_ / static_cast<unsigned>(mpi_size);
 
   const size_t mF = static_cast<size_t>(nrowF);
   const size_t mF_ = static_cast<size_t>(nrowF_);
   const size_t mG = static_cast<size_t>(nrowG);
   const size_t mG_ = static_cast<size_t>(nrowG_);
-  const size_t n_ = static_cast<size_t>(ncol_);
   const size_t n = static_cast<size_t>(ncol);
+  const size_t n_ = static_cast<size_t>(ncol_);
+  const size_t n_gpu = static_cast<size_t>(ncol_gpu);
 
   unsigned
     ldhF = nrowF_,
     ldhG = nrowG_,
     ldhV = ncol_;
+
+  const unsigned n0 = (HZ_L1_NCOLB << 1u);
+  const unsigned n1 = udiv_ceil(ncol_gpu, HZ_L1_NCOLB);
+  const unsigned n2 = (static_cast<unsigned>(mpi_size) << 1u);
+  init_strats(ca_sdy, ca_snp0, n0, ca_snp1, n1, ca_snp2, n2);
+
+  char *const buf = static_cast<char*>(calloc(strlen(ca_fn) + 4u, sizeof(char)));
+  size_t ldA = static_cast<size_t>(0u);
+  FILE *f = static_cast<FILE*>(NULL);
+
+  ldA = static_cast<size_t>(ldhF);
+#ifdef USE_COMPLEX
+  cuD *const hFD = allocHostMtx<cuD>(ldA, mF_, n_gpu, true);
+  SYSP_CALL(hFD);
+  cuJ *const hFJ = allocHostMtx<cuJ>(ldA, mF_, n_gpu, true);
+  SYSP_CALL(hFJ);
+#else // !USE_COMPLEX
+  double *const hF = allocHostMtx<double>(ldA, mF_, n_gpu, true);
+  SYSP_CALL(hF);
+#endif // ?USE_COMPLEX
+  ldhF = static_cast<unsigned>(ldA);
+
+  ldA = static_cast<size_t>(ldhG);
+#ifdef USE_COMPLEX
+  cuD *const hGD = allocHostMtx<cuD>(ldA, mG_, n_gpu, true);
+  SYSP_CALL(hGD);
+  cuJ *const hGJ = allocHostMtx<cuJ>(ldA, mG_, n_gpu, true);
+  SYSP_CALL(hGJ);
+#else // !USE_COMPLEX
+  double *const hG = allocHostMtx<double>(ldA, mG_, n_gpu, true);
+  SYSP_CALL(hG);
+#endif // ?USE_COMPLEX
+  ldhG = static_cast<unsigned>(ldA);
+
+  ldA = static_cast<size_t>(ldhV);
+#ifdef USE_COMPLEX
+  cuD *const hVD = allocHostMtx<cuD>(ldA, n_gpu, n_gpu, true);
+  SYSP_CALL(hVD);
+  cuJ *const hVJ = allocHostMtx<cuJ>(ldA, n_gpu, n_gpu, true);
+  SYSP_CALL(hVJ);
+#else // !USE_COMPLEX
+  double *const hV = allocHostMtx<double>(ldA, n_gpu, n_gpu, true);
+  SYSP_CALL(hV);
+#endif // ?USE_COMPLEX
+  ldhV = static_cast<unsigned>(ldA);
+
+  double *const hS = allocHostVec<double>(n_gpu);
+  SYSP_CALL(hS);
+  double *const hH = allocHostVec<double>(n_gpu);
+  SYSP_CALL(hH);
+  double *const hK = allocHostVec<double>(n_gpu);
+  SYSP_CALL(hK);
+
+  unsigned glbSwp = 0u;
+  unsigned long long glb_s = 0ull, glb_b = 0ull;
+  double timing[4] = { -0.0, -0.0, -0.0, -0.0 };
 
   // for profiling
   CUDA_CALL(cudaDeviceSynchronize());
