@@ -94,6 +94,7 @@ EXTERN_C long long timestamp() throw();
 EXTERN_C void stopwatch_reset(long long &sw) throw();
 EXTERN_C long long stopwatch_lap(long long &sw) throw();
 
+EXTERN_C int fresize(FILE *const f, const size_t s) throw();
 EXTERN_C int fread_bycol(FILE *const f, const size_t m, const size_t n, double *const A, const size_t ldA, const long off = 0l, const long stride = 1l) throw();
 EXTERN_C int fwrite_bycol(FILE *const f, const size_t m, const size_t n, const double *const A, const size_t ldA, const long off = 0l, const long stride = 1l) throw();
 

@@ -183,6 +183,12 @@ int main(int argc, char *argv[])
   }
 
   SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".YU"), "wb"));
+  ldA = (mF * n * sizeof(double))
+#ifdef USE_COMPLEX
+    * 2u
+#endif // USE_COMPLEX
+    ;
+  SYSI_CALL(fresize(f, ldA));
 #ifdef USE_COMPLEX
   SYSI_CALL(fwrite_bycol(f, mF, n, hFD, ldhF, 0l, 2l));
   SYSI_CALL(fwrite_bycol(f, mF, n, hFJ, ldhF, 1l, 2l));
@@ -192,6 +198,12 @@ int main(int argc, char *argv[])
   SYSI_CALL(fclose(f));
 
   SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".WV"), "wb"));
+  ldA = (mG * n * sizeof(double))
+#ifdef USE_COMPLEX
+    * 2u
+#endif // USE_COMPLEX
+    ;
+  SYSI_CALL(fresize(f, ldA));
 #ifdef USE_COMPLEX
   SYSI_CALL(fwrite_bycol(f, mG, n, hGD, ldhG, 0l, 2l));
   SYSI_CALL(fwrite_bycol(f, mG, n, hGJ, ldhG, 1l, 2l));
@@ -201,6 +213,12 @@ int main(int argc, char *argv[])
   SYSI_CALL(fclose(f));
 
   SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".Z"), "wb"));
+  ldA = (n * n * sizeof(double))
+#ifdef USE_COMPLEX
+    * 2u
+#endif // USE_COMPLEX
+    ;
+  SYSI_CALL(fresize(f, ldA));
 #ifdef USE_COMPLEX
   SYSI_CALL(fwrite_bycol(f, n, n, hVD, ldhV, 0l, 2l));
   SYSI_CALL(fwrite_bycol(f, n, n, hVJ, ldhV, 1l, 2l));
