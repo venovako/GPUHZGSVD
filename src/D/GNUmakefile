@@ -43,10 +43,10 @@ NVLDFLAGS+=-l dl,m
 HEADERS=				\
 	../shared/HZ.hpp		\
 	../shared/HZ_L.hpp		\
-	HZ_L2.hpp			\
 	../shared/cuda_helper.hpp	\
 	../shared/cuda_memory_helper.hpp\
 	../shared/defines.hpp		\
+	../shared/my_utils.hpp		\
 	device_code.hpp			\
 	device_code_accumV.hpp 		\
 	device_code_cdsort_$(CVG).hpp	\
@@ -55,18 +55,15 @@ HEADERS=				\
 	device_code_globals.hpp		\
 	device_code_common_rotate.hpp	\
 	device_code_common_Kepler.hpp	\
-	device_code_common_Cholesky.hpp	\
-	../shared/my_utils.hpp
+	device_code_common_Cholesky.hpp
 
 SOURCES=			\
 	../shared/HZ.cu		\
 	../shared/HZ_L.cu	\
-	HZ_L2.cu		\
 	../shared/cuda_helper.cu\
-	device_code.cu		\
-	../shared/my_utils.cu
+	../shared/my_utils.cu	\
+	device_code.cu
 
-EXE=HZ$(CVG).exe
 ifdef MPI
 ifndef MPIINC
 MPIINC=-DUSE_MPI -I$(MPI)/include
@@ -75,19 +72,26 @@ ifndef MPILIB
 MPILIB=-Xlinker -rpath,$(MPI)/lib -Xlinker --enable-new-dtags -L$(MPI)/lib -lmpi
 endif # !MPILIB
 MPIHDR= \
-	../shared/mpi_helper.hpp
+	../shared/mpi_helper.hpp\
+	HZ_L3.hpp
 MPISRC= \
-	../shared/mpi_helper.cu
-EXE+=MHZ$(CVG).exe
+	../shared/mpi_helper.cu	\
+	../shared/mpi_main.cu	\
+	HZ_L3.cu
+EXE=MHZ$(CVG).exe
+else # !MPI
+HEADERS+=HZ_L2.hpp
+SOURCES+=../shared/main.cu HZ_L2.cu
+EXE=HZ$(CVG).exe
 endif # MPI
 
 all: $(EXE)
 
-HZ$(CVG).exe: $(HEADERS) $(SOURCES) ../shared/main.cu GNUmakefile
-	$(NVCC) $(NVPPFLAGS) $(NVCCFLAGS) $(SOURCES) ../shared/main.cu -o $@ $(NVLDFLAGS)
+HZ$(CVG).exe: $(HEADERS) $(SOURCES) GNUmakefile
+	$(NVCC) $(NVPPFLAGS) $(NVCCFLAGS) $(SOURCES) -o $@ $(NVLDFLAGS)
 
-MHZ$(CVG).exe: $(MPIHDR) $(HEADERS) $(MPISRC) $(SOURCES) ../shared/mpi_main.cu GNUmakefile
-	$(NVCC) $(MPIINC) $(NVPPFLAGS) $(NVCCFLAGS) $(MPISRC) $(SOURCES) ../shared/mpi_main.cu -o $@ $(MPILIB) $(NVLDFLAGS)
+MHZ$(CVG).exe: $(MPIHDR) $(HEADERS) $(MPISRC) $(SOURCES) GNUmakefile
+	$(NVCC) $(MPIINC) $(NVPPFLAGS) $(NVCCFLAGS) $(MPISRC) $(SOURCES) -o $@ $(MPILIB) $(NVLDFLAGS)
 
 clean:
 	-$(RM) $(EXE)
