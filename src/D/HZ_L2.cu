@@ -9,8 +9,8 @@
 
 int // 0 if OK, < 0 if invalid argument, > 0 if error
 HZ_L2_gpu
-(const unsigned routine,          // IN, routine ID, <= 15, (B___)_2
- // B: block-oriented or full-block
+(unsigned &alg,                   // IN, routine ID, <= 15, (B__I)_2
+ // B: block-oriented (else, full-block); I: init symbols (else, keep the previous ones)
  const unsigned nrowF,            // IN, number of rows of F, == 0 (mod 64)
  const unsigned nrowG,            // IN, number of rows of G, == 0 (mod 64)
  const unsigned ncol,             // IN, number of columns <= min(nrowF, nrowG), == 0 (mod 32)
@@ -45,9 +45,11 @@ HZ_L2_gpu
 #endif // ANIMATE
 ) throw()
 {
-  const bool blk_ori = (routine & HZ_BLK_ORI);
-  initSymbols(dF, dG, dV, dS, dH, dK, nrowF, nrowG, ncol, static_cast<unsigned>(lddF), static_cast<unsigned>(lddG), static_cast<unsigned>(lddV), (blk_ori ? 1u : HZ_NSWEEP));
-  CUDA_CALL(cudaDeviceSynchronize());
+  if (alg & 1u) {
+    alg &= ~1u;
+    initSymbols(dF, dG, dV, dS, dH, dK, nrowF, nrowG, ncol, static_cast<unsigned>(lddF), static_cast<unsigned>(lddG), static_cast<unsigned>(lddV), ((alg & HZ_BLK_ORI) ? 1u : HZ_NSWEEP));
+    CUDA_CALL(cudaDeviceSynchronize());
+  }
 
   const int sclV = ((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5));
   initV(sclV, ncol);
@@ -135,7 +137,7 @@ HZ_L2_gpu
 int // 0 if OK, < 0 if invalid argument, > 0 if error
 HZ_L2
 (const unsigned routine,          // IN, routine ID, <= 15, (B___)_2
- // B: block-oriented or full-block
+ // B: block-oriented (else, full-block)
  const unsigned nrowF,            // IN, number of rows of F, == 0 (mod 64)
  const unsigned nrowG,            // IN, number of rows of G, == 0 (mod 64)
  const unsigned ncol,             // IN, number of columns <= min(nrowF, nrowG), == 0 (mod 32)
@@ -263,8 +265,9 @@ HZ_L2
 #endif // ANIMATE
 
   timers[1] = stopwatch_lap(timers[3]);
+  unsigned alg = (routine | 1u);
   const int ret = HZ_L2_gpu
-    (routine, nrowF,nrowG,ncol, hF,ldhF, dF,lddF, hG,ldhG, dG,lddG, hV,ldhV, dV,lddV, hS,dS, hH,dH, hK,dK, glbSwp,glb_s,glb_b
+    (alg, nrowF,nrowG,ncol, hF,ldhF, dF,lddF, hG,ldhG, dG,lddG, hV,ldhV, dV,lddV, hS,dS, hH,dH, hK,dK, glbSwp,glb_s,glb_b
 #ifdef ANIMATE
 #if (ANIMATE == 1)
      , ctx
