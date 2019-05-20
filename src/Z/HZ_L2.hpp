@@ -4,7 +4,11 @@
 #include "defines.hpp"
 
 #ifdef ANIMATE
+#ifdef USE_MPI
+#error Animation not supported with MPI
+#else // !USE_MPI
 #include "vn_lib.h"
+#endif // ?USE_MPI
 #endif // ANIMATE
 
 EXTERN_C int // 0 if OK, < 0 if invalid argument, > 0 if error

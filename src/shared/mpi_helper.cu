@@ -134,9 +134,13 @@ static dev_host *get_dev_hosts() throw()
     (void)fprintf(stderr, "Cannot query the host information (%d)\n", my.dev_count);
 
   dev_host *const rcv = static_cast<dev_host*>(malloc(static_cast<unsigned>(mpi_size) * sizeof(dev_host)));
-  SYSP_CALL(rcv);
+  if (!rcv) {
+    DIE("out of memory");
+  }
 
-  SYSI_CALL(MPI_Allgather(&my, static_cast<int>(sizeof(dev_host)), MPI_BYTE, rcv, static_cast<int>(sizeof(dev_host)), MPI_BYTE, MPI_COMM_WORLD));
+  if (MPI_Allgather(&my, static_cast<int>(sizeof(dev_host)), MPI_BYTE, rcv, static_cast<int>(sizeof(dev_host)), MPI_BYTE, MPI_COMM_WORLD)) {
+    DIE("MPI_Allgather should have not failed");
+  }
 
   if (!mpi_rank)
     (void)fprintf(stderr, "RANK,GPUS,HOSTNAME\n");

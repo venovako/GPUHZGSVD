@@ -3,13 +3,27 @@
 
 #include "defines.hpp"
 
+#ifdef USE_MPI
+#include "mpi_helper.hpp"
+#endif // USE_MPI
+
 #ifndef err_msg_size
 #define err_msg_size static_cast<size_t>(1024u)
 #else // err_msg_size
 #error err_msg_size not definable externally
 #endif // !err_msg_size
 
-EXTERN_C char err_msg[err_msg_size];
+extern char err_msg[err_msg_size];
+
+#ifndef EXIT
+#ifdef USE_MPI
+#define EXIT exit(fini_MPI())
+#else // !USE_MPI
+#define EXIT exit(EXIT_FAILURE)
+#endif // ?USE_MPI
+#else // EXIT
+#error EXIT not definable externally
+#endif // ?EXIT
 
 #ifndef WARN
 #define WARN(msg) {                                                             \
@@ -22,7 +36,7 @@ EXTERN_C char err_msg[err_msg_size];
 #ifndef DIE
 #define DIE(msg) {                                                            \
     (void)fprintf(stderr, "[ERROR] %s(%d): %s\n", __FILE__, __LINE__, (msg)); \
-    exit(EXIT_FAILURE);                                                       \
+    EXIT;                                                                     \
   }
 #else // DIE
 #error DIE not definable externally
@@ -33,7 +47,7 @@ EXTERN_C char err_msg[err_msg_size];
     if (0 != static_cast<int>(call)) {					\
       (void)fprintf(stderr, "[ERROR] %s(%d): %s",                       \
 		    __FILE__, __LINE__, strerror(errno));		\
-      exit(EXIT_FAILURE);                                               \
+      EXIT;                                                             \
     }									\
   }
 #else // SYSI_CALL
@@ -45,7 +59,7 @@ EXTERN_C char err_msg[err_msg_size];
     if (NULL == static_cast<const void*>(call)) {			\
       (void)fprintf(stderr, "[ERROR] %s(%d): %s",                       \
 		    __FILE__, __LINE__, strerror(errno));		\
-      exit(EXIT_FAILURE);                                               \
+      EXIT;                                                             \
     }									\
   }
 #else // SYSP_CALL

@@ -208,6 +208,27 @@ void init_strats(const char *const sdy, const char *const snp0, const unsigned n
       }
     }
   }
+  if (!mpi_rank)
+    (void)fprintf(stderr, "\nSTRAT2 & COMM PATTERN\n");
+  for (unsigned s = 0u; s < STRAT2_STEPS; ++s) {
+    if (!mpi_rank)
+      (void)fprintf(stderr, "%u: ", s);
+    for (unsigned p = 0u; p < STRAT2_PAIRS; ++p) {
+      if (!comm2[s][p][0u]) {
+        DIE("invalid left comm pattern");
+      }
+      if (!comm2[s][p][1u]) {
+        DIE("invalid right comm pattern");
+      }
+      if (!mpi_rank)
+        (void)fprintf
+          (stderr, "(%u%c%d,%u%c%d)",
+           static_cast<unsigned>(strat2[s][p][0u]), ((comm2[s][p][0u] < 0) ? 'L' : 'R'), abs(comm2[s][p][0u])-1,
+           static_cast<unsigned>(strat2[s][p][1u]), ((comm2[s][p][1u] < 0) ? 'L' : 'R'), abs(comm2[s][p][1u])-1);
+      if (!mpi_rank)
+        (void)fprintf(stderr, "%c", ((p == (STRAT2_PAIRS - 1u)) ? '\n' : ','));
+    }
+  }
 #endif // USE_MPI
 
   SYSI_CALL(strat_close(h));

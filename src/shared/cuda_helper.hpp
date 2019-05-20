@@ -2,6 +2,7 @@
 #define CUDA_HELPER_HPP
 
 #include "defines.hpp"
+#include "my_utils.hpp"
 
 #include <cuda_runtime.h>
 #include <math_constants.h>
@@ -13,7 +14,7 @@
       (void)fprintf(stderr, "CUDA runtime error %d [%s] @ %s(%d)!\n",   \
 		    static_cast<int>(err), cudaGetErrorString(err),     \
                     __FILE__, __LINE__);                                \
-      exit(EXIT_FAILURE);                                               \
+      EXIT;                                                             \
     }									\
 }
 #else // CUDA_CALL

@@ -4,15 +4,13 @@
 #include "HZ_L.hpp"
 #include "HZ_L3.hpp"
 
-#include "cuda_memory_helper.hpp"
-#include "mpi_helper.hpp"
 #include "my_utils.hpp"
+#include "cuda_memory_helper.hpp"
 
 int main(int argc, char *argv[])
 {
   if (10 != argc) {
-    (void)fprintf(stderr, "%s SDY SNP0 SNP1 SNP2 ALG MF MG N FN\n", argv[0]);
-    return EXIT_FAILURE;
+    DIE("Arguments: SDY SNP0 SNP1 SNP2 ALG MF MG N FN");
   }
 
   const char *const ca_exe = argv[0];
@@ -28,38 +26,34 @@ int main(int argc, char *argv[])
 
   const unsigned routine = static_cast<unsigned>(atou(ca_alg));
   if (routine && (routine != 8u)) {
-    (void)fprintf(stderr, "ALG(%d) \\notin { 0, 8 }\n", routine);
-    return EXIT_FAILURE;
+    DIE("ALG \\notin { 0, 8 }");
   }
 
   const unsigned nrowF = static_cast<unsigned>(atou(ca_mF));
-  if (!nrowF)
-    return EXIT_SUCCESS;
   const unsigned nrowG = static_cast<unsigned>(atou(ca_mG));
-  if (!nrowG)
-    return EXIT_SUCCESS;
   const unsigned ncol = static_cast<unsigned>(atou(ca_n));
-  if (!ncol)
-    return EXIT_SUCCESS;
   if (ncol > nrowF) {
-    (void)fprintf(stderr, "N(%u) > MF(%u)\n", ncol, nrowF);
-    return EXIT_FAILURE;
+    DIE("N > MF");
   }
   if (ncol > nrowG) {
-    (void)fprintf(stderr, "N(%u) > MG(%u)\n", ncol, nrowG);
-    return EXIT_FAILURE;
+    DIE("N > MG");
   }
 
-  if (!*ca_sdy)
-    return EXIT_FAILURE;
-  if (!*ca_snp0)
-    return EXIT_FAILURE;
-  if (!*ca_snp1)
-    return EXIT_FAILURE;
-  if (!*ca_snp2)
-    return EXIT_FAILURE;
-  if (!*ca_fn)
-    return EXIT_FAILURE;
+  if (!*ca_sdy) {
+    DIE("invalid argument SDY");
+  }
+  if (!*ca_snp0) {
+    DIE("invalid argument SNP0");
+  }
+  if (!*ca_snp1) {
+    DIE("invalid argument SNP1");
+  }
+  if (!*ca_snp2) {
+    DIE("invalid argument SNP2");
+  }
+  if (!*ca_fn) {
+    DIE("invalid argument FN");
+  }
 
   if (init_MPI(&argc, &argv)) {
     (void)fprintf(stderr, "[%d] init_MPI failed\n", mpi_rank);
