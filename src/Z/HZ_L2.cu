@@ -54,26 +54,24 @@ HZ_L2_gpu
     alg &= ~1u;
     initSymbols(dFD,dFJ, dGD,dGJ, dVD,dVJ, dS,dH,dK, nrowF,nrowG,ncol, static_cast<unsigned>(lddF),static_cast<unsigned>(lddG),static_cast<unsigned>(lddV), ((alg & HZ_BLK_ORI) ? 1u : HZ_NSWEEP));
     CUDA_CALL(cudaDeviceSynchronize());
+    initV(((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5)), ncol, ifc0, ifc1);
+    CUDA_CALL(cudaDeviceSynchronize());
   }
-  
-  const int sclV = ((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5));
-  initV(sclV, ncol, ifc0, ifc1);
-  CUDA_CALL(cudaDeviceSynchronize());
 
   void (*const HZ_L1)(const unsigned) = HZ_L1_sv;
+
+  const unsigned swp = HZ_NSWEEP;
+  // stats per thread block
+  const unsigned spb = 2u;
+  // stats count
+  const unsigned sc = STRAT1_PAIRS * spb;
 
   *glb_s = 0ull;
   *glb_b = 0ull;
   long long swp_tim = 0ll;
   stopwatch_reset(swp_tim);
 
-  const unsigned swp = HZ_NSWEEP;
   unsigned blk_swp = 0u;
-  // stats per thread block
-  const unsigned spb = 2u;
-  // stats count
-  const unsigned sc = STRAT1_PAIRS * spb;
-
   while (blk_swp < swp) {
     for (unsigned blk_stp = 0u; blk_stp < STRAT1_STEPS; ++blk_stp) {
       if (blk_stp)
