@@ -14,6 +14,8 @@ HZ_L2_gpu
  const unsigned nrowF,            // IN, number of rows of F, == 0 (mod 64)
  const unsigned nrowG,            // IN, number of rows of G, == 0 (mod 64)
  const unsigned ncol,             // IN, number of columns <= min(nrowF, nrowG), == 0 (mod 32)
+ const unsigned ifc0,             // IN, index of the first column in the first block column
+ const unsigned ifc1,             // IN, index of the first column in the second block column
  double *const hF,                // INOUT, ldhF x ncol host array in Fortran order,
  const unsigned ldhF,             // IN, leading dimension of hF, >= nrowF
  double *const dF,                // INOUT, ldhF x ncol device array in Fortran order,
@@ -52,7 +54,7 @@ HZ_L2_gpu
   }
 
   const int sclV = ((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5));
-  initV(sclV, ncol);
+  initV(sclV, ncol, ifc0, ifc1);
   CUDA_CALL(cudaDeviceSynchronize());
 
   void (*const HZ_L1)(const unsigned) = HZ_L1_sv;
@@ -266,8 +268,10 @@ HZ_L2
 
   timers[1] = stopwatch_lap(timers[3]);
   unsigned alg = (routine | 1u);
+  const unsigned ifc0 = 0u;
+  const unsigned ifc1 = (ncol >> 1u);
   const int ret = HZ_L2_gpu
-    (alg, nrowF,nrowG,ncol, hF,ldhF, dF,lddF, hG,ldhG, dG,lddG, hV,ldhV, dV,lddV, hS,dS, hH,dH, hK,dK, glbSwp,glb_s,glb_b
+    (alg, nrowF,nrowG,ncol, ifc0,ifc1, hF,ldhF, dF,lddF, hG,ldhG, dG,lddG, hV,ldhV, dV,lddV, hS,dS, hH,dH, hK,dK, glbSwp,glb_s,glb_b
 #ifdef ANIMATE
 #if (ANIMATE == 1)
      , ctx

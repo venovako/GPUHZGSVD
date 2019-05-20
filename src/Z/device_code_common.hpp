@@ -391,7 +391,9 @@ MYKERN zInitS(const int full)
 MYDEVFN void zGlobalInitV
 (cuD *const VD,
  const unsigned nRank,
- const unsigned ldV)
+ const unsigned ldV,
+ const unsigned ifc0,
+ const unsigned ifc1)
 {
   const unsigned wpb = (blockDim.x + WARP_SZ_SUB1) >> WARP_SZ_LG;
   const unsigned wid = threadIdx.x >> WARP_SZ_LG;
@@ -399,8 +401,13 @@ MYDEVFN void zGlobalInitV
   const unsigned cix = blockIdx.x * wpb + wid;
   if (cix < nRank) {
     const unsigned lid = static_cast<unsigned>(threadIdx.x) & WARP_SZ_SUB1;
-    if (!lid)
-      VD[cix * ldV + cix] = 1.0;
+    if (!lid) {
+      const unsigned nRank_2 = nRank >> 1u;
+      if (cix < nRank_2)
+        VD[cix * ldV + (cix + ifc0)] = 1.0;
+      else
+        VD[cix * ldV + ((cix - nRank_2) + ifc1)] = 1.0;
+    }
   }
 }
 
@@ -413,7 +420,9 @@ MYDEVFN void zGlobalInitVscl
  const unsigned nRank,
  const unsigned ldF,
  const unsigned ldG,
- const unsigned ldV)
+ const unsigned ldV,
+ const unsigned ifc0,
+ const unsigned ifc1)
 {
   const unsigned wpb = (blockDim.x + WARP_SZ_SUB1) >> WARP_SZ_LG;
   const unsigned wid = threadIdx.x >> WARP_SZ_LG;
@@ -437,17 +446,22 @@ MYDEVFN void zGlobalInitVscl
       zScalC(bFiD, eFiD, bFiJ, Gi_inv_nrm);
       zScalC(bGiD, eGiD, bGiJ, Gi_inv_nrm);
     }
-    if (!lid)
-      VD[cix * ldV + cix] = Gi_inv_nrm;
+    if (!lid) {
+      const unsigned nRank_2 = nRank >> 1u;
+      if (cix < nRank_2)
+        VD[cix * ldV + (cix + ifc0)] = Gi_inv_nrm;
+      else
+        VD[cix * ldV + ((cix - nRank_2) + ifc1)] = Gi_inv_nrm;
+    }
   }
 }
 
-MYKERN zInitV(const int sclV)
+MYKERN zInitV(const int sclV, const unsigned ifc0, const unsigned ifc1)
 {
   if (sclV)
-    zGlobalInitVscl(_FD, _FJ, _GD, _GJ, _VD, _nRowF, _nRowG, _nRank, _ldF, _ldG, _ldV);
+    zGlobalInitVscl(_FD, _FJ, _GD, _GJ, _VD, _nRowF, _nRowG, _nRank, _ldF, _ldG, _ldV, ifc0, ifc1);
   else
-    zGlobalInitV(_VD, _nRank, _ldV);
+    zGlobalInitV(_VD, _nRank, _ldV, ifc0, ifc1);
 }
 
 #endif // !DEVICE_CODE_COMMON_HPP

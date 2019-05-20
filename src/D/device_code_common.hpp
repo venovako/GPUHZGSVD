@@ -326,7 +326,9 @@ MYKERN dInitS(const int full)
 MYDEVFN void dGlobalInitV
 (double *const V,
  const unsigned nRank,
- const unsigned ldV)
+ const unsigned ldV,
+ const unsigned ifc0,
+ const unsigned ifc1)
 {
   const unsigned wpb = (blockDim.x + WARP_SZ_SUB1) >> WARP_SZ_LG;
   const unsigned wid = threadIdx.x >> WARP_SZ_LG;
@@ -334,8 +336,13 @@ MYDEVFN void dGlobalInitV
   const unsigned cix = blockIdx.x * wpb + wid;
   if (cix < nRank) {
     const unsigned lid = static_cast<unsigned>(threadIdx.x) & WARP_SZ_SUB1;
-    if (!lid)
-      V[cix * ldV + cix] = 1.0;
+    if (!lid) {
+      const unsigned nRank_2 = nRank >> 1u;
+      if (cix < nRank_2)
+        V[cix * ldV + (cix + ifc0)] = 1.0;
+      else
+        V[cix * ldV + ((cix - nRank_2) + ifc1)] = 1.0;
+    }
   }
 }
 
@@ -348,7 +355,9 @@ MYDEVFN void dGlobalInitVscl
  const unsigned nRank,
  const unsigned ldF,
  const unsigned ldG,
- const unsigned ldV)
+ const unsigned ldV,
+ const unsigned ifc0,
+ const unsigned ifc1)
 {
   const unsigned wpb = (blockDim.x + WARP_SZ_SUB1) >> WARP_SZ_LG;
   const unsigned wid = threadIdx.x >> WARP_SZ_LG;
@@ -366,17 +375,22 @@ MYDEVFN void dGlobalInitVscl
       dScalC(bFi, eFi, Gi_inv_nrm);
       dScalC(bGi, eGi, Gi_inv_nrm);
     }
-    if (!lid)
-      V[cix * ldV + cix] = Gi_inv_nrm;
+    if (!lid) {
+      const unsigned nRank_2 = nRank >> 1u;
+      if (cix < nRank_2)
+        V[cix * ldV + (cix + ifc0)] = Gi_inv_nrm;
+      else
+        V[cix * ldV + ((cix - nRank_2) + ifc1)] = Gi_inv_nrm;
+    }
   }
 }
 
-MYKERN dInitV(const int sclV)
+MYKERN dInitV(const int sclV, const unsigned ifc0, const unsigned ifc1)
 {
   if (sclV)
-    dGlobalInitVscl(_F, _G, _V, _nRowF, _nRowG, _nRank, _ldF, _ldG, _ldV);
+    dGlobalInitVscl(_F, _G, _V, _nRowF, _nRowG, _nRank, _ldF, _ldG, _ldV, ifc0, ifc1);
   else
-    dGlobalInitV(_V, _nRank, _ldV);
+    dGlobalInitV(_V, _nRank, _ldV, ifc0, ifc1);
 }
 
 #endif // !DEVICE_CODE_COMMON_HPP
