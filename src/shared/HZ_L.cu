@@ -11,6 +11,7 @@ unsigned STRAT1_DTYPE strat1[STRAT1_MAX_STEPS][STRAT1_MAX_PAIRS][2u];
 #ifdef USE_MPI
 unsigned STRAT2 = 0u, STRAT2_STEPS = 0u, STRAT2_PAIRS = 0u;
 unsigned STRAT2_DTYPE strat2[STRAT2_MAX_STEPS][STRAT2_MAX_PAIRS][2u];
+STRAT2_DTYPE comm2[STRAT2_MAX_STEPS][STRAT2_MAX_PAIRS][2u];
 void init_strats(const char *const sdy, const char *const snp0, const unsigned n0, const char *const snp1, const unsigned n1, const char *const snp2, const unsigned n2) throw()
 #else // !USE_MPI
 void init_strats(const char *const sdy, const char *const snp0, const unsigned n0, const char *const snp1, const unsigned n1) throw()
@@ -193,6 +194,19 @@ void init_strats(const char *const sdy, const char *const snp0, const unsigned n
       for (unsigned p = 0u; p < STRAT2_PAIRS; ++p)
         for (unsigned i = 0u; i < 2u; ++i)
           strat2[s][p][i] = *a2++;
+  }
+  // determine the communication pattern
+  for (unsigned s = 0u; s < STRAT2_STEPS; ++s) {
+    const unsigned s_ = ((s == (STRAT2_STEPS - 1u)) ? 0u : (s + 1u));
+    for (unsigned p = 0u; p < STRAT2_PAIRS; ++p) {
+      for (unsigned i = 0u; i < 2u; ++i) {
+        comm2[s][p][i] = static_cast<STRAT2_DTYPE>(0);
+        for (unsigned p_ = 0u; p_ < STRAT2_PAIRS; ++p_)
+          for (unsigned i_ = 0u; i_ < 2u; ++i_)
+            if (strat2[s][p][i] == strat2[s_][p_][i_])
+              comm2[s][p][i] = (i_ ? static_cast<STRAT2_DTYPE>(p_ + 1u) : -static_cast<STRAT2_DTYPE>(p_ + 1u));
+      }
+    }
   }
 #endif // USE_MPI
 

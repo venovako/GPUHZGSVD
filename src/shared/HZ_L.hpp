@@ -1,6 +1,8 @@
 #ifndef HZ_L_HPP
 #define HZ_L_HPP
 
+#include "defines.hpp"
+
 // maximal number of sweeps per Jacobi process
 #ifndef HZ_NSWEEP
 #define HZ_NSWEEP 99u
@@ -132,9 +134,10 @@ extern unsigned STRAT1_DTYPE strat1[STRAT1_MAX_STEPS][STRAT1_MAX_PAIRS][2u];
 #endif // !STRAT2_DTYPE
 extern unsigned STRAT2, STRAT2_STEPS, STRAT2_PAIRS;
 extern unsigned STRAT2_DTYPE strat2[STRAT2_MAX_STEPS][STRAT2_MAX_PAIRS][2u];
-extern void init_strats(const char *const sdy, const char *const snp0, const unsigned n0, const char *const snp1, const unsigned n1, const char *const snp2, const unsigned n2) throw();
+extern STRAT2_DTYPE comm2[STRAT2_MAX_STEPS][STRAT2_MAX_PAIRS][2u];
+EXTERN_C void init_strats(const char *const sdy, const char *const snp0, const unsigned n0, const char *const snp1, const unsigned n1, const char *const snp2, const unsigned n2) throw();
 #else // !USE_MPI
-extern void init_strats(const char *const sdy, const char *const snp0, const unsigned n0, const char *const snp1, const unsigned n1) throw();
+EXTERN_C void init_strats(const char *const sdy, const char *const snp0, const unsigned n0, const char *const snp1, const unsigned n1) throw();
 #endif // ?USE_MPI
 
 #endif // !HZ_L_HPP
