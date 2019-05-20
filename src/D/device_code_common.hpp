@@ -326,10 +326,12 @@ MYKERN dInitS(const int full)
 MYDEVFN void dGlobalInitV
 (double *const V,
  const unsigned nRank,
- const unsigned ldV,
- const unsigned ifc0,
- const unsigned ifc1)
-{
+ const unsigned ldV
+#ifdef USE_MPI
+ , const unsigned ifc0
+ , const unsigned ifc1
+#endif // USE_MPI
+) {
   const unsigned wpb = (blockDim.x + WARP_SZ_SUB1) >> WARP_SZ_LG;
   const unsigned wid = threadIdx.x >> WARP_SZ_LG;
 
@@ -337,11 +339,15 @@ MYDEVFN void dGlobalInitV
   if (cix < nRank) {
     const unsigned lid = static_cast<unsigned>(threadIdx.x) & WARP_SZ_SUB1;
     if (!lid) {
+#ifdef USE_MPI
       const unsigned nRank_2 = nRank >> 1u;
       if (cix < nRank_2)
         V[cix * ldV + (cix + ifc0)] = 1.0;
       else
         V[cix * ldV + ((cix - nRank_2) + ifc1)] = 1.0;
+#else // !USE_MPI
+      V[cix * ldV + cix] = 1.0;
+#endif // ?USE_MPI
     }
   }
 }
@@ -355,10 +361,12 @@ MYDEVFN void dGlobalInitVscl
  const unsigned nRank,
  const unsigned ldF,
  const unsigned ldG,
- const unsigned ldV,
- const unsigned ifc0,
- const unsigned ifc1)
-{
+ const unsigned ldV
+#ifdef USE_MPI
+ , const unsigned ifc0
+ , const unsigned ifc1
+#endif // USE_MPI
+) {
   const unsigned wpb = (blockDim.x + WARP_SZ_SUB1) >> WARP_SZ_LG;
   const unsigned wid = threadIdx.x >> WARP_SZ_LG;
 
@@ -376,21 +384,36 @@ MYDEVFN void dGlobalInitVscl
       dScalC(bGi, eGi, Gi_inv_nrm);
     }
     if (!lid) {
+#ifdef USE_MPI
       const unsigned nRank_2 = nRank >> 1u;
       if (cix < nRank_2)
         V[cix * ldV + (cix + ifc0)] = Gi_inv_nrm;
       else
         V[cix * ldV + ((cix - nRank_2) + ifc1)] = Gi_inv_nrm;
+#else // !USE_MPI
+      V[cix * ldV + cix] = Gi_inv_nrm;
+#endif // ?USE_MPI
     }
   }
 }
 
-MYKERN dInitV(const int sclV, const unsigned ifc0, const unsigned ifc1)
-{
+MYKERN dInitV(const int sclV
+#ifdef USE_MPI
+  , const unsigned ifc0, const unsigned ifc1
+#endif // USE_MPI
+) {
   if (sclV)
-    dGlobalInitVscl(_F, _G, _V, _nRowF, _nRowG, _nRank, _ldF, _ldG, _ldV, ifc0, ifc1);
+    dGlobalInitVscl(_F, _G, _V, _nRowF, _nRowG, _nRank, _ldF, _ldG, _ldV
+#ifdef USE_MPI
+      , ifc0, ifc1
+#endif // USE_MPI
+    );
   else
-    dGlobalInitV(_V, _nRank, _ldV, ifc0, ifc1);
+    dGlobalInitV(_V, _nRank, _ldV
+#ifdef USE_MPI
+      , ifc0, ifc1
+#endif // USE_MPI
+    );
 }
 
 #endif // !DEVICE_CODE_COMMON_HPP

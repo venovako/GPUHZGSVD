@@ -18,8 +18,10 @@ HZ_L2_gpu
  const unsigned nrowF,            // IN, number of rows of F, == 0 (mod 64)
  const unsigned nrowG,            // IN, number of rows of G, == 0 (mod 64)
  const unsigned ncol,             // IN, number of columns of <= min(nrowF, nrowG), == 0 (mod 32)
+#ifdef USE_MPI
  const unsigned ifc0,             // IN, index of the first column in the first block column
  const unsigned ifc1,             // IN, index of the first column in the second block column
+#endif // USE_MPI
  cuD *const hFD,                  // INOUT, ldhF x ncol host array in Fortran order,
  cuJ *const hFJ,                  // INOUT, ldhF x ncol host array in Fortran order,
  const unsigned ldhF,             // IN, leading dimension of hF, >= nrowF

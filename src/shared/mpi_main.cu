@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
   }
 
   if (init_MPI(&argc, &argv)) {
-    (void)fprintf(stderr, "[%d] init_MPI failed\n", mpi_rank);
+    (void)fprintf(stderr, "%s[%d] init_MPI failed\n", ca_exe, mpi_rank);
     return fini_MPI();
   }
   if (mpi_size < 2) {

@@ -391,10 +391,12 @@ MYKERN zInitS(const int full)
 MYDEVFN void zGlobalInitV
 (cuD *const VD,
  const unsigned nRank,
- const unsigned ldV,
- const unsigned ifc0,
- const unsigned ifc1)
-{
+ const unsigned ldV
+#ifdef USE_MPI
+ , const unsigned ifc0
+ , const unsigned ifc1
+#endif // USE_MPI
+) {
   const unsigned wpb = (blockDim.x + WARP_SZ_SUB1) >> WARP_SZ_LG;
   const unsigned wid = threadIdx.x >> WARP_SZ_LG;
 
@@ -402,11 +404,15 @@ MYDEVFN void zGlobalInitV
   if (cix < nRank) {
     const unsigned lid = static_cast<unsigned>(threadIdx.x) & WARP_SZ_SUB1;
     if (!lid) {
+#ifdef USE_MPI
       const unsigned nRank_2 = nRank >> 1u;
       if (cix < nRank_2)
         VD[cix * ldV + (cix + ifc0)] = 1.0;
       else
         VD[cix * ldV + ((cix - nRank_2) + ifc1)] = 1.0;
+#else // !USE_MPI
+      VD[cix * ldV + cix] = 1.0;
+#endif // ?USE_MPI
     }
   }
 }
@@ -420,10 +426,12 @@ MYDEVFN void zGlobalInitVscl
  const unsigned nRank,
  const unsigned ldF,
  const unsigned ldG,
- const unsigned ldV,
- const unsigned ifc0,
- const unsigned ifc1)
-{
+ const unsigned ldV
+#ifdef USE_MPI
+ , const unsigned ifc0
+ , const unsigned ifc1
+#endif // USE_MPI
+) {
   const unsigned wpb = (blockDim.x + WARP_SZ_SUB1) >> WARP_SZ_LG;
   const unsigned wid = threadIdx.x >> WARP_SZ_LG;
 
@@ -447,21 +455,36 @@ MYDEVFN void zGlobalInitVscl
       zScalC(bGiD, eGiD, bGiJ, Gi_inv_nrm);
     }
     if (!lid) {
+#ifdef USE_MPI
       const unsigned nRank_2 = nRank >> 1u;
       if (cix < nRank_2)
         VD[cix * ldV + (cix + ifc0)] = Gi_inv_nrm;
       else
         VD[cix * ldV + ((cix - nRank_2) + ifc1)] = Gi_inv_nrm;
+#else // !USE_MPI
+      VD[cix * ldV + cix] = Gi_inv_nrm;
+#endif // ?USE_MPI
     }
   }
 }
 
-MYKERN zInitV(const int sclV, const unsigned ifc0, const unsigned ifc1)
-{
+MYKERN zInitV(const int sclV
+#ifdef USE_MPI
+  , const unsigned ifc0, const unsigned ifc1
+#endif // USE_MPI
+) {
   if (sclV)
-    zGlobalInitVscl(_FD, _FJ, _GD, _GJ, _VD, _nRowF, _nRowG, _nRank, _ldF, _ldG, _ldV, ifc0, ifc1);
+    zGlobalInitVscl(_FD, _FJ, _GD, _GJ, _VD, _nRowF, _nRowG, _nRank, _ldF, _ldG, _ldV
+#ifdef USE_MPI
+      , ifc0, ifc1
+#endif // USE_MPI
+    );
   else
-    zGlobalInitV(_VD, _nRank, _ldV, ifc0, ifc1);
+    zGlobalInitV(_VD, _nRank, _ldV
+#ifdef USE_MPI
+      , ifc0, ifc1
+#endif // USE_MPI
+    );
 }
 
 #endif // !DEVICE_CODE_COMMON_HPP

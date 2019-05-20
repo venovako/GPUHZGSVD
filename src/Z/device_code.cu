@@ -43,12 +43,20 @@ void initS(const int full, const unsigned nRank) throw()
   zInitS<<< gD, bD, shmD >>>(full);
 }
 
-void initV(const int sclV, const unsigned nRank, const unsigned ifc0, const unsigned ifc1) throw()
+void initV(const int sclV, const unsigned nRank
+#ifdef USE_MPI
+  , const unsigned ifc0, const unsigned ifc1
+#endif // USE_MPI
+) throw()
 {
   const dim3 bD(2u * WARP_SZ, 1u, 1u);
   const dim3 gD(udiv_ceil(nRank * WARP_SZ, bD.x), 1u, 1u);
   const size_t shmD = static_cast<size_t>(0u);
-  zInitV<<< gD, bD, shmD >>>(sclV, ifc0, ifc1);
+  zInitV<<< gD, bD, shmD >>>(sclV
+#ifdef USE_MPI
+    , ifc0, ifc1
+#endif // USE_MPI
+  );
 }
 
 void initSymbols

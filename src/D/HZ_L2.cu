@@ -14,8 +14,10 @@ HZ_L2_gpu
  const unsigned nrowF,            // IN, number of rows of F, == 0 (mod 64)
  const unsigned nrowG,            // IN, number of rows of G, == 0 (mod 64)
  const unsigned ncol,             // IN, number of columns <= min(nrowF, nrowG), == 0 (mod 32)
+#ifdef USE_MPI
  const unsigned ifc0,             // IN, index of the first column in the first block column
  const unsigned ifc1,             // IN, index of the first column in the second block column
+#endif // USE_MPI
  double *const hF,                // INOUT, ldhF x ncol host array in Fortran order,
  const unsigned ldhF,             // IN, leading dimension of hF, >= nrowF
  double *const dF,                // INOUT, ldhF x ncol device array in Fortran order,
@@ -51,7 +53,11 @@ HZ_L2_gpu
     alg &= ~1u;
     initSymbols(dF, dG, dV, dS, dH, dK, nrowF, nrowG, ncol, static_cast<unsigned>(lddF), static_cast<unsigned>(lddG), static_cast<unsigned>(lddV), ((alg & HZ_BLK_ORI) ? 1u : HZ_NSWEEP));
     CUDA_CALL(cudaDeviceSynchronize());
-    initV(((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5)), ncol, ifc0, ifc1);
+    initV(((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5)), ncol
+#ifdef USE_MPI
+      , ifc0,ifc1
+#endif // USE_MPI
+    );
     CUDA_CALL(cudaDeviceSynchronize());
   }
 
@@ -265,10 +271,16 @@ HZ_L2
 
   timers[1] = stopwatch_lap(timers[3]);
   unsigned alg = (routine | 1u);
+#ifdef USE_MPI
   const unsigned ifc0 = 0u;
   const unsigned ifc1 = (ncol >> 1u);
+#endif // USE_MPI
   const int ret = HZ_L2_gpu
-    (alg, nrowF,nrowG,ncol, ifc0,ifc1, hF,ldhF, dF,lddF, hG,ldhG, dG,lddG, hV,ldhV, dV,lddV, hS,dS, hH,dH, hK,dK, glbSwp,glb_s,glb_b
+    (alg, nrowF,nrowG,ncol,
+#ifdef USE_MPI
+     ifc0,ifc1,
+#endif // USE_MPI
+     hF,ldhF, dF,lddF, hG,ldhG, dG,lddG, hV,ldhV, dV,lddV, hS,dS, hH,dH, hK,dK, glbSwp,glb_s,glb_b
 #ifdef ANIMATE
 #if (ANIMATE == 1)
      , ctx
