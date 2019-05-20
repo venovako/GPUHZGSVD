@@ -66,12 +66,16 @@ int main(int argc, char *argv[])
 
   const int dcc = configureGPU(dev);
 #ifndef NDEBUG
-  (void)fprintf(stdout, "Device %d has CC %d\n", dev, dcc);
+  (void)fprintf(stdout, "device(%d) has CC(%d)\n", dev, dcc);
   (void)fflush(stdout);
 #endif // !NDEBUG
 
   unsigned nrowF_ = 0u, nrowG_ = 0u, ncol_ = 0u;
   border_sizes(1u, nrowF, nrowG, ncol, nrowF_, nrowG_, ncol_);
+
+  const unsigned n0 = (HZ_L1_NCOLB << 1u);
+  const unsigned n1 = udiv_ceil(ncol_, HZ_L1_NCOLB);
+  init_strats(ca_sdy, ca_snp0, n0, ca_snp1, n1);
 
   const size_t mF = static_cast<size_t>(nrowF);
   const size_t mF_ = static_cast<size_t>(nrowF_);
@@ -85,11 +89,8 @@ int main(int argc, char *argv[])
     ldhG = nrowG_,
     ldhV = ncol_;
 
-  const unsigned n0 = (HZ_L1_NCOLB << 1u);
-  const unsigned n1 = udiv_ceil(ncol_, HZ_L1_NCOLB);
-  init_strats(ca_sdy, ca_snp0, n0, ca_snp1, n1);
-
   char *const buf = static_cast<char*>(calloc(strlen(ca_fn) + 4u, sizeof(char)));
+  SYSP_CALL(buf);
   size_t ldA = static_cast<size_t>(0u);
   FILE *f = static_cast<FILE*>(NULL);
 

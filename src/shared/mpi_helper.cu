@@ -11,9 +11,11 @@ int mpi_size = 0;
 int mpi_rank = 0;
 bool mpi_cuda_aware = false;
 
+#ifdef USE_MPI_IO
 #ifdef USE_COMPLEX
 MPI_Datatype DT_V112D = MPI_DATATYPE_NULL;
 #endif // USE_COMPLEX
+#endif // USE_MPI_IO
 
 static bool mpi_cuda() throw()
 {
@@ -49,12 +51,14 @@ int init_MPI(int *const argc, char ***const argv) throw()
   if ((e = MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank)))
     return e;
   mpi_cuda_aware = mpi_cuda();
+#ifdef USE_MPI_IO
 #ifdef USE_COMPLEX
   if ((e = MPI_Type_vector(1, 1, 2, MPI_DOUBLE, &DT_V112D)))
     return e;
   if ((e = MPI_Type_commit(&DT_V112D)))
     return e;
 #endif // USE_COMPLEX
+#endif // USE_MPI_IO
   return MPI_SUCCESS;
 }
 
@@ -65,19 +69,21 @@ int fini_MPI() throw()
     return e;
   if (f)
     return MPI_SUCCESS;
+#ifdef USE_MPI_IO
 #ifdef USE_COMPLEX
   if ((e = MPI_Type_free(&DT_V112D)))
     return e;
 #endif // USE_COMPLEX
+#endif // USE_MPI_IO
   return MPI_Finalize();
 }
 
 #ifndef DEV_HOST_NAME_LEN
-#define DEV_HOST_NAME_LEN 256u
+#define DEV_HOST_NAME_LEN 255u
 #endif // !DEV_HOST_NAME_LEN
 
 typedef struct {
-  char host[DEV_HOST_NAME_LEN];
+  char host[DEV_HOST_NAME_LEN + 1u];
   int rank;
   int dev_count;
   int dev;
@@ -114,7 +120,7 @@ static int dev_host_get(dev_host &dh) throw()
   (void)memset(&dh, 0, sizeof(dh));
   dh.rank = mpi_rank;
   dh.dev = -1;
-  if (gethostname(dh.host, DEV_HOST_NAME_LEN - 1u))
+  if (gethostname(dh.host, DEV_HOST_NAME_LEN))
     return (dh.dev_count = -2);
   if (cudaGetDeviceCount(&(dh.dev_count)) != cudaSuccess)
     return (dh.dev_count = -1);

@@ -62,32 +62,53 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
 
   if (init_MPI(&argc, &argv)) {
-    (void)fprintf(stderr, "[%d] %s: init_MPI failed\n", mpi_rank, ca_exe);
+    (void)fprintf(stderr, "[%d] init_MPI failed\n", mpi_rank);
     return fini_MPI();
   }
   if (mpi_size < 2) {
-    (void)fprintf(stderr, "[%d] %s: MPI_COMM_WORLD size (%d) < 2\n", mpi_rank, mpi_size, ca_exe);
+    if (!mpi_rank)
+      (void)fprintf(stderr, "MPI_COMM_WORLD size (%d) < 2\n", mpi_size);
     return fini_MPI();
   }
   if (!mpi_cuda_aware) {
-    (void)fprintf(stderr, "[%d] %s: MPI is not CUDA aware\n", mpi_rank, ca_exe);
+    if (!mpi_rank)
+      (void)fprintf(stderr, "MPI is not CUDA aware\n");
     return fini_MPI();
   }
+
+  const unsigned gpus = static_cast<unsigned>(mpi_size);
+  const unsigned n2 = (gpus << 1u);
+  if (ncol < n2) {
+    if (!mpi_rank)
+      (void)fprintf(stderr, "N(%u) < n2(%u)\n", ncol, n2);
+    return fini_MPI();
+  }
+
   const int dev = assign_dev2host();
   if (dev < 0) {
-    (void)fprintf(stderr, "[%d] %s: assign_dev2host failed (%d)\n", mpi_rank, ca_exe, dev);
+    if (!mpi_rank)
+      (void)fprintf(stderr, "assign_dev2host failed (%d)\n", dev);
     return fini_MPI();
   }
 
   const int dcc = configureGPU(dev);
 #ifndef NDEBUG
-  (void)fprintf(stdout, "[%d] Device %d has CC %d\n", mpi_rank, dev, dcc);
+  (void)fprintf(stdout, "[%d] device(%d) has CC(%d)\n", mpi_rank, dev, dcc);
   (void)fflush(stdout);
 #endif // !NDEBUG
 
   unsigned nrowF_ = 0u, nrowG_ = 0u, ncol_ = 0u;
-  border_sizes(mpi_size, nrowF, nrowG, ncol, nrowF_, nrowG_, ncol_);
-  const unsigned ncol_gpu = ncol_ / static_cast<unsigned>(mpi_size);
+  border_sizes(gpus, nrowF, nrowG, ncol, nrowF_, nrowG_, ncol_);
+  const unsigned ncol_gpu = ncol_ / gpus;
+
+  const unsigned n0 = (HZ_L1_NCOLB << 1u);
+  const unsigned n1 = ncol_gpu / HZ_L1_NCOLB;
+  if (ncol_gpu % HZ_L1_NCOLB) {
+    if (!mpi_rank)
+      (void)fprintf(stderr, "ncol_gpu(%u)\n", ncol_gpu);
+    return fini_MPI();
+  }
+  init_strats(ca_sdy, ca_snp0, n0, ca_snp1, n1, ca_snp2, n2);
 
   const size_t mF = static_cast<size_t>(nrowF);
   const size_t mF_ = static_cast<size_t>(nrowF_);
@@ -102,12 +123,8 @@ int main(int argc, char *argv[])
     ldhG = nrowG_,
     ldhV = ncol_;
 
-  const unsigned n0 = (HZ_L1_NCOLB << 1u);
-  const unsigned n1 = udiv_ceil(ncol_gpu, HZ_L1_NCOLB);
-  const unsigned n2 = (static_cast<unsigned>(mpi_size) << 1u);
-  init_strats(ca_sdy, ca_snp0, n0, ca_snp1, n1, ca_snp2, n2);
-
   char *const buf = static_cast<char*>(calloc(strlen(ca_fn) + 4u, sizeof(char)));
+  SYSP_CALL(buf);
   size_t ldA = static_cast<size_t>(0u);
   FILE *f = static_cast<FILE*>(NULL);
 
