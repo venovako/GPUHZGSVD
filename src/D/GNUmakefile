@@ -16,9 +16,9 @@ ifndef STD
 STD=11
 endif # !STD
 
-NVPPFLAGS=-I. -I../shared -DCVG=$(CVG) -DGPU_ARCH=$(GPU_ARCH)
+NVPPFLAGS=-I. -I../shared -I../../../JACSD/jstrat -DCVG=$(CVG) -DGPU_ARCH=$(GPU_ARCH)
 NVCCFLAGS=-std c++$(STD) -arch sm_$(GPU_ARCH) -restrict -res-usage -Xcompiler -march=native -Xcompiler -pthread
-NVLDFLAGS=
+NVLDFLAGS=-L../../../JACSD -ljstrat
 
 ifdef NDEBUG
 NVPPFLAGS+=-DNDEBUG
@@ -35,7 +35,7 @@ endif # HOST_FLAGS
 
 ifdef ANIMATE
 NVPPFLAGS+=-DUSE_MKL -DANIMATE=$(ANIMATE) -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
-NVLDFLAGS+=-L../../../JACSD -lvn -L${MKLROOT}/lib -Xlinker -rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Xlinker -rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_core -lmkl_intel_thread -liomp5 -lpthread
+NVLDFLAGS+=-lvn -L${MKLROOT}/lib -Xlinker -rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Xlinker -rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_core -lmkl_intel_thread -liomp5 -lpthread
 endif # ANIMATE
 
 NVLDFLAGS+=-l dl,m

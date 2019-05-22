@@ -66,13 +66,6 @@ extern char err_msg[err_msg_size];
 #error SYSP_CALL not definable externally
 #endif // !SYSP_CALL
 
-EXTERN_C unsigned long long atou(const char *const s) throw();
-EXTERN_C int fexist(const char *const fn) throw();
-
-EXTERN_C void *strat_open(const char *const sdy) throw();
-EXTERN_C int strat_close(void *const h) throw();
-EXTERN_C const void *strat_ptr(void *const h, const char *const snp, const unsigned n) throw();
-
 template <typename T>
 T udiv_ceil(const T a, const T b) throw()
 {
@@ -91,6 +84,8 @@ T dimToMod(const T dim, const T mod) throw()
 
   return ret;
 }
+
+EXTERN_C unsigned long long atou(const char *const s) throw();
 
 #ifndef TS2S
 #define TS2S 1e-6

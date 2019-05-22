@@ -1,7 +1,5 @@
 #include "my_utils.hpp"
 
-#include <dlfcn.h>
-
 char err_msg[err_msg_size] = { '\0' };
 
 unsigned long long atou(const char *const s) throw()
@@ -36,29 +34,6 @@ unsigned long long atou(const char *const s) throw()
     DIE("atou(!)");
   }
   return u;
-}
-
-int fexist(const char *const fn) throw()
-{
-  struct stat buf;
-  return (fn ? (0 == stat(fn, &buf)) : 0);
-}
-
-void *strat_open(const char *const sdy) throw()
-{
-  return dlopen(sdy, RTLD_LAZY);
-}
-
-int strat_close(void *const h) throw()
-{
-  return dlclose(h);
-}
-
-const void *strat_ptr(void *const h, const char *const snp, const unsigned n) throw()
-{
-  char arrn[12] = { '\0' };
-  (void)snprintf(arrn, sizeof(arrn), "%s%05u", snp, n);
-  return (arrn[11] ? NULL : dlsym(h, arrn));
 }
 
 long long timestamp() throw()

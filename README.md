@@ -7,8 +7,8 @@ The Hari–Zimmermann generalized SVD for CUDA.
 
 A reasonably recent (e.g., 10.1) full CUDA installation on a 64-bit Linux or macOS is required.
 
-Then, clone and build [GPUJACHx](https://github.com/venovako/GPUJACHx).
-In fact only the ``strat.so`` library is needed to be built there.
+Then, clone and build [JACSD](https://github.com/venovako/JACSD).
+In fact only the ``jstrat`` library (i.e., ``libjstrat.a``) is needed to be built there.
 
 ### Make options
 
@@ -32,9 +32,9 @@ It is also possible to append ``clean`` to the invocation above, to remove the e
 
 To run the executable, say, e.g.
 ```bash
-/path/to/HZ0.exe DEV SDY SNP0 SNP1 ALG MF MG N FN
+/path/to/HZ0.exe DEV SNP0 SNP1 ALG MF MG N FN
 ```
-where ``DEV`` is the CUDA device number, ``SDY`` is a path to ``strat.so``, ``SNP0`` is the inner and ``SNP1`` outer strategy name (``cycwor`` or ``mmstep``), ``ALG`` is ``0`` for full block or ``8`` for block-oriented, ``MF`` and ``MG`` are the number of rows of the first and the second matrix, respectively, ``N`` is the number of columns, and ``FN`` is the file name prefix (without an extension) containing the input data.
+where ``DEV`` is the CUDA device number, ``SNP0`` is the inner and ``SNP1`` outer strategy ID (``2`` for ``cycwor`` or ``4`` for ``mmstep``), ``ALG`` is ``0`` for full block or ``8`` for block-oriented, ``MF`` and ``MG`` are the number of rows of the first and the second matrix, respectively, ``N`` is the number of columns, and ``FN`` is the file name prefix (without an extension) containing the input data.
 
 ### Data format
 

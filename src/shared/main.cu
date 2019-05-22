@@ -9,21 +9,20 @@
 
 int main(int argc, char *argv[])
 {
-  if (10 != argc) {
-    (void)fprintf(stderr, "%s DEV SDY SNP0 SNP1 ALG MF MG N FN\n", argv[0]);
+  if (9 != argc) {
+    (void)fprintf(stderr, "%s DEV SNP0 SNP1 ALG MF MG N FN\n", argv[0]);
     return EXIT_FAILURE;
   }
 
   const char *const ca_exe = argv[0];
   const char *const ca_dev = argv[1];
-  const char *const ca_sdy = argv[2];
-  const char *const ca_snp0 = argv[3];
-  const char *const ca_snp1 = argv[4];
-  const char *const ca_alg = argv[5];
-  const char *const ca_mF = argv[6];
-  const char *const ca_mG = argv[7];
-  const char *const ca_n = argv[8];
-  const char *const ca_fn = argv[9];
+  const char *const ca_snp0 = argv[2];
+  const char *const ca_snp1 = argv[3];
+  const char *const ca_alg = argv[4];
+  const char *const ca_mF = argv[5];
+  const char *const ca_mG = argv[6];
+  const char *const ca_n = argv[7];
+  const char *const ca_fn = argv[8];
 
   const int dev = atoi(ca_dev);
   if (dev < 0) {
@@ -55,12 +54,16 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  if (!*ca_sdy)
+  const unsigned snp0 = static_cast<unsigned>(atou(ca_snp0));
+  if ((snp0 != STRAT_CYCWOR) && (snp0 != STRAT_MMSTEP)) {
+    (void)fprintf(stderr, "SNP0(%u) \\notin { 2, 4 }\n", snp0);
     return EXIT_FAILURE;
-  if (!*ca_snp0)
+  }
+  const unsigned snp1 = static_cast<unsigned>(atou(ca_snp1));
+  if ((snp1 != STRAT_CYCWOR) && (snp1 != STRAT_MMSTEP)) {
+    (void)fprintf(stderr, "SNP1(%u) \\notin { 2, 4 }\n", snp1);
     return EXIT_FAILURE;
-  if (!*ca_snp1)
-    return EXIT_FAILURE;
+  }
   if (!*ca_fn)
     return EXIT_FAILURE;
 
@@ -75,7 +78,7 @@ int main(int argc, char *argv[])
 
   const unsigned n0 = (HZ_L1_NCOLB << 1u);
   const unsigned n1 = udiv_ceil(ncol_, HZ_L1_NCOLB);
-  init_strats(ca_sdy, ca_snp0, n0, ca_snp1, n1);
+  init_strats(snp0, n0, snp1, n1);
 
   const size_t mF = static_cast<size_t>(nrowF);
   const size_t mF_ = static_cast<size_t>(nrowF_);
@@ -267,7 +270,9 @@ int main(int argc, char *argv[])
   if (hF)
     CUDA_CALL(cudaFreeHost(hF));
 #endif // ?USE_COMPLEX
+
   free(buf);
+  free_strats();
 
   // for profiling
   CUDA_CALL(cudaDeviceSynchronize());

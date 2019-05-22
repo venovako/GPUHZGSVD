@@ -8,228 +8,145 @@ unsigned STRAT1 = 0u, STRAT1_STEPS = 0u, STRAT1_PAIRS = 0u;
 unsigned STRAT0_DTYPE strat0[STRAT0_MAX_STEPS][STRAT0_MAX_PAIRS][2u];
 unsigned STRAT1_DTYPE strat1[STRAT1_MAX_STEPS][STRAT1_MAX_PAIRS][2u];
 
+jstrat_common js0, js1;
+
 #ifdef USE_MPI
 unsigned STRAT2 = 0u, STRAT2_STEPS = 0u, STRAT2_PAIRS = 0u;
-unsigned STRAT2_DTYPE strat2[STRAT2_MAX_STEPS][STRAT2_MAX_PAIRS][2u];
-STRAT2_DTYPE comm2[STRAT2_MAX_STEPS][STRAT2_MAX_PAIRS][2u];
-void init_strats(const char *const sdy, const char *const snp0, const unsigned n0, const char *const snp1, const unsigned n1, const char *const snp2, const unsigned n2) throw()
+STRAT2_DTYPE strat2[STRAT2_MAX_STEPS][STRAT2_MAX_PAIRS][2u][2u];
+jstrat_common js2;
+
+void init_strats(const unsigned snp0, const unsigned n0, const unsigned snp1, const unsigned n1, const unsigned snp2, const unsigned n2) throw()
 #else // !USE_MPI
-void init_strats(const char *const sdy, const char *const snp0, const unsigned n0, const char *const snp1, const unsigned n1) throw()
+void init_strats(const unsigned snp0, const unsigned n0, const unsigned snp1, const unsigned n1) throw()
 #endif // ?USE_MPI
 {
-  if (!sdy || !*sdy) {
-    DIE("SDY empty");
-  }
-  if (!snp0 || !*snp0) {
-    DIE("SNP0 empty");
-  }
-  if (!n0 || (n0 & 1u)) {
-    DIE("n0 not positive even");
-  }
-  if (!snp1 || !*snp1) {
-    DIE("SNP1 empty");
-  }
-  if (!n1 || (n1 & 1u)) {
-    DIE("n1 not positive even");
-  }
-#ifdef USE_MPI
-  if (!snp2 || !*snp2) {
-    DIE("SNP2 empty");
-  }
-  if (!n2 || (n2 & 1u)) {
-    DIE("n2 not positive even");
-  }
-#endif // USE_MPI
-
-  if (!strcmp(snp0, "mmstep")) {
-    STRAT0 = STRAT_MMSTEP;
+  switch (snp0) {
+  case STRAT_CYCWOR:
+    STRAT0 = snp0;
+    STRAT0_STEPS = n0 - 1u;
+    break;
+  case STRAT_MMSTEP:
+    STRAT0 = snp0;
     STRAT0_STEPS = n0;
-  }
-  else if (!strcmp(snp0, "BrentL")) {
-    STRAT0 = STRAT_BRENTL;
-    STRAT0_STEPS = n0 - 1u;
-  }
-  else if (!strcmp(snp0, "colcyc")) {
-    STRAT0 = STRAT_COLCYC;
-    STRAT0_STEPS = n0 - 1u;
-  }
-  else if (!strcmp(snp0, "cycloc")) {
-    STRAT0 = STRAT_CYCLOC;
-    STRAT0_STEPS = n0 - 1u;
-  }
-  else if (!strcmp(snp0, "rowcyc")) {
-    STRAT0 = STRAT_ROWCYC;
-    STRAT0_STEPS = n0 - 1u;
-  }
-  else if (!strcmp(snp0, "cycwor")) {
-    STRAT0 = STRAT_CYCWOR;
-    STRAT0_STEPS = n0 - 1u;
-  }
-  else {
-    DIE("SNP0 unknown");
+    break;
+  default:
+    DIE("SNP0 \\notin { 2, 4 }");
   }
 
   STRAT0_PAIRS = (n0 >> 1u);
   (void)memset(strat0, 0, sizeof(strat0));
 
-  if (!strcmp(snp1, "mmstep")) {
-    STRAT1 = STRAT_MMSTEP;
+  switch (snp1) {
+  case STRAT_CYCWOR:
+    STRAT1 = snp1;
+    STRAT1_STEPS = n1 - 1u;
+    break;
+  case STRAT_MMSTEP:
+    STRAT1 = snp1;
     STRAT1_STEPS = n1;
-  }
-  else if (!strcmp(snp1, "BrentL")) {
-    STRAT1 = STRAT_BRENTL;
-    STRAT1_STEPS = n1 - 1u;
-  }
-  else if (!strcmp(snp1, "colcyc")) {
-    STRAT1 = STRAT_COLCYC;
-    STRAT1_STEPS = n1 - 1u;
-  }
-  else if (!strcmp(snp1, "cycloc")) {
-    STRAT1 = STRAT_CYCLOC;
-    STRAT1_STEPS = n1 - 1u;
-  }
-  else if (!strcmp(snp1, "rowcyc")) {
-    STRAT1 = STRAT_ROWCYC;
-    STRAT1_STEPS = n1 - 1u;
-  }
-  else if (!strcmp(snp1, "cycwor")) {
-    STRAT1 = STRAT_CYCWOR;
-    STRAT1_STEPS = n1 - 1u;
-  }
-  else {
-    DIE("SNP1 unknown");
+    break;
+  default:
+    DIE("SNP1 \\notin { 2, 4 }");
   }
 
   STRAT1_PAIRS = (n1 >> 1u);
   (void)memset(strat1, 0, sizeof(strat1));
 
+  unsigned ap = ((n1 >= n0) ? n1 : n0);
+
 #ifdef USE_MPI
-  if (!strcmp(snp2, "mmstep")) {
-    STRAT2 = STRAT_MMSTEP;
+  switch (snp2) {
+  case (STRAT_CYCWOR + 1u):
+    STRAT2 = snp2;
+    STRAT2_STEPS = n2 - 1u;
+    break;
+  case (STRAT_MMSTEP + 1u):
+    STRAT2 = snp2;
     STRAT2_STEPS = n2;
-  }
-  else if (!strcmp(snp2, "BrentL")) {
-    STRAT2 = STRAT_BRENTL;
-    STRAT2_STEPS = n2 - 1u;
-  }
-  else if (!strcmp(snp2, "colcyc")) {
-    STRAT2 = STRAT_COLCYC;
-    STRAT2_STEPS = n2 - 1u;
-  }
-  else if (!strcmp(snp2, "cycloc")) {
-    STRAT2 = STRAT_CYCLOC;
-    STRAT2_STEPS = n2 - 1u;
-  }
-  else if (!strcmp(snp2, "rowcyc")) {
-    STRAT2 = STRAT_ROWCYC;
-    STRAT2_STEPS = n2 - 1u;
-  }
-  else if (!strcmp(snp2, "cycwor")) {
-    STRAT2 = STRAT_CYCWOR;
-    STRAT2_STEPS = n2 - 1u;
-  }
-  else {
-    DIE("SNP2 unknown");
+    break;
+  default:
+    DIE("SNP2 \\notin { 3, 5 }");
   }
 
   STRAT2_PAIRS = (n2 >> 1u);
   (void)memset(strat2, 0, sizeof(strat2));
+
+  ap = (((ap >= n2) ? ap : n2) << 1u);
 #endif // USE_MPI
 
-  void *const h = strat_open(sdy);
-  SYSP_CALL(h);
-
-  const unsigned char *a0 = reinterpret_cast<const unsigned char*>(strat_ptr(h, snp0, n0));
-  if (!a0) {
-    SYSI_CALL(strat_close(h));
-    DIE("NO SUCH STRATEGY for SNP0 & n0");
+  integer (*const arr)[2u] = (integer (*)[2u])malloc(ap * sizeof(integer));
+  if (!arr) {
+    DIE("arr out of memory");
   }
-  for (unsigned s = 0u; s < STRAT0_STEPS; ++s)
+ 
+  if (STRAT0_STEPS != jstrat_init(&js0, static_cast<integer>(STRAT0), static_cast<integer>(n0))) {
+    DIE("STRAT0 init");
+  }
+
+  for (unsigned s = 0u; s < STRAT0_STEPS; ++s) {
+    if (STRAT0_PAIRS != jstrat_next(&js0, (integer*)arr)) {
+      DIE("STRAT0 next");
+    }
     for (unsigned p = 0u; p < STRAT0_PAIRS; ++p)
       for (unsigned i = 0u; i < 2u; ++i)
-        strat0[s][p][i] = *a0++;
-
-  if (n1 <= 256u) {
-    const unsigned char *a1 = reinterpret_cast<const unsigned char*>(strat_ptr(h, snp1, n1));
-    if (!a1) {
-      SYSI_CALL(strat_close(h));
-      DIE("NO SUCH STRATEGY for SNP1 & n1");
-    }
-    for (unsigned s = 0u; s < STRAT1_STEPS; ++s)
-      for (unsigned p = 0u; p < STRAT1_PAIRS; ++p)
-        for (unsigned i = 0u; i < 2u; ++i)
-          strat1[s][p][i] = *a1++;
+        strat0[s][p][i] = static_cast<unsigned STRAT0_DTYPE>(arr[p][i]);
   }
-  else {
-    const unsigned short *a1 = reinterpret_cast<const unsigned short*>(strat_ptr(h, snp1, n1));
-    if (!a1) {
-      SYSI_CALL(strat_close(h));
-      DIE("NO SUCH STRATEGY for SNP1 & n1");
+
+  if (STRAT1_STEPS != jstrat_init(&js1, static_cast<integer>(STRAT1), static_cast<integer>(n1))) {
+    DIE("STRAT1 init");
+  }
+
+  for (unsigned s = 0u; s < STRAT1_STEPS; ++s) {
+    if (STRAT1_PAIRS != jstrat_next(&js1, (integer*)arr)) {
+      DIE("STRAT1 next");
     }
-    for (unsigned s = 0u; s < STRAT1_STEPS; ++s)
-      for (unsigned p = 0u; p < STRAT1_PAIRS; ++p)
-        for (unsigned i = 0u; i < 2u; ++i)
-          strat1[s][p][i] = *a1++;
+    for (unsigned p = 0u; p < STRAT1_PAIRS; ++p)
+      for (unsigned i = 0u; i < 2u; ++i)
+        strat1[s][p][i] = static_cast<unsigned STRAT1_DTYPE>(arr[p][i]);
   }
 
 #ifdef USE_MPI
-  if (n2 <= 256u) {
-    const unsigned char *a2 = reinterpret_cast<const unsigned char*>(strat_ptr(h, snp2, n2));
-    if (!a2) {
-      SYSI_CALL(strat_close(h));
-      DIE("NO SUCH STRATEGY for SNP2 & n2");
-    }
-    for (unsigned s = 0u; s < STRAT2_STEPS; ++s)
-      for (unsigned p = 0u; p < STRAT2_PAIRS; ++p)
-        for (unsigned i = 0u; i < 2u; ++i)
-          strat2[s][p][i] = *a2++;
+  if (STRAT2_STEPS != jstrat_init(&js2, static_cast<integer>(STRAT2), static_cast<integer>(n2))) {
+    DIE("STRAT2 init");
   }
-  else {
-    const unsigned short *a2 = reinterpret_cast<const unsigned short*>(strat_ptr(h, snp2, n2));
-    if (!a2) {
-      SYSI_CALL(strat_close(h));
-      DIE("NO SUCH STRATEGY for SNP2 & n2");
-    }
-    for (unsigned s = 0u; s < STRAT2_STEPS; ++s)
-      for (unsigned p = 0u; p < STRAT2_PAIRS; ++p)
-        for (unsigned i = 0u; i < 2u; ++i)
-          strat2[s][p][i] = *a2++;
-  }
-  // determine the communication pattern
+
+  integer (*const a)[2u][2u] = (integer (*)[2u][2u])arr;
+
   for (unsigned s = 0u; s < STRAT2_STEPS; ++s) {
-    const unsigned s_ = ((s == (STRAT2_STEPS - 1u)) ? 0u : (s + 1u));
-    for (unsigned p = 0u; p < STRAT2_PAIRS; ++p) {
-      for (unsigned i = 0u; i < 2u; ++i) {
-        comm2[s][p][i] = static_cast<STRAT2_DTYPE>(0);
-        for (unsigned p_ = 0u; p_ < STRAT2_PAIRS; ++p_)
-          for (unsigned i_ = 0u; i_ < 2u; ++i_)
-            if (strat2[s][p][i] == strat2[s_][p_][i_])
-              comm2[s][p][i] = (i_ ? static_cast<STRAT2_DTYPE>(p_ + 1u) : -static_cast<STRAT2_DTYPE>(p_ + 1u));
-      }
+    if (STRAT2_PAIRS != jstrat_next(&js2, (integer*)a)) {
+      DIE("STRAT2 next");
     }
+    for (unsigned p = 0u; p < STRAT2_PAIRS; ++p)
+      for (unsigned c = 0u; c < 2u; ++c)
+        for (unsigned i = 0u; i < 2u; ++i)
+          strat2[s][p][c][i] = static_cast<STRAT2_DTYPE>(a[p][c][i]);
   }
+
   if (!mpi_rank)
     (void)fprintf(stderr, "\nSTRAT2 & COMM PATTERN\n");
   for (unsigned s = 0u; s < STRAT2_STEPS; ++s) {
     if (!mpi_rank)
       (void)fprintf(stderr, "%u: ", s);
     for (unsigned p = 0u; p < STRAT2_PAIRS; ++p) {
-      if (!comm2[s][p][0u]) {
-        DIE("invalid left comm pattern");
-      }
-      if (!comm2[s][p][1u]) {
-        DIE("invalid right comm pattern");
-      }
       if (!mpi_rank)
         (void)fprintf
           (stderr, "(%u%c%d,%u%c%d)",
-           static_cast<unsigned>(strat2[s][p][0u]), ((comm2[s][p][0u] < 0) ? 'L' : 'R'), abs(comm2[s][p][0u])-1,
-           static_cast<unsigned>(strat2[s][p][1u]), ((comm2[s][p][1u] < 0) ? 'L' : 'R'), abs(comm2[s][p][1u])-1);
+           static_cast<unsigned>(strat2[s][p][0u][0u]), ((strat2[s][p][1u][0u] < 0) ? 'L' : 'R'), abs(strat2[s][p][1u][0u])-1,
+           static_cast<unsigned>(strat2[s][p][0u][1u]), ((strat2[s][p][1u][1u] < 0) ? 'L' : 'R'), abs(strat2[s][p][1u][1u])-1);
       if (!mpi_rank)
         (void)fprintf(stderr, "%c", ((p == (STRAT2_PAIRS - 1u)) ? '\n' : ','));
     }
   }
 #endif // USE_MPI
 
-  SYSI_CALL(strat_close(h));
+  free(arr);
+}
+
+void free_strats() throw()
+{
+#ifdef USE_MPI
+  jstrat_free(&js2);
+#endif // USE_MPI
+  jstrat_free(&js1);
+  jstrat_free(&js0);
 }

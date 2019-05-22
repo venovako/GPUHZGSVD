@@ -9,20 +9,19 @@
 
 int main(int argc, char *argv[])
 {
-  if (10 != argc) {
-    DIE("Arguments: SDY SNP0 SNP1 SNP2 ALG MF MG N FN");
+  if (9 != argc) {
+    DIE("Arguments: SNP0 SNP1 SNP2 ALG MF MG N FN");
   }
 
   const char *const ca_exe = argv[0];
-  const char *const ca_sdy = argv[1];
-  const char *const ca_snp0 = argv[2];
-  const char *const ca_snp1 = argv[3];
-  const char *const ca_snp2 = argv[4];
-  const char *const ca_alg = argv[5];
-  const char *const ca_mF = argv[6];
-  const char *const ca_mG = argv[7];
-  const char *const ca_n = argv[8];
-  const char *const ca_fn = argv[9];
+  const char *const ca_snp0 = argv[1];
+  const char *const ca_snp1 = argv[2];
+  const char *const ca_snp2 = argv[3];
+  const char *const ca_alg = argv[4];
+  const char *const ca_mF = argv[5];
+  const char *const ca_mG = argv[6];
+  const char *const ca_n = argv[7];
+  const char *const ca_fn = argv[8];
 
   const unsigned routine = static_cast<unsigned>(atou(ca_alg));
   if (routine && (routine != 8u)) {
@@ -39,17 +38,17 @@ int main(int argc, char *argv[])
     DIE("N > MG");
   }
 
-  if (!*ca_sdy) {
-    DIE("invalid argument SDY");
+  const unsigned snp0 = static_cast<unsigned>(atou(ca_snp0));
+  if ((snp0 != STRAT_CYCWOR) && (snp0 != STRAT_MMSTEP)) {
+    DIE("SNP0 \\notin { 2, 4 }");
   }
-  if (!*ca_snp0) {
-    DIE("invalid argument SNP0");
+  const unsigned snp1 = static_cast<unsigned>(atou(ca_snp1));
+  if ((snp1 != STRAT_CYCWOR) && (snp1 != STRAT_MMSTEP)) {
+    DIE("SNP1 \\notin { 2, 4 }");
   }
-  if (!*ca_snp1) {
-    DIE("invalid argument SNP1");
-  }
-  if (!*ca_snp2) {
-    DIE("invalid argument SNP2");
+  const unsigned snp2 = static_cast<unsigned>(atou(ca_snp2));
+  if ((snp2 != (STRAT_CYCWOR + 1u)) && (snp2 != (STRAT_MMSTEP + 1u))) {
+    DIE("SNP2 \\notin { 3, 5 }");
   }
   if (!*ca_fn) {
     DIE("invalid argument FN");
@@ -102,7 +101,7 @@ int main(int argc, char *argv[])
       (void)fprintf(stderr, "ncol_gpu(%u)\n", ncol_gpu);
     return fini_MPI();
   }
-  init_strats(ca_sdy, ca_snp0, n0, ca_snp1, n1, ca_snp2, n2);
+  init_strats(snp0, n0, snp1, n1, snp2, n2);
 
   const size_t mF = static_cast<size_t>(nrowF);
   const size_t mF_ = static_cast<size_t>(nrowF_);
@@ -168,6 +167,8 @@ int main(int argc, char *argv[])
   unsigned glbSwp = 0u;
   unsigned long long glb_s = 0ull, glb_b = 0ull;
   double timing[4] = { -0.0, -0.0, -0.0, -0.0 };
+
+  free_strats();
 
   // for profiling
   CUDA_CALL(cudaDeviceSynchronize());

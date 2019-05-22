@@ -41,47 +41,19 @@
 #error HZ_L1_NCOLB not definable externally
 #endif // !HZ_L1_NCOLB
 
-#ifndef STRAT_MMSTEP
-#define STRAT_MMSTEP 1u
-#else // STRAT_MMSTEP
-#error STRAT_MMSTEP not definable externally
-#endif // !STRAT_MMSTEP
-
-#ifndef STRAT_BRENTL
-#define STRAT_BRENTL 2u
-#else // STRAT_BRENTL
-#error STRAT_BRENTL not definable externally
-#endif // !STRAT_BRENTL
-
-#ifndef STRAT_COLCYC
-#define STRAT_COLCYC 3u
-#else // STRAT_COLCYC
-#error STRAT_COLCYC not definable externally
-#endif // !STRAT_COLCYC
-
-#ifndef STRAT_CYCLOC
-#define STRAT_CYCLOC 4u
-#else // STRAT_CYCLOC
-#error STRAT_CYCLOC not definable externally
-#endif // !STRAT_CYCLOC
-
-#ifndef STRAT_ROWCYC
-#define STRAT_ROWCYC 5u
-#else // STRAT_ROWCYC
-#error STRAT_ROWCYC not definable externally
-#endif // !STRAT_ROWCYC
+#include "jstrat.h"
 
 #ifndef STRAT_CYCWOR
-#define STRAT_CYCWOR 6u
+#define STRAT_CYCWOR 2u
 #else // STRAT_CYCWOR
 #error STRAT_CYCWOR not definable externally
 #endif // !STRAT_CYCWOR
 
-#ifndef STRAT_BLKREC
-#define STRAT_BLKREC 7u
-#else // STRAT_BLKREC
-#error STRAT_BLKREC not definable externally
-#endif // !STRAT_BLKREC
+#ifndef STRAT_MMSTEP
+#define STRAT_MMSTEP 4u
+#else // STRAT_MMSTEP
+#error STRAT_MMSTEP not definable externally
+#endif // !STRAT_MMSTEP
 
 // n-1 for cyclic, n for quasi-cyclic
 #ifndef STRAT0_MAX_STEPS
@@ -119,6 +91,8 @@ extern unsigned STRAT1, STRAT1_STEPS, STRAT1_PAIRS;
 extern unsigned STRAT0_DTYPE strat0[STRAT0_MAX_STEPS][STRAT0_MAX_PAIRS][2u];
 extern unsigned STRAT1_DTYPE strat1[STRAT1_MAX_STEPS][STRAT1_MAX_PAIRS][2u];
 
+extern jstrat_common js0, js1;
+
 #ifdef USE_MPI
 #ifndef STRAT2_MAX_STEPS
 #define STRAT2_MAX_STEPS 1024u
@@ -126,18 +100,19 @@ extern unsigned STRAT1_DTYPE strat1[STRAT1_MAX_STEPS][STRAT1_MAX_PAIRS][2u];
 #ifndef STRAT2_MAX_PAIRS
 #define STRAT2_MAX_PAIRS 512u
 #endif // !STRAT2_MAX_PAIRS
-#ifndef STRAT2_STORAGE
-#define STRAT2_STORAGE
-#endif // !STRAT2_STORAGE
 #ifndef STRAT2_DTYPE
 #define STRAT2_DTYPE short
 #endif // !STRAT2_DTYPE
+
 extern unsigned STRAT2, STRAT2_STEPS, STRAT2_PAIRS;
-extern unsigned STRAT2_DTYPE strat2[STRAT2_MAX_STEPS][STRAT2_MAX_PAIRS][2u];
-extern STRAT2_DTYPE comm2[STRAT2_MAX_STEPS][STRAT2_MAX_PAIRS][2u];
-EXTERN_C void init_strats(const char *const sdy, const char *const snp0, const unsigned n0, const char *const snp1, const unsigned n1, const char *const snp2, const unsigned n2) throw();
+extern STRAT2_DTYPE strat2[STRAT2_MAX_STEPS][STRAT2_MAX_PAIRS][2u][2u];
+extern jstrat_common js2;
+
+EXTERN_C void init_strats(const unsigned snp0, const unsigned n0, const unsigned snp1, const unsigned n1, const unsigned snp2, const unsigned n2) throw();
 #else // !USE_MPI
-EXTERN_C void init_strats(const char *const sdy, const char *const snp0, const unsigned n0, const char *const snp1, const unsigned n1) throw();
+EXTERN_C void init_strats(const unsigned snp0, const unsigned n0, const unsigned snp1, const unsigned n1) throw();
 #endif // ?USE_MPI
+
+EXTERN_C void free_strats() throw();
 
 #endif // !HZ_L_HPP
