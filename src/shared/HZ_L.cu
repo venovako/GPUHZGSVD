@@ -85,7 +85,7 @@ void init_strats(const unsigned snp0, const unsigned n0, const unsigned snp1, co
   }
 
   for (unsigned s = 0u; s < STRAT0_STEPS; ++s) {
-    if (STRAT0_PAIRS != labs(jstrat_next(&js0, (integer*)arr))) {
+    if (STRAT0_PAIRS != static_cast<unsigned>(labs(jstrat_next(&js0, (integer*)arr)))) {
       DIE("STRAT0 next");
     }
     for (unsigned p = 0u; p < STRAT0_PAIRS; ++p) {
@@ -107,7 +107,7 @@ void init_strats(const unsigned snp0, const unsigned n0, const unsigned snp1, co
   }
 
   for (unsigned s = 0u; s < STRAT1_STEPS; ++s) {
-    if (STRAT1_PAIRS != labs(jstrat_next(&js1, (integer*)arr))) {
+    if (STRAT1_PAIRS != static_cast<unsigned>(labs(jstrat_next(&js1, (integer*)arr)))) {
       DIE("STRAT1 next");
     }
     for (unsigned p = 0u; p < STRAT1_PAIRS; ++p) {
@@ -133,7 +133,7 @@ void init_strats(const unsigned snp0, const unsigned n0, const unsigned snp1, co
   int (*const ai)[2u][2u][2u] = (int (*)[2u][2u][2u])a;
 
   for (unsigned s = 0u; s < STRAT2_STEPS; ++s) {
-    if (STRAT2_PAIRS != labs(jstrat_next(&js2, (integer*)a))) {
+    if (STRAT2_PAIRS != static_cast<unsigned>(labs(jstrat_next(&js2, (integer*)a)))) {
       DIE("STRAT2 next");
     }
     for (unsigned p = 0u; p < STRAT2_PAIRS; ++p) {

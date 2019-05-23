@@ -67,8 +67,9 @@ SOURCES=			\
 	device_code.cu
 
 ifdef MPI
+NVPPFLAGS+=-DUSE_MPI
 ifndef MPIINC
-MPIINC=-DUSE_MPI -I$(MPI)/include
+MPIINC=-I$(MPI)/include
 endif # !MPIINC
 ifndef MPILIB
 MPILIB=-Xlinker -rpath,$(MPI)/lib -Xlinker --enable-new-dtags -L$(MPI)/lib -lmpi
