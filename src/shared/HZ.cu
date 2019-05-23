@@ -20,19 +20,15 @@ void border_sizes(const unsigned gpus, const unsigned mF, const unsigned mG, con
 int bdinit(const size_t m, const size_t n, const size_t n_, double *const A, const size_t ldA) throw()
 {
   if (!m)
-    return -1;
+    return 0;
   if (!n)
-    return -2;
+    return 0;
   if (n > m)
     return -2;
-  if (!n_)
-    return -3;
   if (n_ < n)
     return -3;
   if (!A)
     return -4;
-  if (!ldA)
-    return -5;
   if (ldA < m)
     return -5;
 

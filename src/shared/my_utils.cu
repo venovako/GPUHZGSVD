@@ -59,7 +59,16 @@ long long stopwatch_lap(long long &sw) throw()
 
 int fresize(FILE *const f, const size_t s) throw()
 {
-  return (f ? ftruncate(fileno(f), static_cast<off_t>(s)) : -1);
+  int e = -1;
+  if (!f)
+    return e;
+  e = ftruncate(fileno(f), static_cast<off_t>(s));
+  if (e)
+    return e;
+  e = fflush(f);
+  if (e)
+    return e;
+  return 0;
 }
 
 int fread_bycol(FILE *const f, const size_t m, const size_t n, double *const A, const size_t ldA, const long off, const long stride) throw()
@@ -67,13 +76,11 @@ int fread_bycol(FILE *const f, const size_t m, const size_t n, double *const A, 
   if (!f)
     return -1;
   if (!m)
-    return -2;
+    return 0;
   if (!n)
-    return -3;
+    return 0;
   if (!A)
     return -4;
-  if (!ldA)
-    return -5;
   if (ldA < m)
     return -5;
   if (off < 0l)
@@ -114,13 +121,11 @@ int fwrite_bycol(FILE *const f, const size_t m, const size_t n, const double *co
   if (!f)
     return -1;
   if (!m)
-    return -2;
+    return 0;
   if (!n)
-    return -3;
+    return 0;
   if (!A)
     return -4;
-  if (!ldA)
-    return -5;
   if (ldA < m)
     return -5;
   if (off < 0l)

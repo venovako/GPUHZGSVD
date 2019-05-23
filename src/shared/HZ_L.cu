@@ -140,10 +140,10 @@ void init_strats(const unsigned snp0, const unsigned n0, const unsigned snp1, co
       for (unsigned c = 0u; c < 2u; ++c) {
         for (unsigned i = 0u; i < 2u; ++i) {
           switch (STRAT2) {
-          case STRAT_CYCWOR:
+          case (STRAT_CYCWOR + 1u):
             strat2[s][p][c][i] = static_cast<STRAT2_DTYPE>(a[p][c][i]);
             break;
-          case STRAT_MMSTEP:
+          case (STRAT_MMSTEP + 1u):
             strat2[s][p][c][i] = static_cast<STRAT2_DTYPE>(ai[p][c][i][0u]);
             break;
           }
@@ -160,9 +160,9 @@ void init_strats(const unsigned snp0, const unsigned n0, const unsigned snp1, co
     for (unsigned p = 0u; p < STRAT2_PAIRS; ++p) {
       if (!mpi_rank)
         (void)fprintf
-          (stderr, "(%u%c%d,%u%c%d)",
-           static_cast<unsigned>(strat2[s][p][0u][0u]), ((strat2[s][p][1u][0u] < 0) ? 'L' : 'R'), abs(strat2[s][p][1u][0u])-1,
-           static_cast<unsigned>(strat2[s][p][0u][1u]), ((strat2[s][p][1u][1u] < 0) ? 'L' : 'R'), abs(strat2[s][p][1u][1u])-1);
+          (stderr, "(%hd,%hd;%hd,%hd)",
+           strat2[s][p][0u][0u], strat2[s][p][1u][0u],
+           strat2[s][p][0u][1u], strat2[s][p][1u][1u]);
       if (!mpi_rank)
         (void)fprintf(stderr, "%c", ((p == (STRAT2_PAIRS - 1u)) ? '\n' : ','));
     }

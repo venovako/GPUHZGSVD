@@ -11,11 +11,9 @@ int mpi_size = 0;
 int mpi_rank = 0;
 bool mpi_cuda_aware = false;
 
-#ifdef USE_MPI_IO
 #ifdef USE_COMPLEX
 MPI_Datatype DT_V112D = MPI_DATATYPE_NULL;
 #endif // USE_COMPLEX
-#endif // USE_MPI_IO
 
 static bool mpi_cuda() throw()
 {
@@ -35,10 +33,10 @@ int init_MPI(int *const argc, char ***const argv) throw()
     return -1;
   if (!argv)
     return -2;
-  int i = 0, f = 0, e = MPI_SUCCESS;
-  if ((e = MPI_Initialized(&i)))
+  int f = 0, e = MPI_SUCCESS;
+  if ((e = MPI_Initialized(&f)))
     return e;
-  if (i)
+  if (f)
     return MPI_SUCCESS;
   if ((e = MPI_Finalized(&f)))
     return e;
@@ -51,14 +49,12 @@ int init_MPI(int *const argc, char ***const argv) throw()
   if ((e = MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank)))
     return e;
   mpi_cuda_aware = mpi_cuda();
-#ifdef USE_MPI_IO
 #ifdef USE_COMPLEX
   if ((e = MPI_Type_vector(1, 1, 2, MPI_DOUBLE, &DT_V112D)))
     return e;
   if ((e = MPI_Type_commit(&DT_V112D)))
     return e;
 #endif // USE_COMPLEX
-#endif // USE_MPI_IO
   return MPI_SUCCESS;
 }
 
@@ -69,12 +65,14 @@ int fini_MPI() throw()
     return e;
   if (f)
     return MPI_SUCCESS;
-#ifdef USE_MPI_IO
+  if ((e = MPI_Initialized(&f)))
+    return e;
+  if (!f)
+    return MPI_SUCCESS;
 #ifdef USE_COMPLEX
   if ((e = MPI_Type_free(&DT_V112D)))
     return e;
 #endif // USE_COMPLEX
-#endif // USE_MPI_IO
   return MPI_Finalize();
 }
 
