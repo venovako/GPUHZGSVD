@@ -78,7 +78,8 @@ void init_strats(const unsigned snp0, const unsigned n0, const unsigned snp1, co
   if (!arr) {
     DIE("arr out of memory");
   }
- 
+  int (*const arri)[2u][2u] = (int (*)[2u][2u])arr;
+
   if (STRAT0_STEPS != jstrat_init(&js0, static_cast<integer>(STRAT0), static_cast<integer>(n0))) {
     DIE("STRAT0 init");
   }
@@ -87,9 +88,18 @@ void init_strats(const unsigned snp0, const unsigned n0, const unsigned snp1, co
     if (STRAT0_PAIRS != jstrat_next(&js0, (integer*)arr)) {
       DIE("STRAT0 next");
     }
-    for (unsigned p = 0u; p < STRAT0_PAIRS; ++p)
-      for (unsigned i = 0u; i < 2u; ++i)
-        strat0[s][p][i] = static_cast<unsigned STRAT0_DTYPE>(arr[p][i]);
+    for (unsigned p = 0u; p < STRAT0_PAIRS; ++p) {
+      for (unsigned i = 0u; i < 2u; ++i) {
+        switch (STRAT0) {
+        case STRAT_CYCWOR:
+          strat0[s][p][i] = static_cast<unsigned STRAT0_DTYPE>(arr[p][i]);
+          break;
+        case STRAT_MMSTEP:
+          strat0[s][p][i] = static_cast<unsigned STRAT0_DTYPE>(arri[p][i][0u]);
+          break;
+        }
+      }
+    }
   }
 
   if (STRAT1_STEPS != jstrat_init(&js1, static_cast<integer>(STRAT1), static_cast<integer>(n1))) {
@@ -100,9 +110,18 @@ void init_strats(const unsigned snp0, const unsigned n0, const unsigned snp1, co
     if (STRAT1_PAIRS != jstrat_next(&js1, (integer*)arr)) {
       DIE("STRAT1 next");
     }
-    for (unsigned p = 0u; p < STRAT1_PAIRS; ++p)
-      for (unsigned i = 0u; i < 2u; ++i)
-        strat1[s][p][i] = static_cast<unsigned STRAT1_DTYPE>(arr[p][i]);
+    for (unsigned p = 0u; p < STRAT1_PAIRS; ++p) {
+      for (unsigned i = 0u; i < 2u; ++i) {
+        switch (STRAT1) {
+        case STRAT_CYCWOR:
+          strat1[s][p][i] = static_cast<unsigned STRAT1_DTYPE>(arr[p][i]);
+          break;
+        case STRAT_MMSTEP:
+          strat1[s][p][i] = static_cast<unsigned STRAT1_DTYPE>(arri[p][i][0u]);
+          break;
+        }
+      }
+    }
   }
 
 #ifdef USE_MPI
@@ -111,15 +130,26 @@ void init_strats(const unsigned snp0, const unsigned n0, const unsigned snp1, co
   }
 
   integer (*const a)[2u][2u] = (integer (*)[2u][2u])arr;
+  int (*const ai)[2u][2u][2u] = (int (*)[2u][2u][2u])a;
 
   for (unsigned s = 0u; s < STRAT2_STEPS; ++s) {
     if (STRAT2_PAIRS != jstrat_next(&js2, (integer*)a)) {
       DIE("STRAT2 next");
     }
-    for (unsigned p = 0u; p < STRAT2_PAIRS; ++p)
-      for (unsigned c = 0u; c < 2u; ++c)
-        for (unsigned i = 0u; i < 2u; ++i)
-          strat2[s][p][c][i] = static_cast<STRAT2_DTYPE>(a[p][c][i]);
+    for (unsigned p = 0u; p < STRAT2_PAIRS; ++p) {
+      for (unsigned c = 0u; c < 2u; ++c) {
+        for (unsigned i = 0u; i < 2u; ++i) {
+          switch (STRAT2) {
+          case STRAT_CYCWOR:
+            strat2[s][p][c][i] = static_cast<STRAT2_DTYPE>(a[p][c][i]);
+            break;
+          case STRAT_MMSTEP:
+            strat2[s][p][c][i] = static_cast<STRAT2_DTYPE>(ai[p][c][i][0u]);
+            break;
+          }
+        }
+      }
+    }
   }
 
   if (!mpi_rank)
