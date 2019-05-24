@@ -140,21 +140,21 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  const unsigned nrowF = static_cast<unsigned>(atou(ca_mF));
-  if (!nrowF)
+  const size_t mF = atou(ca_mF);
+  if (!mF)
     return EXIT_SUCCESS;
-  const unsigned nrowG = static_cast<unsigned>(atou(ca_mG));
-  if (!nrowG)
+  const size_t mG = atou(ca_mG);
+  if (!mG)
     return EXIT_SUCCESS;
-  const unsigned ncol = static_cast<unsigned>(atou(ca_n));
-  if (!ncol)
+  const size_t n = atou(ca_n);
+  if (!n)
     return EXIT_SUCCESS;
-  if (ncol > nrowF) {
-    (void)fprintf(stderr, "N(%u) > MF(%u)\n", ncol, nrowF);
+  if (n > mF) {
+    (void)fprintf(stderr, "N(%u) > MF(%u)\n", n, mF);
     return EXIT_FAILURE;
   }
-  if (ncol > nrowG) {
-    (void)fprintf(stderr, "N(%u) > MG(%u)\n", ncol, nrowG);
+  if (n > mG) {
+    (void)fprintf(stderr, "N(%u) > MG(%u)\n", n, mG);
     return EXIT_FAILURE;
   }
 
@@ -177,31 +177,25 @@ int main(int argc, char *argv[])
   (void)fflush(stdout);
 #endif // !NDEBUG
 
-  unsigned nrowF_ = 0u, nrowG_ = 0u, ncol_ = 0u;
-  border_sizes(1u, nrowF, nrowG, ncol, nrowF_, nrowG_, ncol_);
+  size_t mF_ = 0u, mG_ = 0u, n_ = 0u;
+  const size_t gpus = static_cast<size_t>(1u);
+  border_sizes(gpus, mF, mG, n, mF_, mG_, n_);
 
-  const unsigned n0 = (HZ_L1_NCOLB << 1u);
-  const unsigned n1 = udiv_ceil(ncol_, HZ_L1_NCOLB);
+  const size_t n0 = (HZ_L1_NCOLB << 1u);
+  const size_t n1 = udiv_ceil(n_, static_cast<size_t>(HZ_L1_NCOLB));
   init_strats(snp0, n0, snp1, n1);
 
-  const size_t mF = static_cast<size_t>(nrowF);
-  const size_t mF_ = static_cast<size_t>(nrowF_);
-  const size_t mG = static_cast<size_t>(nrowG);
-  const size_t mG_ = static_cast<size_t>(nrowG_);
-  const size_t n = static_cast<size_t>(ncol);
-  const size_t n_ = static_cast<size_t>(ncol_);
-
-  unsigned
-    ldhF = nrowF_,
-    ldhG = nrowG_,
-    ldhV = ncol_;
+  size_t
+    ldhF = mF_,
+    ldhG = mG_,
+    ldhV = n_;
 
   char *const buf = static_cast<char*>(calloc(strlen(ca_fn) + 4u, sizeof(char)));
   SYSP_CALL(buf);
   size_t ldA = static_cast<size_t>(0u);
   FILE *f = static_cast<FILE*>(NULL);
 
-  ldA = static_cast<size_t>(ldhF);
+  ldA = ldhF;
 #ifdef USE_COMPLEX
   cuD *const hFD = allocHostMtx<cuD>(ldA, mF_, n_, true);
   SYSP_CALL(hFD);
@@ -211,7 +205,7 @@ int main(int argc, char *argv[])
   double *const hF = allocHostMtx<double>(ldA, mF_, n_, true);
   SYSP_CALL(hF);
 #endif // ?USE_COMPLEX
-  ldhF = static_cast<unsigned>(ldA);
+  ldhF = ldA;
 
   SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".Y"), "rb"));
 #ifdef USE_COMPLEX
@@ -222,12 +216,12 @@ int main(int argc, char *argv[])
 #endif // ?USE_COMPLEX
   SYSI_CALL(fclose(f));
 #ifdef USE_COMPLEX
-  SYSI_CALL(bdinit(mF, n, n_, hFD, ldA));
+  SYSI_CALL(bdinit(mF, (n_ - n), (hFD + ldA * n), ldA));
 #else // !USE_COMPLEX
-  SYSI_CALL(bdinit(mF, n, n_, hF, ldA));
+  SYSI_CALL(bdinit(mF, (n_ - n), (hF + ldA * n), ldA));
 #endif // ?USE_COMPLEX
 
-  ldA = static_cast<size_t>(ldhG);
+  ldA = ldhG;
 #ifdef USE_COMPLEX
   cuD *const hGD = allocHostMtx<cuD>(ldA, mG_, n_, true);
   SYSP_CALL(hGD);
@@ -237,7 +231,7 @@ int main(int argc, char *argv[])
   double *const hG = allocHostMtx<double>(ldA, mG_, n_, true);
   SYSP_CALL(hG);
 #endif // ?USE_COMPLEX
-  ldhG = static_cast<unsigned>(ldA);
+  ldhG = ldA;
 
   SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".W"), "rb"));
 #ifdef USE_COMPLEX
@@ -248,12 +242,12 @@ int main(int argc, char *argv[])
 #endif // ?USE_COMPLEX
   SYSI_CALL(fclose(f));
 #ifdef USE_COMPLEX
-  SYSI_CALL(bdinit(mG, n, n_, hGD, ldA));
+  SYSI_CALL(bdinit(mG, (n_ - n), (hGD + ldA * n), ldA));
 #else // !USE_COMPLEX
-  SYSI_CALL(bdinit(mG, n, n_, hG, ldA));
+  SYSI_CALL(bdinit(mG, (n_ - n), (hG + ldA * n), ldA));
 #endif // ?USE_COMPLEX
 
-  ldA = static_cast<size_t>(ldhV);
+  ldA = ldhV;
 #ifdef USE_COMPLEX
   cuD *const hVD = allocHostMtx<cuD>(ldA, n_, n_, true);
   SYSP_CALL(hVD);
@@ -263,7 +257,7 @@ int main(int argc, char *argv[])
   double *const hV = allocHostMtx<double>(ldA, n_, n_, true);
   SYSP_CALL(hV);
 #endif // ?USE_COMPLEX
-  ldhV = static_cast<unsigned>(ldA);
+  ldhV = ldA;
 
   double *const hS = allocHostVec<double>(n_);
   SYSP_CALL(hS);
@@ -276,9 +270,9 @@ int main(int argc, char *argv[])
   unsigned long long glb_s = 0ull, glb_b = 0ull;
   double timing[4u] = { -0.0, -0.0, -0.0, -0.0 };
 #ifdef USE_COMPLEX
-  int ret = HZ_L2(routine, nrowF_, nrowG_, ncol_, hFD, hFJ, ldhF, hGD, hGJ, ldhG, hVD, hVJ, ldhV, hS, hH, hK, &glbSwp, &glb_s, &glb_b, timing);
+  int ret = HZ_L2(routine, mF_, mG_, n_, hFD, hFJ, ldhF, hGD, hGJ, ldhG, hVD, hVJ, ldhV, hS, hH, hK, &glbSwp, &glb_s, &glb_b, timing);
 #else // !USE_COMPLEX
-  int ret = HZ_L2(routine, nrowF_, nrowG_, ncol_, hF, ldhF, hG, ldhG, hV, ldhV, hS, hH, hK, &glbSwp, &glb_s, &glb_b, timing);
+  int ret = HZ_L2(routine, mF_, mG_, n_, hF, ldhF, hG, ldhG, hV, ldhV, hS, hH, hK, &glbSwp, &glb_s, &glb_b, timing);
 #endif // ?USE_COMPLEX
 
   if (ret)

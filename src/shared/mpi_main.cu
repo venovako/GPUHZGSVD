@@ -28,13 +28,13 @@ int main(int argc, char *argv[])
     DIE("ALG \\notin { 0, 8 }");
   }
 
-  const unsigned nrowF = static_cast<unsigned>(atou(ca_mF));
-  const unsigned nrowG = static_cast<unsigned>(atou(ca_mG));
-  const unsigned ncol = static_cast<unsigned>(atou(ca_n));
-  if (ncol > nrowF) {
+  const size_t mF = atou(ca_mF);
+  const size_t mG = atou(ca_mG);
+  const size_t n = atou(ca_n);
+  if (n > mF) {
     DIE("N > MF");
   }
-  if (ncol > nrowG) {
+  if (n > mG) {
     DIE("N > MG");
   }
 
@@ -58,16 +58,16 @@ int main(int argc, char *argv[])
     (void)snprintf(err_msg, err_msg_size, "%s[%d] init_MPI failed\n", ca_exe, mpi_rank);
     DIE(err_msg);
   }
-  const unsigned gpu = static_cast<unsigned>(mpi_rank);
+  const size_t gpu = static_cast<size_t>(mpi_rank);
   if (!mpi_cuda_aware) {
     DIE("MPI is not CUDA aware");
   }
-  const unsigned gpus = static_cast<unsigned>(mpi_size);
+  const size_t gpus = static_cast<size_t>(mpi_size);
   if (gpus < 2u) {
     DIE("MPI_COMM_WORLD size < 2");
   }
-  const unsigned n2 = (gpus << 1u);
-  if (ncol < n2) {
+  const size_t n2 = (gpus << 1u);
+  if (n < n2) {
     DIE("N < n2");
   }
 
@@ -82,33 +82,25 @@ int main(int argc, char *argv[])
   (void)fflush(stdout);
 #endif // !NDEBUG
 
-  unsigned nrowF_ = 0u, nrowG_ = 0u, ncol_ = 0u;
-  border_sizes(gpus, nrowF, nrowG, ncol, nrowF_, nrowG_, ncol_);
-  const unsigned ncol_gpu = ncol_ / gpus;
+  size_t mF_ = 0u, mG_ = 0u, n_ = 0u;
+  border_sizes(gpus, mF, mG, n, mF_, mG_, n_);
+  const size_t n_gpu = n_ / gpus;
+  const size_t n_col = (n_gpu >> 1u);
 
-  const unsigned n0 = (HZ_L1_NCOLB << 1u);
-  const unsigned n1 = ncol_gpu / HZ_L1_NCOLB;
-  if (ncol_gpu % HZ_L1_NCOLB) {
-    DIE("ncol_gpu % 16 != 0");
+  const size_t n0 = (HZ_L1_NCOLB << 1u);
+  const size_t n1 = n_gpu / HZ_L1_NCOLB;
+  if (n_gpu % HZ_L1_NCOLB) {
+    DIE("n_gpu % 16 != 0");
   }
   init_strats(snp0, n0, snp1, n1, snp2, n2);
 
-  const unsigned p = strat2[0u][gpu][0u][0u];
-  const unsigned q = strat2[0u][gpu][0u][1u];
+  const size_t p = static_cast<size_t>(strat2[0u][gpu][0u][0u]);
+  const size_t q = static_cast<size_t>(strat2[0u][gpu][0u][1u]);
 
-  const size_t mF = static_cast<size_t>(nrowF);
-  const size_t mF_ = static_cast<size_t>(nrowF_);
-  const size_t mG = static_cast<size_t>(nrowG);
-  const size_t mG_ = static_cast<size_t>(nrowG_);
-  const size_t n = static_cast<size_t>(ncol);
-  const size_t n_ = static_cast<size_t>(ncol_);
-  const size_t n_gpu = static_cast<size_t>(ncol_gpu);
-  const size_t n_col = (n_gpu >> 1u);
-
-  unsigned
-    ldhF = nrowF_,
-    ldhG = nrowG_,
-    ldhV = ncol_;
+  size_t
+    ldhF = mF_,
+    ldhG = mG_,
+    ldhV = n_;
 
   const size_t p_ = p * n_col;
   const size_t n_p = ((p_ >= n) ? static_cast<size_t>(0u) : (((p_ + n_col) > n) ? (n - p_) : n_col));
@@ -158,7 +150,7 @@ int main(int argc, char *argv[])
   MPI_File fh = MPI_FILE_NULL;
   size_t ldA = static_cast<size_t>(0u);
 
-  ldA = static_cast<size_t>(ldhF);
+  ldA = ldhF;
 #ifdef USE_COMPLEX
   cuD *const hFD = allocHostMtx<cuD>(ldA, mF_, n_gpu, true);
   SYSP_CALL(hFD);
@@ -168,7 +160,7 @@ int main(int argc, char *argv[])
   double *const hF = allocHostMtx<double>(ldA, mF_, n_gpu, true);
   SYSP_CALL(hF);
 #endif // ?USE_COMPLEX
-  ldhF = static_cast<unsigned>(ldA);
+  ldhF = ldA;
 
   if (MPI_File_open(MPI_COMM_WORLD, strcat(strcpy(fn, ca_fn), ".Y"), MPI_MODE_RDONLY, MPI_INFO_NULL, &fh)) {
     DIE("MPI_File_open(Y)");
@@ -215,7 +207,44 @@ int main(int argc, char *argv[])
     DIE("MPI_File_close(Y)");
   }
 
-  ldA = static_cast<size_t>(ldhG);
+  if ((p_ + n_col) > n) {
+    if (p_ >= n) {
+      const size_t o = (p_ - n);
+#ifdef USE_COMPLEX
+      SYSI_CALL(bdinit((mF + o), (o + 1u), hFD, ldA));
+#else // !USE_COMPLEX
+      SYSI_CALL(bdinit((mF + o), (o + 1u), hF, ldA));
+#endif // ?USE_COMPLEX
+    }
+    else {
+      const size_t f = (n - p_);
+#ifdef USE_COMPLEX
+      SYSI_CALL(bdinit(mF, (n_col - f), (hFD + ldA * f), ldA));
+#else // !USE_COMPLEX
+      SYSI_CALL(bdinit(mF, (n_col - f), (hF + ldA * f), ldA));
+#endif // ?USE_COMPLEX
+    }
+  }
+  if ((q_ + n_col) > n) {
+    if (q_ >= n) {
+      const size_t o = (q_ - n);
+#ifdef USE_COMPLEX
+      SYSI_CALL(bdinit((mF + o), (o + 1u), (hFD + ldA * n_col), ldA));
+#else // !USE_COMPLEX
+      SYSI_CALL(bdinit((mF + o), (o + 1u), (hF + ldA * n_col), ldA));
+#endif // ?USE_COMPLEX
+    }
+    else {
+      const size_t f = (n - p_);
+#ifdef USE_COMPLEX
+      SYSI_CALL(bdinit(mF, (n_col - f), (hFD + ldA * (n_col + f)), ldA));
+#else // !USE_COMPLEX
+      SYSI_CALL(bdinit(mF, (n_col - f), (hF + ldA * (n_col + f)), ldA));
+#endif // ?USE_COMPLEX
+    }
+  }
+
+  ldA = ldhG;
 #ifdef USE_COMPLEX
   cuD *const hGD = allocHostMtx<cuD>(ldA, mG_, n_gpu, true);
   SYSP_CALL(hGD);
@@ -225,7 +254,7 @@ int main(int argc, char *argv[])
   double *const hG = allocHostMtx<double>(ldA, mG_, n_gpu, true);
   SYSP_CALL(hG);
 #endif // ?USE_COMPLEX
-  ldhG = static_cast<unsigned>(ldA);
+  ldhG = ldA;
 
   if (MPI_File_open(MPI_COMM_WORLD, strcat(strcpy(fn, ca_fn), ".W"), MPI_MODE_RDONLY, MPI_INFO_NULL, &fh)) {
     DIE("MPI_File_open(W)");
@@ -272,7 +301,44 @@ int main(int argc, char *argv[])
     DIE("MPI_File_close(W)");
   }
 
-  ldA = static_cast<size_t>(ldhV);
+  if ((p_ + n_col) > n) {
+    if (p_ >= n) {
+      const size_t o = (p_ - n);
+#ifdef USE_COMPLEX
+      SYSI_CALL(bdinit((mG + o), (o + 1u), hGD, ldA));
+#else // !USE_COMPLEX
+      SYSI_CALL(bdinit((mG + o), (o + 1u), hG, ldA));
+#endif // ?USE_COMPLEX
+    }
+    else {
+      const size_t f = (n - p_);
+#ifdef USE_COMPLEX
+      SYSI_CALL(bdinit(mG, (n_col - f), (hGD + ldA * f), ldA));
+#else // !USE_COMPLEX
+      SYSI_CALL(bdinit(mG, (n_col - f), (hG + ldA * f), ldA));
+#endif // ?USE_COMPLEX
+    }
+  }
+  if ((q_ + n_col) > n) {
+    if (q_ >= n) {
+      const size_t o = (q_ - n);
+#ifdef USE_COMPLEX
+      SYSI_CALL(bdinit((mG + o), (o + 1u), (hGD + ldA * n_col), ldA));
+#else // !USE_COMPLEX
+      SYSI_CALL(bdinit((mG + o), (o + 1u), (hG + ldA * n_col), ldA));
+#endif // ?USE_COMPLEX
+    }
+    else {
+      const size_t f = (n - p_);
+#ifdef USE_COMPLEX
+      SYSI_CALL(bdinit(mG, (n_col - f), (hGD + ldA * (n_col + f)), ldA));
+#else // !USE_COMPLEX
+      SYSI_CALL(bdinit(mG, (n_col - f), (hG + ldA * (n_col + f)), ldA));
+#endif // ?USE_COMPLEX
+    }
+  }
+
+  ldA = ldhV;
 #ifdef USE_COMPLEX
   cuD *const hVD = allocHostMtx<cuD>(ldA, n_gpu, n_gpu, true);
   SYSP_CALL(hVD);
@@ -282,7 +348,7 @@ int main(int argc, char *argv[])
   double *const hV = allocHostMtx<double>(ldA, n_gpu, n_gpu, true);
   SYSP_CALL(hV);
 #endif // ?USE_COMPLEX
-  ldhV = static_cast<unsigned>(ldA);
+  ldhV = ldA;
 
   double *const hS = allocHostVec<double>(n_gpu);
   SYSP_CALL(hS);
