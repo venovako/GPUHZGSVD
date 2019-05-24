@@ -55,33 +55,25 @@ int main(int argc, char *argv[])
   }
 
   if (init_MPI(&argc, &argv)) {
-    (void)fprintf(stderr, "%s[%d] init_MPI failed\n", ca_exe, mpi_rank);
-    return fini_MPI();
+    (void)snprintf(err_msg, err_msg_size, "%s[%d] init_MPI failed\n", ca_exe, mpi_rank);
+    DIE(err_msg);
   }
   const unsigned gpu = static_cast<unsigned>(mpi_rank);
   if (!mpi_cuda_aware) {
-    if (!gpu)
-      (void)fprintf(stderr, "MPI is not CUDA aware\n");
-    return fini_MPI();
+    DIE("MPI is not CUDA aware");
   }
   const unsigned gpus = static_cast<unsigned>(mpi_size);
   if (gpus < 2u) {
-    if (!gpu)
-      (void)fprintf(stderr, "MPI_COMM_WORLD size (%u) < 2\n", gpus);
-    return fini_MPI();
+    DIE("MPI_COMM_WORLD size < 2");
   }
   const unsigned n2 = (gpus << 1u);
   if (ncol < n2) {
-    if (!gpu)
-      (void)fprintf(stderr, "N(%u) < n2(%u)\n", ncol, n2);
-    return fini_MPI();
+    DIE("N < n2");
   }
 
   const int dev = assign_dev2host();
   if (dev < 0) {
-    if (!gpu)
-      (void)fprintf(stderr, "assign_dev2host failed (%d)\n", dev);
-    return fini_MPI();
+    DIE("assign_dev2host failed");
   }
 
   const int dcc = configureGPU(dev);
@@ -97,9 +89,7 @@ int main(int argc, char *argv[])
   const unsigned n0 = (HZ_L1_NCOLB << 1u);
   const unsigned n1 = ncol_gpu / HZ_L1_NCOLB;
   if (ncol_gpu % HZ_L1_NCOLB) {
-    if (!gpu)
-      (void)fprintf(stderr, "ncol_gpu(%u)\n", ncol_gpu);
-    return fini_MPI();
+    DIE("ncol_gpu % 16 != 0");
   }
   init_strats(snp0, n0, snp1, n1, snp2, n2);
 
@@ -122,34 +112,50 @@ int main(int argc, char *argv[])
 
   const size_t p_ = p * n_col;
   const size_t n_p = ((p_ >= n) ? static_cast<size_t>(0u) : (((p_ + n_col) > n) ? (n - p_) : n_col));
-  const long opF = static_cast<long>((p_ * mF)
+  const MPI_Offset opF = static_cast<MPI_Offset>((p_ * mF)
 #ifdef USE_COMPLEX
     * 2u
 #endif // USE_COMPLEX
   );
-  const long opG = static_cast<long>((p_ * mG)
+  const MPI_Offset opG = static_cast<MPI_Offset>((p_ * mG)
 #ifdef USE_COMPLEX
     * 2u
 #endif // USE_COMPLEX
   );
+  const MPI_Offset opV = static_cast<MPI_Offset>((p_ * n)
+#ifdef USE_COMPLEX
+    * 2u
+#endif // USE_COMPLEX
+  );
+  const MPI_Offset opS = static_cast<MPI_Offset>(p_);
 
   const size_t q_ = q * n_col; 
   const size_t n_q = ((q_ >= n) ? static_cast<size_t>(0u) : (((q_ + n_col) > n) ? (n - q_) : n_col));
-  const long oqF = static_cast<long>((q_ * mF)
+  const MPI_Offset oqF = static_cast<MPI_Offset>((q_ * mF)
 #ifdef USE_COMPLEX
     * 2u
 #endif // USE_COMPLEX
   );
-  const long oqG = static_cast<long>((q_ * mG)
+  const MPI_Offset oqG = static_cast<MPI_Offset>((q_ * mG)
 #ifdef USE_COMPLEX
     * 2u
 #endif // USE_COMPLEX
   );
+  const MPI_Offset oqV = static_cast<MPI_Offset>((q_ * n)
+#ifdef USE_COMPLEX
+    * 2u
+#endif // USE_COMPLEX
+  );
+  const MPI_Offset oqS = static_cast<MPI_Offset>(q_);
 
-  char *const buf = static_cast<char*>(calloc(strlen(ca_fn) + 4u, sizeof(char)));
+  char *const fn = static_cast<char*>(calloc(strlen(ca_fn) + 4u, sizeof(char)));
+  SYSP_CALL(fn);
+#ifdef USE_COMPLEX
+  double *const buf = static_cast<double*>(calloc((((mF >= mG) ? mF : mG) * 2u), sizeof(double)));
   SYSP_CALL(buf);
-  FILE *f = static_cast<FILE*>(NULL);
+#endif // USE_COMPLEX
 
+  MPI_File fh = MPI_FILE_NULL;
   size_t ldA = static_cast<size_t>(0u);
 
   ldA = static_cast<size_t>(ldhF);
@@ -164,17 +170,50 @@ int main(int argc, char *argv[])
 #endif // ?USE_COMPLEX
   ldhF = static_cast<unsigned>(ldA);
 
-  SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".Y"), "rb"));
+  if (MPI_File_open(MPI_COMM_WORLD, strcat(strcpy(fn, ca_fn), ".Y"), MPI_MODE_RDONLY, MPI_INFO_NULL, &fh)) {
+    DIE("MPI_File_open(Y)");
+  }
+  if (MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE, "native", MPI_INFO_NULL)) {
+    DIE("MPI_File_set_view(Y)");
+  }
 #ifdef USE_COMPLEX
-  SYSI_CALL(fread_bycol(f, mF, n_p, hFD, ldA, opF, 2l));
-  SYSI_CALL(fread_bycol(f, mF, n_p, hFJ, ldA, (opF + 1l), 2l));
-  SYSI_CALL(fread_bycol(f, mF, n_q, (hFD + ldA * n_col), ldA, oqF, 2l));
-  SYSI_CALL(fread_bycol(f, mF, n_q, (hFJ + ldA * n_col), ldA, (oqF + 1l), 2l));
+  for (size_t j = 0u; j < n_p; ++j) {
+    if (MPI_File_read_at(fh, (opF + j * mF * 2u), buf, (mF * 2u), MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+      DIE("MPI_File_read_at(Y)p");
+    }
+    const size_t o = (ldA * j);
+    for (size_t i = 0u; i < mF; ++i) {
+      const size_t i2 = (i * 2u);
+      *(hFD + o + i) = buf[i2];
+      *(hFJ + o + i) = buf[i2 + 1u];
+    }
+  }
+  for (size_t j = 0u; j < n_q; ++j) {
+    if (MPI_File_read_at(fh, (oqF + j * mF * 2u), buf, (mF * 2u), MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+      DIE("MPI_File_read_at(Y)q");
+    }
+    const size_t o = (ldA * (n_col + j));
+    for (size_t i = 0u; i < mF; ++i) {
+      const size_t i2 = (i * 2u);
+      *(hFD + o + i) = buf[i2];
+      *(hFJ + o + i) = buf[i2 + 1u];
+    }
+  }
 #else // !USE_COMPLEX
-  SYSI_CALL(fread_bycol(f, mF, n_p, hF, ldA, opF));
-  SYSI_CALL(fread_bycol(f, mF, n_q, (hF + ldA * n_col), ldA, oqF));
+  for (size_t j = 0u; j < n_p; ++j) {
+    if (MPI_File_read_at(fh, (opF + j * mF), (hF + ldA * j), mF, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+      DIE("MPI_File_read_at(Y)p");
+    }
+  }
+  for (size_t j = 0u; j < n_q; ++j) {
+    if (MPI_File_read_at(fh, (oqF + j * mF), (hF + ldA * (n_col + j)), mF, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+      DIE("MPI_File_read_at(Y)q");
+    }
+  }
 #endif // ?USE_COMPLEX
-  SYSI_CALL(fclose(f));
+  if (MPI_File_close(&fh)) {
+    DIE("MPI_File_close(Y)");
+  }
 
   ldA = static_cast<size_t>(ldhG);
 #ifdef USE_COMPLEX
@@ -188,17 +227,50 @@ int main(int argc, char *argv[])
 #endif // ?USE_COMPLEX
   ldhG = static_cast<unsigned>(ldA);
 
-  SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".W"), "rb"));
+  if (MPI_File_open(MPI_COMM_WORLD, strcat(strcpy(fn, ca_fn), ".W"), MPI_MODE_RDONLY, MPI_INFO_NULL, &fh)) {
+    DIE("MPI_File_open(W)");
+  }
+  if (MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE, "native", MPI_INFO_NULL)) {
+    DIE("MPI_File_set_view(W)");
+  }
 #ifdef USE_COMPLEX
-  SYSI_CALL(fread_bycol(f, mG, n_p, hGD, ldA, opG, 2l));
-  SYSI_CALL(fread_bycol(f, mG, n_p, hGJ, ldA, (opG + 1l), 2l));
-  SYSI_CALL(fread_bycol(f, mG, n_q, (hGD + ldA * n_col), ldA, oqG, 2l));
-  SYSI_CALL(fread_bycol(f, mG, n_q, (hGJ + ldA * n_col), ldA, (oqG + 1l), 2l));
+  for (size_t j = 0u; j < n_p; ++j) {
+    if (MPI_File_read_at(fh, (opG + j * mG * 2u), buf, (mG * 2u), MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+      DIE("MPI_File_read_at(W)p");
+    }
+    const size_t o = (ldA * j);
+    for (size_t i = 0u; i < mG; ++i) {
+      const size_t i2 = (i * 2u);
+      *(hGD + o + i) = buf[i2];
+      *(hGJ + o + i) = buf[i2 + 1u];
+    }
+  }
+  for (size_t j = 0u; j < n_q; ++j) {
+    if (MPI_File_read_at(fh, (oqG + j * mG * 2u), buf, (mG * 2u), MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+      DIE("MPI_File_read_at(W)q");
+    }
+    const size_t o = (ldA * (n_col + j));
+    for (size_t i = 0u; i < mG; ++i) {
+      const size_t i2 = (i * 2u);
+      *(hGD + o + i) = buf[i2];
+      *(hGJ + o + i) = buf[i2 + 1u];
+    }
+  }
 #else // !USE_COMPLEX
-  SYSI_CALL(fread_bycol(f, mG, n_p, hG, ldA, opG));
-  SYSI_CALL(fread_bycol(f, mG, n_q, (hG + ldA * n_col), ldA, oqG));
+  for (size_t j = 0u; j < n_p; ++j) {
+    if (MPI_File_read_at(fh, (opG + j * mG), (hG + ldA * j), mG, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+      DIE("MPI_File_read_at(W)p");
+    }
+  }
+  for (size_t j = 0u; j < n_q; ++j) {
+    if (MPI_File_read_at(fh, (oqG + j * mG), (hG + ldA * (n_col + j)), mG, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+      DIE("MPI_File_read_at(W)q");
+    }
+  }
 #endif // ?USE_COMPLEX
-  SYSI_CALL(fclose(f));
+  if (MPI_File_close(&fh)) {
+    DIE("MPI_File_close(W)");
+  }
 
   ldA = static_cast<size_t>(ldhV);
 #ifdef USE_COMPLEX
@@ -223,125 +295,272 @@ int main(int argc, char *argv[])
   unsigned long long glb_s = 0ull, glb_b = 0ull;
   double timing[4u] = { -0.0, -0.0, -0.0, -0.0 };
 
-  if (!gpu) {
-    SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".YU"), "wb"));
-    ldA = (mF * n * sizeof(double))
-#ifdef USE_COMPLEX
-      * 2u
-#endif // USE_COMPLEX
-    ;
-    SYSI_CALL(fresize(f, ldA));
-    SYSI_CALL(fclose(f));
-
-    SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".WV"), "wb"));
-    ldA = (mG * n * sizeof(double))
-#ifdef USE_COMPLEX
-      * 2u
-#endif // USE_COMPLEX
-    ;
-    SYSI_CALL(fresize(f, ldA));
-    SYSI_CALL(fclose(f));
-
-    SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".Z"), "wb"));
-    ldA = (n * n * sizeof(double))
-#ifdef USE_COMPLEX
-      * 2u
-#endif // USE_COMPLEX
-    ;
-    SYSI_CALL(fresize(f, ldA));
-    SYSI_CALL(fclose(f));
-
-    SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".SS"), "wb"));
-    ldA = (n * sizeof(double));
-    SYSI_CALL(fresize(f, ldA));
-    SYSI_CALL(fclose(f));
-
-    SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".SY"), "wb"));
-    ldA = (n * sizeof(double));
-    SYSI_CALL(fresize(f, ldA));
-    SYSI_CALL(fclose(f));
-
-    SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".SW"), "wb"));
-    ldA = (n * sizeof(double));
-    SYSI_CALL(fresize(f, ldA));
-    SYSI_CALL(fclose(f));
+  if (MPI_File_open(MPI_COMM_WORLD, strcat(strcpy(fn, ca_fn), ".YU"), (MPI_MODE_WRONLY | MPI_MODE_CREATE), MPI_INFO_NULL, &fh)) {
+    DIE("MPI_File_open(YU)");
   }
-  if (MPI_Barrier(MPI_COMM_WORLD))
-    return fini_MPI();
-
-  SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".YU"), "wb"));
-#ifdef USE_COMPLEX
-  SYSI_CALL(fwrite_bycol(f, mF, n_p, hFD, ldhF, opF, 2l));
-  SYSI_CALL(fwrite_bycol(f, mF, n_p, hFJ, ldhF, (opF + 1l), 2l));
-  SYSI_CALL(fwrite_bycol(f, mF, n_q, (hFD + ldhF * n_col), ldhF, oqF, 2l));
-  SYSI_CALL(fwrite_bycol(f, mF, n_q, (hFJ + ldhF * n_col), ldhF, (oqF + 1l), 2l));
-#else // !USE_COMPLEX
-  SYSI_CALL(fwrite_bycol(f, mF, n_p, hF, ldhF, opF));
-  SYSI_CALL(fwrite_bycol(f, mF, n_q, (hF + ldhF * n_col), ldhF, oqF));
-#endif // ?USE_COMPLEX
-  SYSI_CALL(fclose(f));
-  if (MPI_Barrier(MPI_COMM_WORLD))
-    return fini_MPI();
-
-  SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".WV"), "wb"));
-#ifdef USE_COMPLEX
-  SYSI_CALL(fwrite_bycol(f, mG, n_p, hGD, ldhG, opG, 2l));
-  SYSI_CALL(fwrite_bycol(f, mG, n_p, hGJ, ldhG, (opG + 1l), 2l));
-  SYSI_CALL(fwrite_bycol(f, mG, n_q, (hGD + ldhG * n_col), ldhG, oqG, 2l));
-  SYSI_CALL(fwrite_bycol(f, mG, n_q, (hGJ + ldhG * n_col), ldhG, (oqG + 1l), 2l));
-#else // !USE_COMPLEX
-  SYSI_CALL(fwrite_bycol(f, mG, n_p, hG, ldhG, opG));
-  SYSI_CALL(fwrite_bycol(f, mG, n_q, (hG + ldhG * n_col), ldhG, oqG));
-#endif // ?USE_COMPLEX
-  SYSI_CALL(fclose(f));
-  if (MPI_Barrier(MPI_COMM_WORLD))
-    return fini_MPI();
-
-  const long opV = static_cast<long>((p_ * n)
+  if (MPI_File_set_size(fh, (mF * n * sizeof(double)
 #ifdef USE_COMPLEX
     * 2u
 #endif // USE_COMPLEX
-  );
-  const long oqV = static_cast<long>((q_ * n)
+  ))) {
+    DIE("MPI_File_set_size(YU)");
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(YU)");
+  }
+  if (MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE, "native", MPI_INFO_NULL)) {
+    DIE("MPI_File_set_view(YU)");
+  }
+#ifdef USE_COMPLEX
+  for (size_t j = 0u; j < n_p; ++j) {
+    const size_t o = (ldhF * j);
+    for (size_t i = 0u; i < mF; ++i) {
+      const size_t i2 = (i * 2u);
+      buf[i2] = *(hFD + o + i);
+      buf[i2 + 1u] = *(hFJ + o + i);
+    }
+    if (MPI_File_write_at(fh, (opF + j * mF * 2u), buf, (mF * 2u), MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+      DIE("MPI_File_write_at(YU)p");
+    }
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(YU)p");
+  }
+  for (size_t j = 0u; j < n_q; ++j) {
+    const size_t o = (ldhF * (n_col + j));
+    for (size_t i = 0u; i < mF; ++i) {
+      const size_t i2 = (i * 2u);
+      buf[i2] = *(hFD + o + i);
+      buf[i2 + 1u] = *(hFJ + o + i);
+    }
+    if (MPI_File_write_at(fh, (oqF + j * mF * 2u), buf, (mF * 2u), MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+      DIE("MPI_File_write_at(YU)q");
+    }
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(YU)q");
+  }
+#else // !USE_COMPLEX
+  for (size_t j = 0u; j < n_p; ++j) {
+    if (MPI_File_write_at(fh, (opF + j * mF), (hF + ldhF * j), mF, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+      DIE("MPI_File_write_at(YU)p");
+    }
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(YU)p");
+  }
+  for (size_t j = 0u; j < n_q; ++j) {
+    if (MPI_File_write_at(fh, (oqF + j * mF), (hF + ldhF * (n_col + j)), mF, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+      DIE("MPI_File_write_at(YU)q");
+    }
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(YU)q");
+  }
+#endif // ?USE_COMPLEX
+  if (MPI_File_close(&fh)) {
+    DIE("MPI_File_close(YU)");
+  }
+
+  if (MPI_File_open(MPI_COMM_WORLD, strcat(strcpy(fn, ca_fn), ".WV"), (MPI_MODE_WRONLY | MPI_MODE_CREATE), MPI_INFO_NULL, &fh)) {
+    DIE("MPI_File_open(WV)");
+  }
+  if (MPI_File_set_size(fh, (mG * n * sizeof(double)
 #ifdef USE_COMPLEX
     * 2u
 #endif // USE_COMPLEX
-  );
-
-  SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".Z"), "wb"));
+  ))) {
+    DIE("MPI_File_set_size(WV)");
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(WV)");
+  }
+  if (MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE, "native", MPI_INFO_NULL)) {
+    DIE("MPI_File_set_view(WV)");
+  }
 #ifdef USE_COMPLEX
-  SYSI_CALL(fwrite_bycol(f, n, n_p, hVD, ldhV, opV, 2l));
-  SYSI_CALL(fwrite_bycol(f, n, n_p, hVJ, ldhV, (opV + 1l), 2l));
-  SYSI_CALL(fwrite_bycol(f, n, n_q, (hVD + ldhV * n_col), ldhV, oqV, 2l));
-  SYSI_CALL(fwrite_bycol(f, n, n_q, (hVJ + ldhV * n_col), ldhV, (oqV + 1l), 2l));
+  for (size_t j = 0u; j < n_p; ++j) {
+    const size_t o = (ldhG * j);
+    for (size_t i = 0u; i < mG; ++i) {
+      const size_t i2 = (i * 2u);
+      buf[i2] = *(hGD + o + i);
+      buf[i2 + 1u] = *(hGJ + o + i);
+    }
+    if (MPI_File_write_at(fh, (opG + j * mG * 2u), buf, (mG * 2u), MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+      DIE("MPI_File_write_at(WV)p");
+    }
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(WV)p");
+  }
+  for (size_t j = 0u; j < n_q; ++j) {
+    const size_t o = (ldhG * (n_col + j));
+    for (size_t i = 0u; i < mG; ++i) {
+      const size_t i2 = (i * 2u);
+      buf[i2] = *(hGD + o + i);
+      buf[i2 + 1u] = *(hGJ + o + i);
+    }
+    if (MPI_File_write_at(fh, (oqG + j * mG * 2u), buf, (mG * 2u), MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+      DIE("MPI_File_write_at(WV)q");
+    }
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(WV)q");
+  }
 #else // !USE_COMPLEX
-  SYSI_CALL(fwrite_bycol(f, n, n_p, hV, ldhV, opV));
-  SYSI_CALL(fwrite_bycol(f, n, n_q, (hV + ldhV * n_col), ldhV, oqV));
+  for (size_t j = 0u; j < n_p; ++j) {
+    if (MPI_File_write_at(fh, (opG + j * mG), (hG + ldhG * j), mG, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+      DIE("MPI_File_write_at(WV)p");
+    }
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(WV)p");
+  }
+  for (size_t j = 0u; j < n_q; ++j) {
+    if (MPI_File_write_at(fh, (oqG + j * mG), (hG + ldhG * (n_col + j)), mG, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+      DIE("MPI_File_write_at(WV)q");
+    }
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(WV)q");
+  }
 #endif // ?USE_COMPLEX
-  SYSI_CALL(fclose(f));
-  if (MPI_Barrier(MPI_COMM_WORLD))
-    return fini_MPI();
+  if (MPI_File_close(&fh)) {
+    DIE("MPI_File_close(WV)");
+  }
 
-  SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".SS"), "wb"));
-  SYSI_CALL(fwrite_bycol(f, n_p, 1u, hS, n_gpu, static_cast<long>(p_)));
-  SYSI_CALL(fwrite_bycol(f, n_q, 1u, (hS + n_col), n_gpu, static_cast<long>(q_)));
-  SYSI_CALL(fclose(f));
-  if (MPI_Barrier(MPI_COMM_WORLD))
-    return fini_MPI();
+  if (MPI_File_open(MPI_COMM_WORLD, strcat(strcpy(fn, ca_fn), ".Z"), (MPI_MODE_WRONLY | MPI_MODE_CREATE), MPI_INFO_NULL, &fh)) {
+    DIE("MPI_File_open(Z)");
+  }
+  if (MPI_File_set_size(fh, (n * n * sizeof(double)
+#ifdef USE_COMPLEX
+    * 2u
+#endif // USE_COMPLEX
+  ))) {
+    DIE("MPI_File_set_size(Z)");
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(Z)");
+  }
+  if (MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE, "native", MPI_INFO_NULL)) {
+    DIE("MPI_File_set_view(Z)");
+  }
+#ifdef USE_COMPLEX
+  for (size_t j = 0u; j < n_p; ++j) {
+    const size_t o = (ldhV * j);
+    for (size_t i = 0u; i < n; ++i) {
+      const size_t i2 = (i * 2u);
+      buf[i2] = *(hVD + o + i);
+      buf[i2 + 1u] = *(hVJ + o + i);
+    }
+    if (MPI_File_write_at(fh, (opV + j * n * 2u), buf, (n * 2u), MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+      DIE("MPI_File_write_at(Z)p");
+    }
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(Z)p");
+  }
+  for (size_t j = 0u; j < n_q; ++j) {
+    const size_t o = (ldhV * (n_col + j));
+    for (size_t i = 0u; i < n; ++i) {
+      const size_t i2 = (i * 2u);
+      buf[i2] = *(hVD + o + i);
+      buf[i2 + 1u] = *(hVJ + o + i);
+    }
+    if (MPI_File_write_at(fh, (oqV + j * n * 2u), buf, (n * 2u), MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+      DIE("MPI_File_write_at(Z)q");
+    }
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(Z)q");
+  }
+#else // !USE_COMPLEX
+  for (size_t j = 0u; j < n_p; ++j) {
+    if (MPI_File_write_at(fh, (opV + j * n), (hV + ldhV * j), n, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+      DIE("MPI_File_write_at(Z)p");
+    }
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(Z)p");
+  }
+  for (size_t j = 0u; j < n_q; ++j) {
+    if (MPI_File_write_at(fh, (oqV + j * n), (hV + ldhV * (n_col + j)), n, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+      DIE("MPI_File_write_at(Z)q");
+    }
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(Z)q");
+  }
+#endif // ?USE_COMPLEX
+  if (MPI_File_close(&fh)) {
+    DIE("MPI_File_close(Z)");
+  }
 
-  SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".SY"), "wb"));
-  SYSI_CALL(fwrite_bycol(f, n_p, 1u, hH, n_gpu, static_cast<long>(p_)));
-  SYSI_CALL(fwrite_bycol(f, n_q, 1u, (hH + n_col), n_gpu, static_cast<long>(q_)));
-  SYSI_CALL(fclose(f));
-  if (MPI_Barrier(MPI_COMM_WORLD))
-    return fini_MPI();
+  if (MPI_File_open(MPI_COMM_WORLD, strcat(strcpy(fn, ca_fn), ".SS"), (MPI_MODE_WRONLY | MPI_MODE_CREATE), MPI_INFO_NULL, &fh)) {
+    DIE("MPI_File_open(SS)");
+  }
+  if (MPI_File_set_size(fh, (n * sizeof(double)))) {
+    DIE("MPI_File_set_size(SS)");
+  }
+  if (MPI_File_write_at(fh, opS, hS, n_p, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+    DIE("MPI_File_write_at(SS)p");
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(SS)p");
+  }
+  if (MPI_File_write_at(fh, oqS, (hS + n_col), n_q, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+    DIE("MPI_File_write_at(SS)q");
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(SS)q");
+  }
+  if (MPI_File_close(&fh)) {
+    DIE("MPI_File_close(SS)");
+  }
 
-  SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".SW"), "wb"));
-  SYSI_CALL(fwrite_bycol(f, n_p, 1u, hK, n_gpu, static_cast<long>(p_)));
-  SYSI_CALL(fwrite_bycol(f, n_q, 1u, (hK + n_col), n_gpu, static_cast<long>(q_)));
-  SYSI_CALL(fclose(f));
-  if (MPI_Barrier(MPI_COMM_WORLD))
-    return fini_MPI();
+  if (MPI_File_open(MPI_COMM_WORLD, strcat(strcpy(fn, ca_fn), ".SY"), (MPI_MODE_WRONLY | MPI_MODE_CREATE), MPI_INFO_NULL, &fh)) {
+    DIE("MPI_File_open(SY)");
+  }
+  if (MPI_File_set_size(fh, (n * sizeof(double)))) {
+    DIE("MPI_File_set_size(SY)");
+  }
+  if (MPI_File_write_at(fh, opS, hH, n_p, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+    DIE("MPI_File_write_at(SY)p");
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(SY)p");
+  }
+  if (MPI_File_write_at(fh, oqS, (hH + n_col), n_q, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+    DIE("MPI_File_write_at(SY)q");
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(SY)q");
+  }
+  if (MPI_File_close(&fh)) {
+    DIE("MPI_File_close(SY)");
+  }
+
+  if (MPI_File_open(MPI_COMM_WORLD, strcat(strcpy(fn, ca_fn), ".SW"), (MPI_MODE_WRONLY | MPI_MODE_CREATE), MPI_INFO_NULL, &fh)) {
+    DIE("MPI_File_open(SW)");
+  }
+  if (MPI_File_set_size(fh, (n * sizeof(double)))) {
+    DIE("MPI_File_set_size(SW)");
+  }
+  if (MPI_File_write_at(fh, opS, hK, n_p, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+    DIE("MPI_File_write_at(SW)p");
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(SW)p");
+  }
+  if (MPI_File_write_at(fh, oqS, (hK + n_col), n_q, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
+    DIE("MPI_File_write_at(SW)q");
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(SW)q");
+  }
+  if (MPI_File_close(&fh)) {
+    DIE("MPI_File_close(SW)");
+  }
 
   if (hK)
     CUDA_CALL(cudaFreeHost(hK));
@@ -371,7 +590,10 @@ int main(int argc, char *argv[])
     CUDA_CALL(cudaFreeHost(hF));
 #endif // ?USE_COMPLEX
 
-  free(buf);  
+#ifdef USE_COMPLEX
+  free(buf);
+#endif // USE_COMPLEX
+  free(fn);  
   free_strats();
 
   // for profiling

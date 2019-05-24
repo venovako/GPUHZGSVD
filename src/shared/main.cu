@@ -7,6 +7,110 @@
 #include "cuda_memory_helper.hpp"
 #include "my_utils.hpp"
 
+static int fresize(FILE *const f, const size_t s) throw()
+{
+  int e = -1;
+  if (!f)
+    return e;
+  e = ftruncate(fileno(f), static_cast<off_t>(s));
+  if (e)
+    return e;
+  e = fflush(f);
+  if (e)
+    return e;
+  return 0;
+}
+
+static int fread_bycol(FILE *const f, const size_t m, const size_t n, double *const A, const size_t ldA, const long off = 0l, const long stride = 1l) throw()
+{
+  if (!f)
+    return -1;
+  if (!m)
+    return 0;
+  if (!n)
+    return 0;
+  if (!A)
+    return -4;
+  if (ldA < m)
+    return -5;
+  if (off < 0l)
+    return -6;
+  if (stride <= 0l)
+    return -7;
+
+  const long o = ftell(f);
+  SYSI_CALL(o < 0l);
+  const long od = off * static_cast<long>(sizeof(double));
+  if (o != od)
+    SYSI_CALL(fseek(f, od, SEEK_SET));
+
+  if (stride == 1l) {
+    for (size_t j = 0u; j < n; ++j) {
+      double *const c = A + j * ldA;
+      SYSI_CALL(fread(c, sizeof(double), m, f) != m);
+    }
+  }
+  else {
+    const long sd = (stride - 1l) * static_cast<long>(sizeof(double));
+    for (size_t j = 0u; j < n; ++j) {
+      double *const c = A + j * ldA;
+      for (size_t i = 0u; i < m; ++i) {
+        SYSI_CALL(fread((c + i), sizeof(double), 1u, f) != 1u);
+        if ((j != (n - 1u)) || (i != (m - 1u))) {
+          SYSI_CALL(fseek(f, sd, SEEK_CUR));
+        }
+      }
+    }
+  }
+
+  return 0;
+}
+
+static int fwrite_bycol(FILE *const f, const size_t m, const size_t n, const double *const A, const size_t ldA, const long off = 0l, const long stride = 1l) throw()
+{
+  if (!f)
+    return -1;
+  if (!m)
+    return 0;
+  if (!n)
+    return 0;
+  if (!A)
+    return -4;
+  if (ldA < m)
+    return -5;
+  if (off < 0l)
+    return -6;
+  if (stride <= 0l)
+    return -7;
+
+  const long o = ftell(f);
+  SYSI_CALL(o < 0l);
+  const long od = off * static_cast<long>(sizeof(double));
+  if (o != od)
+    SYSI_CALL(fseek(f, od, SEEK_SET));
+
+  if (stride == 1l) {
+    for (size_t j = 0u; j < n; ++j) {
+      const double *const c = A + j * ldA;
+      SYSI_CALL(fwrite(c, sizeof(double), m, f) != m);
+    }
+  }
+  else {
+    const long sd = (stride - 1l) * static_cast<long>(sizeof(double));
+    for (size_t j = 0u; j < n; ++j) {
+      const double *const c = A + j * ldA;
+      for (size_t i = 0u; i < m; ++i) {
+        SYSI_CALL(fwrite((c + i), sizeof(double), 1u, f) != 1u);
+        if ((j != (n - 1u)) || (i != (m - 1u))) {
+          SYSI_CALL(fseek(f, sd, SEEK_CUR));
+        }
+      }
+    }
+  }
+
+  return 0;
+}
+
 int main(int argc, char *argv[])
 {
   if (9 != argc) {
