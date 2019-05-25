@@ -2,7 +2,6 @@
 #define HZ_HPP
 
 #include "defines.hpp"
-#include "my_utils.hpp"
 
 #ifndef HZ_MAX_DEVICES
 #ifdef USE_MPI
@@ -24,22 +23,7 @@
 #error HZ_MAX_LEVELS not definable externally
 #endif // !HZ_MAX_LEVELS
 
-template <typename T>
-void border_sizes(const T gpus, const T mF, const T mG, const T n, T &mF_, T &mG_, T &n_) throw()
-{
-  if (gpus) {
-    // (n % (2*gpus) == 0) && ((n / gpus) % 32 == 0)
-    n_ = (dimToMod((dimToMod(n, (gpus << 1u)) / gpus), static_cast<T>(32u)) * gpus);
-    mF_ = dimToMod(((n_ > mF) ? n_ : mF), static_cast<T>(64u));
-    mG_ = dimToMod(((n_ > mG) ? n_ : mG), static_cast<T>(64u));
-  }
-  else {
-    mF_ = mF;
-    mG_ = mG;
-    n_ = n;
-  }
-}
-
+EXTERN_C void border_sizes(const size_t gpus, const size_t mF, const size_t mG, const size_t n, size_t &mF_, size_t &mG_, size_t &n_) throw();
 EXTERN_C int bdinit(const size_t m, const size_t n, double *const A, const size_t ldA) throw();
 
 #endif // !HZ_HPP

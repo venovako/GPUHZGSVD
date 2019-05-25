@@ -21,7 +21,16 @@ static int fresize(FILE *const f, const size_t s) throw()
   return 0;
 }
 
-static int fread_bycol(FILE *const f, const size_t m, const size_t n, double *const A, const size_t ldA, const long off = 0l, const long stride = 1l) throw()
+static int fread_bycol
+(FILE *const f, const size_t m, const size_t n,
+#ifdef USE_COMPLEX
+ double *const buf,
+ cuD *const AD,
+ cuJ *const AJ,
+#else // !USE_COMPLEX
+ double *const A,
+#endif // ?USE_COMPLEX
+ const size_t ldA) throw()
 {
   if (!f)
     return -1;
@@ -29,44 +38,57 @@ static int fread_bycol(FILE *const f, const size_t m, const size_t n, double *co
     return 0;
   if (!n)
     return 0;
+#ifdef USE_COMPLEX
+  if (!buf)
+    return -4;
+  if (!AD)
+    return -5;
+  if (!AJ)
+    return -6;
+  if (ldA < m)
+    return -7;
+#else // !USE_COMPLEX
   if (!A)
     return -4;
   if (ldA < m)
     return -5;
-  if (off < 0l)
-    return -6;
-  if (stride <= 0l)
-    return -7;
+#endif // ?USE_COMPLEX
 
-  const long o = ftell(f);
-  SYSI_CALL(o < 0l);
-  const long od = off * static_cast<long>(sizeof(double));
-  if (o != od)
-    SYSI_CALL(fseek(f, od, SEEK_SET));
+  const long co = ftell(f);
+  SYSI_CALL(co < 0l);
+  if (co)
+    SYSI_CALL(fseek(f, 0l, SEEK_SET));
 
-  if (stride == 1l) {
-    for (size_t j = 0u; j < n; ++j) {
-      double *const c = A + j * ldA;
-      SYSI_CALL(fread(c, sizeof(double), m, f) != m);
+  for (size_t j = 0u; j < n; ++j) {
+#ifdef USE_COMPLEX
+    SYSI_CALL(fread(buf, (2u * sizeof(double)), m, f) != m);
+    const size_t o = (ldA * j);
+    cuD *const cD = (AD + o);
+    cuJ *const cJ = (AJ + o);
+    for (size_t i = 0u; i < m; ++i) {
+      const size_t i2 = (i << 1u);
+      cD[i] = static_cast<cuD>(buf[i2]);
+      cJ[i] = static_cast<cuJ>(buf[i2 + 1u]);
     }
-  }
-  else {
-    const long sd = (stride - 1l) * static_cast<long>(sizeof(double));
-    for (size_t j = 0u; j < n; ++j) {
-      double *const c = A + j * ldA;
-      for (size_t i = 0u; i < m; ++i) {
-        SYSI_CALL(fread((c + i), sizeof(double), 1u, f) != 1u);
-        if ((j != (n - 1u)) || (i != (m - 1u))) {
-          SYSI_CALL(fseek(f, sd, SEEK_CUR));
-        }
-      }
-    }
+#else // !USE_COMPLEX
+    double *const c = (A + ldA * j);
+    SYSI_CALL(fread(c, sizeof(double), m, f) != m);
+#endif // ?USE_COMPLEX
   }
 
   return 0;
 }
 
-static int fwrite_bycol(FILE *const f, const size_t m, const size_t n, const double *const A, const size_t ldA, const long off = 0l, const long stride = 1l) throw()
+static int fwrite_bycol
+(FILE *const f, const size_t m, const size_t n,
+#ifdef USE_COMPLEX
+ double *const buf,
+ const cuD *const AD,
+ const cuJ *const AJ,
+#else // !USE_COMPLEX
+ const double *const A,
+#endif // ?USE_COMPLEX
+ const size_t ldA) throw()
 {
   if (!f)
     return -1;
@@ -74,38 +96,42 @@ static int fwrite_bycol(FILE *const f, const size_t m, const size_t n, const dou
     return 0;
   if (!n)
     return 0;
+#ifdef USE_COMPLEX
+  if (!buf)
+    return -4;
+  if (!AD)
+    return -5;
+  if (!AJ)
+    return -6;
+  if (ldA < m)
+    return -7;
+#else // !USE_COMPLEX
   if (!A)
     return -4;
   if (ldA < m)
     return -5;
-  if (off < 0l)
-    return -6;
-  if (stride <= 0l)
-    return -7;
+#endif // ?USE_COMPLEX
 
-  const long o = ftell(f);
-  SYSI_CALL(o < 0l);
-  const long od = off * static_cast<long>(sizeof(double));
-  if (o != od)
-    SYSI_CALL(fseek(f, od, SEEK_SET));
+  const long co = ftell(f);
+  SYSI_CALL(co < 0l);
+  if (co)
+    SYSI_CALL(fseek(f, 0l, SEEK_SET));
 
-  if (stride == 1l) {
-    for (size_t j = 0u; j < n; ++j) {
-      const double *const c = A + j * ldA;
-      SYSI_CALL(fwrite(c, sizeof(double), m, f) != m);
+  for (size_t j = 0u; j < n; ++j) {
+#ifdef USE_COMPLEX
+    const size_t o = (ldA * j);
+    const cuD *const cD = (AD + o);
+    const cuJ *const cJ = (AJ + o);
+    for (size_t i = 0u; i < m; ++i) {
+      const size_t i2 = (i << 1u);
+      buf[i2] = static_cast<double>(cD[i]);
+      buf[i2 + 1u] = static_cast<double>(cJ[i]);
     }
-  }
-  else {
-    const long sd = (stride - 1l) * static_cast<long>(sizeof(double));
-    for (size_t j = 0u; j < n; ++j) {
-      const double *const c = A + j * ldA;
-      for (size_t i = 0u; i < m; ++i) {
-        SYSI_CALL(fwrite((c + i), sizeof(double), 1u, f) != 1u);
-        if ((j != (n - 1u)) || (i != (m - 1u))) {
-          SYSI_CALL(fseek(f, sd, SEEK_CUR));
-        }
-      }
-    }
+    SYSI_CALL(fwrite(buf, (2u * sizeof(double)), m, f) != m);
+#else // !USE_COMPLEX
+    const double *const c = (A + ldA * j);
+    SYSI_CALL(fwrite(c, sizeof(double), m, f) != m);
+#endif // ?USE_COMPLEX
   }
 
   return 0;
@@ -190,10 +216,15 @@ int main(int argc, char *argv[])
     ldhG = mG_,
     ldhV = n_;
 
-  char *const buf = static_cast<char*>(calloc(strlen(ca_fn) + 4u, sizeof(char)));
+  char *const fn = static_cast<char*>(calloc(strlen(ca_fn) + 4u, sizeof(char)));
+  SYSP_CALL(fn);
+#ifdef USE_COMPLEX
+  double *const buf = static_cast<double*>(calloc((((mF >= mG) ? mF : mG) * 2u), sizeof(double)));
   SYSP_CALL(buf);
-  size_t ldA = static_cast<size_t>(0u);
+#endif // USE_COMPLEX
+
   FILE *f = static_cast<FILE*>(NULL);
+  size_t ldA = static_cast<size_t>(0u);
 
   ldA = ldhF;
 #ifdef USE_COMPLEX
@@ -207,10 +238,9 @@ int main(int argc, char *argv[])
 #endif // ?USE_COMPLEX
   ldhF = ldA;
 
-  SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".Y"), "rb"));
+  SYSP_CALL(f = fopen(strcat(strcpy(fn, ca_fn), ".Y"), "rb"));
 #ifdef USE_COMPLEX
-  SYSI_CALL(fread_bycol(f, mF, n, hFD, ldA, 0l, 2l));
-  SYSI_CALL(fread_bycol(f, mF, n, hFJ, ldA, 1l, 2l));
+  SYSI_CALL(fread_bycol(f, mF, n, buf, hFD, hFJ, ldA));
 #else // !USE_COMPLEX
   SYSI_CALL(fread_bycol(f, mF, n, hF, ldA));
 #endif // ?USE_COMPLEX
@@ -233,10 +263,9 @@ int main(int argc, char *argv[])
 #endif // ?USE_COMPLEX
   ldhG = ldA;
 
-  SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".W"), "rb"));
+  SYSP_CALL(f = fopen(strcat(strcpy(fn, ca_fn), ".W"), "rb"));
 #ifdef USE_COMPLEX
-  SYSI_CALL(fread_bycol(f, mG, n, hGD, ldA, 0l, 2l));
-  SYSI_CALL(fread_bycol(f, mG, n, hGJ, ldA, 1l, 2l));
+  SYSI_CALL(fread_bycol(f, mG, n, buf, hGD, hGJ, ldA));
 #else // !USE_COMPLEX
   SYSI_CALL(fread_bycol(f, mG, n, hG, ldA));
 #endif // ?USE_COMPLEX
@@ -284,7 +313,7 @@ int main(int argc, char *argv[])
     (void)fflush(stdout);
   }
 
-  SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".YU"), "wb"));
+  SYSP_CALL(f = fopen(strcat(strcpy(fn, ca_fn), ".YU"), "wb"));
   ldA = (mF * n * sizeof(double))
 #ifdef USE_COMPLEX
     * 2u
@@ -292,14 +321,13 @@ int main(int argc, char *argv[])
     ;
   SYSI_CALL(fresize(f, ldA));
 #ifdef USE_COMPLEX
-  SYSI_CALL(fwrite_bycol(f, mF, n, hFD, ldhF, 0l, 2l));
-  SYSI_CALL(fwrite_bycol(f, mF, n, hFJ, ldhF, 1l, 2l));
+  SYSI_CALL(fwrite_bycol(f, mF, n, buf, hFD, hFJ, ldhF));
 #else // !USE_COMPLEX
   SYSI_CALL(fwrite_bycol(f, mF, n, hF, ldhF));
 #endif // ?USE_COMPLEX
   SYSI_CALL(fclose(f));
 
-  SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".WV"), "wb"));
+  SYSP_CALL(f = fopen(strcat(strcpy(fn, ca_fn), ".WV"), "wb"));
   ldA = (mG * n * sizeof(double))
 #ifdef USE_COMPLEX
     * 2u
@@ -307,14 +335,13 @@ int main(int argc, char *argv[])
     ;
   SYSI_CALL(fresize(f, ldA));
 #ifdef USE_COMPLEX
-  SYSI_CALL(fwrite_bycol(f, mG, n, hGD, ldhG, 0l, 2l));
-  SYSI_CALL(fwrite_bycol(f, mG, n, hGJ, ldhG, 1l, 2l));
+  SYSI_CALL(fwrite_bycol(f, mG, n, buf, hGD, hGJ, ldhG));
 #else // !USE_COMPLEX
   SYSI_CALL(fwrite_bycol(f, mG, n, hG, ldhG));
 #endif // ?USE_COMPLEX
   SYSI_CALL(fclose(f));
 
-  SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".Z"), "wb"));
+  SYSP_CALL(f = fopen(strcat(strcpy(fn, ca_fn), ".Z"), "wb"));
   ldA = (n * n * sizeof(double))
 #ifdef USE_COMPLEX
     * 2u
@@ -322,22 +349,21 @@ int main(int argc, char *argv[])
     ;
   SYSI_CALL(fresize(f, ldA));
 #ifdef USE_COMPLEX
-  SYSI_CALL(fwrite_bycol(f, n, n, hVD, ldhV, 0l, 2l));
-  SYSI_CALL(fwrite_bycol(f, n, n, hVJ, ldhV, 1l, 2l));
+  SYSI_CALL(fwrite_bycol(f, n, n, buf, hVD, hVJ, ldhV));
 #else // !USE_COMPLEX
   SYSI_CALL(fwrite_bycol(f, n, n, hV, ldhV));
 #endif // ?USE_COMPLEX
   SYSI_CALL(fclose(f));
 
-  SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".SS"), "wb"));
+  SYSP_CALL(f = fopen(strcat(strcpy(fn, ca_fn), ".SS"), "wb"));
   SYSI_CALL(n != fwrite(hS, sizeof(*hS), n, f));
   SYSI_CALL(fclose(f));
 
-  SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".SY"), "wb"));
+  SYSP_CALL(f = fopen(strcat(strcpy(fn, ca_fn), ".SY"), "wb"));
   SYSI_CALL(n != fwrite(hH, sizeof(*hH), n, f));
   SYSI_CALL(fclose(f));
 
-  SYSP_CALL(f = fopen(strcat(strcpy(buf, ca_fn), ".SW"), "wb"));
+  SYSP_CALL(f = fopen(strcat(strcpy(fn, ca_fn), ".SW"), "wb"));
   SYSI_CALL(n != fwrite(hK, sizeof(*hK), n, f));
   SYSI_CALL(fclose(f));
 
@@ -369,7 +395,10 @@ int main(int argc, char *argv[])
     CUDA_CALL(cudaFreeHost(hF));
 #endif // ?USE_COMPLEX
 
+#ifdef USE_COMPLEX
   free(buf);
+#endif // USE_COMPLEX
+  free(fn);
   free_strats();
 
   // for profiling

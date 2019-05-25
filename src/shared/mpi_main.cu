@@ -174,10 +174,12 @@ int main(int argc, char *argv[])
       DIE("MPI_File_read_at(Y)p");
     }
     const size_t o = (ldA * j);
+    cuD *const cD = (hFD + o);
+    cuJ *const cJ = (hFJ + o);
     for (size_t i = 0u; i < mF; ++i) {
       const size_t i2 = (i * 2u);
-      *(hFD + o + i) = buf[i2];
-      *(hFJ + o + i) = buf[i2 + 1u];
+      cD[i] = static_cast<cuD>(buf[i2]);
+      cJ[i] = static_cast<cuJ>(buf[i2 + 1u]);
     }
   }
   for (size_t j = 0u; j < n_q; ++j) {
@@ -185,10 +187,12 @@ int main(int argc, char *argv[])
       DIE("MPI_File_read_at(Y)q");
     }
     const size_t o = (ldA * (n_col + j));
+    cuD *const cD = (hFD + o);
+    cuJ *const cJ = (hFJ + o);
     for (size_t i = 0u; i < mF; ++i) {
       const size_t i2 = (i * 2u);
-      *(hFD + o + i) = buf[i2];
-      *(hFJ + o + i) = buf[i2 + 1u];
+      cD[i] = static_cast<cuD>(buf[i2]);
+      cJ[i] = static_cast<cuJ>(buf[i2 + 1u]);
     }
   }
 #else // !USE_COMPLEX
@@ -268,10 +272,12 @@ int main(int argc, char *argv[])
       DIE("MPI_File_read_at(W)p");
     }
     const size_t o = (ldA * j);
+    cuD *const cD = (hGD + o);
+    cuJ *const cJ = (hGJ + o);
     for (size_t i = 0u; i < mG; ++i) {
       const size_t i2 = (i * 2u);
-      *(hGD + o + i) = buf[i2];
-      *(hGJ + o + i) = buf[i2 + 1u];
+      cD[i] = static_cast<cuD>(buf[i2]);
+      cJ[i] = static_cast<cuJ>(buf[i2 + 1u]);
     }
   }
   for (size_t j = 0u; j < n_q; ++j) {
@@ -279,10 +285,12 @@ int main(int argc, char *argv[])
       DIE("MPI_File_read_at(W)q");
     }
     const size_t o = (ldA * (n_col + j));
+    cuD *const cD = (hGD + o);
+    cuJ *const cJ = (hGJ + o);
     for (size_t i = 0u; i < mG; ++i) {
       const size_t i2 = (i * 2u);
-      *(hGD + o + i) = buf[i2];
-      *(hGJ + o + i) = buf[i2 + 1u];
+      cD[i] = static_cast<cuD>(buf[i2]);
+      cJ[i] = static_cast<cuJ>(buf[i2 + 1u]);
     }
   }
 #else // !USE_COMPLEX
@@ -380,10 +388,12 @@ int main(int argc, char *argv[])
 #ifdef USE_COMPLEX
   for (size_t j = 0u; j < n_p; ++j) {
     const size_t o = (ldhF * j);
+    const cuD *const cD = (hFD + o);
+    const cuJ *const cJ = (hFJ + o);
     for (size_t i = 0u; i < mF; ++i) {
       const size_t i2 = (i * 2u);
-      buf[i2] = *(hFD + o + i);
-      buf[i2 + 1u] = *(hFJ + o + i);
+      buf[i2] = static_cast<double>(cD[i]);
+      buf[i2 + 1u] = static_cast<double>(cJ[i]);
     }
     if (MPI_File_write_at(fh, (opF + j * mF * 2u), buf, (mF * 2u), MPI_DOUBLE, MPI_STATUS_IGNORE)) {
       DIE("MPI_File_write_at(YU)p");
@@ -394,10 +404,12 @@ int main(int argc, char *argv[])
   }
   for (size_t j = 0u; j < n_q; ++j) {
     const size_t o = (ldhF * (n_col + j));
+    const cuD *const cD = (hFD + o);
+    const cuJ *const cJ = (hFJ + o);
     for (size_t i = 0u; i < mF; ++i) {
       const size_t i2 = (i * 2u);
-      buf[i2] = *(hFD + o + i);
-      buf[i2 + 1u] = *(hFJ + o + i);
+      buf[i2] = static_cast<double>(cD[i]);
+      buf[i2 + 1u] = static_cast<double>(cJ[i]);
     }
     if (MPI_File_write_at(fh, (oqF + j * mF * 2u), buf, (mF * 2u), MPI_DOUBLE, MPI_STATUS_IGNORE)) {
       DIE("MPI_File_write_at(YU)q");
@@ -447,10 +459,12 @@ int main(int argc, char *argv[])
 #ifdef USE_COMPLEX
   for (size_t j = 0u; j < n_p; ++j) {
     const size_t o = (ldhG * j);
+    const cuD *const cD = (hGD + o);
+    const cuJ *const cJ = (hGJ + o);
     for (size_t i = 0u; i < mG; ++i) {
       const size_t i2 = (i * 2u);
-      buf[i2] = *(hGD + o + i);
-      buf[i2 + 1u] = *(hGJ + o + i);
+      buf[i2] = static_cast<double>(cD[i]);
+      buf[i2 + 1u] = static_cast<double>(cJ[i]);
     }
     if (MPI_File_write_at(fh, (opG + j * mG * 2u), buf, (mG * 2u), MPI_DOUBLE, MPI_STATUS_IGNORE)) {
       DIE("MPI_File_write_at(WV)p");
@@ -461,10 +475,12 @@ int main(int argc, char *argv[])
   }
   for (size_t j = 0u; j < n_q; ++j) {
     const size_t o = (ldhG * (n_col + j));
+    const cuD *const cD = (hGD + o);
+    const cuJ *const cJ = (hGJ + o);
     for (size_t i = 0u; i < mG; ++i) {
       const size_t i2 = (i * 2u);
-      buf[i2] = *(hGD + o + i);
-      buf[i2 + 1u] = *(hGJ + o + i);
+      buf[i2] = static_cast<double>(cD[i]);
+      buf[i2 + 1u] = static_cast<double>(cJ[i]);
     }
     if (MPI_File_write_at(fh, (oqG + j * mG * 2u), buf, (mG * 2u), MPI_DOUBLE, MPI_STATUS_IGNORE)) {
       DIE("MPI_File_write_at(WV)q");
@@ -514,10 +530,12 @@ int main(int argc, char *argv[])
 #ifdef USE_COMPLEX
   for (size_t j = 0u; j < n_p; ++j) {
     const size_t o = (ldhV * j);
+    const cuD *const cD = (hVD + o);
+    const cuJ *const cJ = (hVJ + o);
     for (size_t i = 0u; i < n; ++i) {
       const size_t i2 = (i * 2u);
-      buf[i2] = *(hVD + o + i);
-      buf[i2 + 1u] = *(hVJ + o + i);
+      buf[i2] = static_cast<double>(cD[i]);
+      buf[i2 + 1u] = static_cast<double>(cJ[i]);
     }
     if (MPI_File_write_at(fh, (opV + j * n * 2u), buf, (n * 2u), MPI_DOUBLE, MPI_STATUS_IGNORE)) {
       DIE("MPI_File_write_at(Z)p");
@@ -528,10 +546,12 @@ int main(int argc, char *argv[])
   }
   for (size_t j = 0u; j < n_q; ++j) {
     const size_t o = (ldhV * (n_col + j));
+    const cuD *const cD = (hVD + o);
+    const cuJ *const cJ = (hVJ + o);
     for (size_t i = 0u; i < n; ++i) {
       const size_t i2 = (i * 2u);
-      buf[i2] = *(hVD + o + i);
-      buf[i2 + 1u] = *(hVJ + o + i);
+      buf[i2] = static_cast<double>(cD[i]);
+      buf[i2 + 1u] = static_cast<double>(cJ[i]);
     }
     if (MPI_File_write_at(fh, (oqV + j * n * 2u), buf, (n * 2u), MPI_DOUBLE, MPI_STATUS_IGNORE)) {
       DIE("MPI_File_write_at(Z)q");
