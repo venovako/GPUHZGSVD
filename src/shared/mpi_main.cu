@@ -24,9 +24,6 @@ int main(int argc, char *argv[])
   const char *const ca_fn = argv[8];
 
   const unsigned routine = static_cast<unsigned>(atou(ca_alg));
-  if (routine && (routine != 8u)) {
-    DIE("ALG \\notin { 0, 8 }");
-  }
 
   const size_t mF = atou(ca_mF);
   const size_t mG = atou(ca_mG);
@@ -368,6 +365,23 @@ int main(int argc, char *argv[])
   unsigned glbSwp = 0u;
   unsigned long long glb_s = 0ull, glb_b = 0ull;
   double timing[4u] = { -0.0, -0.0, -0.0, -0.0 };
+
+#ifdef USE_COMPLEX
+  const int ret = HZ_L3(routine, gpu, gpus, mF_, mG_, n_, n_gpu, n_col, hFD, hFJ, ldhF, hGD, hGJ, ldhG, hVD, hVJ, ldhV, hS, hH, hK, glbSwp, glb_s, glb_b, timing);
+#else // !USE_COMPLEX
+  const int ret = HZ_L3(routine, gpu, gpus, mF_, mG_, n_, n_gpu, n_col, hF, ldhF, hG, ldhG, hV, ldhV, hS, hH, hK, glbSwp, glb_s, glb_b, timing);
+#endif // ?USE_COMPLEX
+
+  if (ret) {
+    (void)snprintf(err_msg, err_msg_size, "%s: error %d", ca_exe, ret);
+    DIE(err_msg);
+  }
+  else if (!gpu) {
+    (void)fprintf(stdout, "GLB_ROT_S(%20llu), GLB_ROT_B(%20llu)\n", glb_s, glb_b);
+    (void)fflush(stdout);
+    (void)fprintf(stdout, "%#12.6f s %2u sweeps\n", *timing, glbSwp);
+    (void)fflush(stdout);
+  }
 
   if (MPI_File_open(MPI_COMM_WORLD, strcat(strcpy(fn, ca_fn), ".YU"), (MPI_MODE_WRONLY | MPI_MODE_CREATE), MPI_INFO_NULL, &fh)) {
     DIE("MPI_File_open(YU)");

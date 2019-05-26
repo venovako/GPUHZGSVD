@@ -299,9 +299,9 @@ int main(int argc, char *argv[])
   unsigned long long glb_s = 0ull, glb_b = 0ull;
   double timing[4u] = { -0.0, -0.0, -0.0, -0.0 };
 #ifdef USE_COMPLEX
-  int ret = HZ_L2(routine, mF_, mG_, n_, hFD, hFJ, ldhF, hGD, hGJ, ldhG, hVD, hVJ, ldhV, hS, hH, hK, &glbSwp, &glb_s, &glb_b, timing);
+  const int ret = HZ_L2(routine, mF_, mG_, n_, hFD, hFJ, ldhF, hGD, hGJ, ldhG, hVD, hVJ, ldhV, hS, hH, hK, glbSwp, glb_s, glb_b, timing);
 #else // !USE_COMPLEX
-  int ret = HZ_L2(routine, mF_, mG_, n_, hF, ldhF, hG, ldhG, hV, ldhV, hS, hH, hK, &glbSwp, &glb_s, &glb_b, timing);
+  const int ret = HZ_L2(routine, mF_, mG_, n_, hF, ldhF, hG, ldhG, hV, ldhV, hS, hH, hK, glbSwp, glb_s, glb_b, timing);
 #endif // ?USE_COMPLEX
 
   if (ret)
