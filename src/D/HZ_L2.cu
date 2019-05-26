@@ -51,7 +51,7 @@ HZ_L2_gpu
 {
   if (alg & 1u) {
     alg &= ~1u;
-    initSymbols(dF, dG, dV, dS, dH, dK, nrowF, nrowG, ncol, static_cast<unsigned>(lddF), static_cast<unsigned>(lddG), static_cast<unsigned>(lddV), ((alg & HZ_BLK_ORI) ? 1u : HZ_NSWEEP));
+    initSymbols(dF, dG, dV, dS, dH, dK, nrowF, nrowG, ncol, static_cast<unsigned>(lddF), static_cast<unsigned>(lddG), static_cast<unsigned>(lddV), ((alg & HZ_BO_1) ? 1u : HZ_NSWEEP));
     CUDA_CALL(cudaDeviceSynchronize());
     initV(((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5)), ncol
 #ifdef USE_MPI
@@ -63,7 +63,7 @@ HZ_L2_gpu
 
   void (*const HZ_L1)(const unsigned) = HZ_L1_sv;
 
-  const unsigned swp = HZ_NSWEEP;
+  const unsigned swp = ((alg & HZ_BO_2) ? 1u : HZ_NSWEEP);
   // stats per thread block
   const unsigned spb = 2u;
   // stats count

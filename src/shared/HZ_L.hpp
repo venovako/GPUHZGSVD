@@ -29,11 +29,17 @@
 #define HZ_MYTOL 6.28036983473510067E-16
 #endif // !HZ_MYTOL
 
-#ifndef HZ_BLK_ORI
-#define HZ_BLK_ORI 8u
-#else // HZ_BLK_ORI
-#error HZ_BLK_ORI not definable externally
-#endif // !HZ_BLK_ORI
+#ifndef HZ_BO_1
+#define HZ_BO_1 8u
+#else // HZ_BO_1
+#error HZ_BO_1 not definable externally
+#endif // !HZ_BO_1
+
+#ifndef HZ_BO_2
+#define HZ_BO_2 4u
+#else // HZ_BO_2
+#error HZ_BO_2 not definable externally
+#endif // !HZ_BO_2
 
 #ifndef HZ_L1_NCOLB
 #define HZ_L1_NCOLB 16u
