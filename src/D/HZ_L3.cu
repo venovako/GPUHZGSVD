@@ -29,15 +29,8 @@ int HZ_L3
  double &timing             // OUT, in seconds;
 ) throw()
 {
-  switch (routine) {
-  case 12:
-  case 8u:
-  case 4u:
-  case 0u:
-    break;
-  default:
+  if (routine >= 16u)
     return -1;
-  }
 
   if (gpu >= gpus)
     return -2;
@@ -130,13 +123,11 @@ int HZ_L3
       CUDA_CALL(cudaDeviceSynchronize());
 
       int sp = static_cast<int>(strat2[stp][gpu][1u][0u]);
-      const int tp = (sp ? ((sp < 0) ? 1 : 2) : 0);
-      if (!tp) { DIE("tp"); }
+      const int tp = (sp ? ((sp < 0) ? 0 : 3) : -1);
       sp = abs(sp) - 1;
 
       int sq = static_cast<int>(strat2[stp][gpu][1u][1u]);
-      const int tq = (sq ? ((sq < 0) ? 1 : 2) : 0);
-      if (!tq) { DIE("tq"); }
+      const int tq = (sq ? ((sq < 0) ? 0 : 3) : -1);
       sq = abs(sq) - 1;
 
       MPI_Request r[12u] =
@@ -148,20 +139,20 @@ int HZ_L3
       if (MPI_Irecv(hF, (ldhF * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, (r + 0u))) {
         DIE("MPI_Irecv(F)p");
       }
-      if (MPI_Irecv(hG, (ldhG * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, (r + 1u))) {
+      if (MPI_Irecv(hG, (ldhG * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, (r + 1u))) {
         DIE("MPI_Irecv(G)p");
       }
-      if (MPI_Irecv(hV, (ldhV * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, (r + 2u))) {
+      if (MPI_Irecv(hV, (ldhV * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 3, MPI_COMM_WORLD, (r + 2u))) {
         DIE("MPI_Irecv(V)p");
       }
 
-      if (MPI_Irecv((hF + ldhF * n_col), (ldhF * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, (r + 3u))) {
+      if (MPI_Irecv((hF + ldhF * n_col), (ldhF * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 4, MPI_COMM_WORLD, (r + 3u))) {
         DIE("MPI_Irecv(F)q");
       }
-      if (MPI_Irecv((hG + ldhG * n_col), (ldhG * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, (r + 4u))) {
+      if (MPI_Irecv((hG + ldhG * n_col), (ldhG * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 5, MPI_COMM_WORLD, (r + 4u))) {
         DIE("MPI_Irecv(G)q");
       }
-      if (MPI_Irecv((hV + ldhV * n_col), (ldhV * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, (r + 5u))) {
+      if (MPI_Irecv((hV + ldhV * n_col), (ldhV * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 6, MPI_COMM_WORLD, (r + 5u))) {
         DIE("MPI_Irecv(V)q");
       }
 
@@ -183,23 +174,23 @@ int HZ_L3
       swp_rot[0u] += rot2s;
       swp_rot[1u] += rot2b;
    
-      if (MPI_Isend(dF, (lddF * n_col), MPI_DOUBLE, sp, tp, MPI_COMM_WORLD, (r + 6u))) {
+      if (MPI_Isend(dF, (lddF * n_col), MPI_DOUBLE, sp, (1 + tp), MPI_COMM_WORLD, (r + 6u))) {
         DIE("MPI_Isend(F)p");
       }
-      if (MPI_Isend(dG, (lddG * n_col), MPI_DOUBLE, sp, tp, MPI_COMM_WORLD, (r + 7u))) {
+      if (MPI_Isend(dG, (lddG * n_col), MPI_DOUBLE, sp, (2 + tp), MPI_COMM_WORLD, (r + 7u))) {
         DIE("MPI_Isend(G)p");
       }
-      if (MPI_Isend(dV, (lddV * n_col), MPI_DOUBLE, sp, tp, MPI_COMM_WORLD, (r + 8u))) {
+      if (MPI_Isend(dV, (lddV * n_col), MPI_DOUBLE, sp, (3 + tp), MPI_COMM_WORLD, (r + 8u))) {
         DIE("MPI_Isend(V)p");
       }
 
-      if (MPI_Isend((dF + lddF * n_col), (lddF * n_col), MPI_DOUBLE, sq, tq, MPI_COMM_WORLD, (r + 9u))) {
+      if (MPI_Isend((dF + lddF * n_col), (lddF * n_col), MPI_DOUBLE, sq, (1 + tq), MPI_COMM_WORLD, (r + 9u))) {
         DIE("MPI_Isend(F)q");
       }
-      if (MPI_Isend((dG + lddG * n_col), (lddG * n_col), MPI_DOUBLE, sq, tq, MPI_COMM_WORLD, (r + 10u))) {
+      if (MPI_Isend((dG + lddG * n_col), (lddG * n_col), MPI_DOUBLE, sq, (2 + tq), MPI_COMM_WORLD, (r + 10u))) {
         DIE("MPI_Isend(G)q");
       }
-      if (MPI_Isend((dV + lddV * n_col), (lddV * n_col), MPI_DOUBLE, sq, tq, MPI_COMM_WORLD, (r + 11u))) {
+      if (MPI_Isend((dV + lddV * n_col), (lddV * n_col), MPI_DOUBLE, sq, (3 + tq), MPI_COMM_WORLD, (r + 11u))) {
         DIE("MPI_Isend(V)q");
       }
 

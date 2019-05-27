@@ -161,10 +161,6 @@ int main(int argc, char *argv[])
   }
 
   const unsigned routine = static_cast<unsigned>(atou(ca_alg));
-  if (routine && (routine != 8u)) {
-    (void)fprintf(stderr, "ALG(%d) \\notin { 0, 8 }\n", routine);
-    return EXIT_FAILURE;
-  }
 
   const size_t mF = atou(ca_mF);
   if (!mF)

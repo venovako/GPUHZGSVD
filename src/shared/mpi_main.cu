@@ -602,6 +602,12 @@ int main(int argc, char *argv[])
   if (MPI_File_set_size(fh, (n * sizeof(double)))) {
     DIE("MPI_File_set_size(SS)");
   }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(SS)");
+  }
+  if (MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE, "native", MPI_INFO_NULL)) {
+    DIE("MPI_File_set_view(SS)");
+  }
   if (MPI_File_write_at(fh, opS, hS, n_p, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
     DIE("MPI_File_write_at(SS)p");
   }
@@ -624,6 +630,12 @@ int main(int argc, char *argv[])
   if (MPI_File_set_size(fh, (n * sizeof(double)))) {
     DIE("MPI_File_set_size(SY)");
   }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(SY)");
+  }
+  if (MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE, "native", MPI_INFO_NULL)) {
+    DIE("MPI_File_set_view(SY)");
+  }
   if (MPI_File_write_at(fh, opS, hH, n_p, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
     DIE("MPI_File_write_at(SY)p");
   }
@@ -645,6 +657,12 @@ int main(int argc, char *argv[])
   }
   if (MPI_File_set_size(fh, (n * sizeof(double)))) {
     DIE("MPI_File_set_size(SW)");
+  }
+  if (MPI_File_sync(fh)) {
+    DIE("MPI_File_sync(SW)");
+  }
+  if (MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE, "native", MPI_INFO_NULL)) {
+    DIE("MPI_File_set_view(SW)");
   }
   if (MPI_File_write_at(fh, opS, hK, n_p, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
     DIE("MPI_File_write_at(SW)p");

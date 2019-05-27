@@ -11,6 +11,7 @@ endif # !GPU_ARCH
 ifndef CVG
 CVG=0
 endif # !CVG
+HCVG=$(shell expr $(CVG) / 2)
 
 ifndef STD
 STD=11
@@ -51,8 +52,10 @@ HEADERS=				\
 	cuZ.hpp                         \
 	device_code.hpp			\
 	device_code_accumV.hpp 		\
-	device_code_cdsort_$(CVG).hpp	\
+	device_code_cdsort_$(HCVG).hpp	\
+	device_code_nosort_$(HCVG).hpp	\
 	device_code_cdsort_accumV.hpp	\
+	device_code_nosort_accumV.hpp	\
 	device_code_common.hpp		\
 	device_code_globals.hpp		\
 	device_code_common_rotate.hpp	\

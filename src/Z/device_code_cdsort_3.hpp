@@ -105,9 +105,9 @@ MYDEVFN unsigned zHZ_L0_sv
         double CosF, CosP;
         cuD SinFD, _SinPD;
         cuJ SinFJ, _SinPJ;
+        int fn1, pn1;
 
-        zRot(App, Aqq, ApqD, ApqJ, BpqD, BpqJ, Bpq_, CosF, SinFD, SinFJ, CosP, _SinPD, _SinPJ);
-        transf_b = ((CosF != 1.0) || (CosP != 1.0));
+        transf_b = zRot(App, Aqq, ApqD, ApqJ, BpqD, BpqJ, Bpq_, CosF, SinFD, SinFJ, CosP, _SinPD, _SinPJ, fn1, pn1);
 
         if (Bpp != 1.0) {
           CosF *= Bpp;
@@ -119,9 +119,8 @@ MYDEVFN unsigned zHZ_L0_sv
           _SinPD *= Bqq;
           _SinPJ *= Bqq;
         }
-        const int
-          fn1 = (CosF != 1.0),
-          pn1 = (CosP != 1.0);
+        fn1 = (CosF != 1.0);
+        pn1 = (CosP != 1.0);
 
         if (fn1) {
           if (pn1) {
@@ -289,7 +288,7 @@ MYDEVFN unsigned zHZ_L0_sv
     F32(VJ, x, p) *= Vpp;
   }
   __syncthreads();
- 
+
   Aqq = zSsq32(Fq_D, Fq_J);
   assert(Aqq > 0.0);
   assert(Aqq < INFTY);

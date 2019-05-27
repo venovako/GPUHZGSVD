@@ -13,8 +13,8 @@
 
 EXTERN_C int // 0 if OK, < 0 if invalid argument, > 0 if error
 HZ_L2_gpu
-(unsigned &alg,             // IN, routine ID, <= 15, (B__I)_2,
- // B: block-oriented (else, full-block), I: init symbols (else, keep the previous ones);
+(unsigned &alg,             // IN, routine ID, <= 15, (B_NI)_2,
+ // B: block-oriented (else, full-block), N: no sort, I: init symbols (else, keep the previous ones);
  const unsigned nrowF,      // IN, number of rows of F, == 0 (mod 64);
  const unsigned nrowG,      // IN, number of rows of G, == 0 (mod 64);
  const unsigned ncol,       // IN, number of columns, <= min(nrowF, nrowG), == 0 (mod 32);
@@ -57,8 +57,8 @@ HZ_L2_gpu
 
 EXTERN_C int // 0 if OK, < 0 if invalid argument, > 0 if error
 HZ_L2
-(const unsigned routine,    // IN, routine ID, <= 15, (B___)_2,
- // B: block-oriented (else, full-block);
+(const unsigned routine,    // IN, routine ID, <= 15, (B_N_)_2,
+ // B: block-oriented (else, full-block), N: no sort;
  const unsigned nrowF,      // IN, number of rows of F, == 0 (mod 64);
  const unsigned nrowG,      // IN, number of rows of G, == 0 (mod 64);
  const unsigned ncol,       // IN, number of columns, <= min(nrowF, nrowG), == 0 (mod 32);

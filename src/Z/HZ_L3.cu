@@ -1,12 +1,12 @@
 #include "HZ_L3.hpp"
 
-#include "cuda_memory_helper.hpp"
 #include "HZ_L.hpp"
 #include "HZ_L2.hpp"
+#include "cuda_memory_helper.hpp"
 
 int HZ_L3
-(const unsigned routine,    // IN, routine ID, <= 15, (Bb__)_2,
- // bits B, b: block-oriented (else, full-block), level 1 and 2;
+(const unsigned routine,    // IN, routine ID, <= 15, (BbN_)_2,
+ // bits B, b: block-oriented (else, full-block), level 1 and 2, N: no sort;
  const size_t gpu,          // IN, GPU ID (0 <= gpu < gpus);
  const size_t gpus,         // IN, number of GPUs;
  const size_t mF,           // IN, number of rows of F, == 0 (mod 64);
@@ -32,15 +32,8 @@ int HZ_L3
  double &timing             // OUT, in seconds;
 ) throw()
 {
-  switch (routine) {
-  case 12:
-  case 8u:
-  case 4u:
-  case 0u:
-    break;
-  default:
+  if (routine >= 16)
     return -1;
-  }
 
   if (gpu >= gpus)
     return -2;
@@ -146,13 +139,11 @@ int HZ_L3
       CUDA_CALL(cudaDeviceSynchronize());
 
       int sp = static_cast<int>(strat2[stp][gpu][1u][0u]);
-      const int tp = (sp ? ((sp < 0) ? 1 : 2) : 0);
-      if (!tp) { DIE("tp"); }
+      const int tp = (sp ? ((sp < 0) ? 0 : 6) : -1);
       sp = abs(sp) - 1;
 
       int sq = static_cast<int>(strat2[stp][gpu][1u][1u]);
-      const int tq = (sq ? ((sq < 0) ? 1 : 2) : 0);
-      if (!tq) { DIE("tq"); }
+      const int tq = (sq ? ((sq < 0) ? 0 : 6) : -1);
       sq = abs(sq) - 1;
 
       MPI_Request r[24u] =
@@ -164,38 +155,38 @@ int HZ_L3
       if (MPI_Irecv(hFD, (ldhF * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, (r + 0u))) {
         DIE("MPI_Irecv(FD)p");
       }
-      if (MPI_Irecv(hFJ, (ldhF * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, (r + 1u))) {
+      if (MPI_Irecv(hFJ, (ldhF * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, (r + 1u))) {
         DIE("MPI_Irecv(FJ)p");
       }
-      if (MPI_Irecv(hGD, (ldhG * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, (r + 2u))) {
+      if (MPI_Irecv(hGD, (ldhG * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 3, MPI_COMM_WORLD, (r + 2u))) {
         DIE("MPI_Irecv(GD)p");
       }
-      if (MPI_Irecv(hGJ, (ldhG * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, (r + 3u))) {
+      if (MPI_Irecv(hGJ, (ldhG * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 4, MPI_COMM_WORLD, (r + 3u))) {
         DIE("MPI_Irecv(GJ)p");
       }
-      if (MPI_Irecv(hVD, (ldhV * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, (r + 4u))) {
+      if (MPI_Irecv(hVD, (ldhV * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 5, MPI_COMM_WORLD, (r + 4u))) {
         DIE("MPI_Irecv(VD)p");
       }
-      if (MPI_Irecv(hVJ, (ldhV * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, (r + 5u))) {
+      if (MPI_Irecv(hVJ, (ldhV * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 6, MPI_COMM_WORLD, (r + 5u))) {
         DIE("MPI_Irecv(VJ)p");
       }
 
-      if (MPI_Irecv((hFD + ldhF * n_col), (ldhF * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, (r + 6u))) {
+      if (MPI_Irecv((hFD + ldhF * n_col), (ldhF * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 7, MPI_COMM_WORLD, (r + 6u))) {
         DIE("MPI_Irecv(FD)q");
       }
-      if (MPI_Irecv((hFJ + ldhF * n_col), (ldhF * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, (r + 7u))) {
+      if (MPI_Irecv((hFJ + ldhF * n_col), (ldhF * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 8, MPI_COMM_WORLD, (r + 7u))) {
         DIE("MPI_Irecv(FJ)q");
       }
-      if (MPI_Irecv((hGD + ldhG * n_col), (ldhG * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, (r + 8u))) {
+      if (MPI_Irecv((hGD + ldhG * n_col), (ldhG * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 9, MPI_COMM_WORLD, (r + 8u))) {
         DIE("MPI_Irecv(GD)q");
       }
-      if (MPI_Irecv((hGJ + ldhG * n_col), (ldhG * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, (r + 9u))) {
+      if (MPI_Irecv((hGJ + ldhG * n_col), (ldhG * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 10, MPI_COMM_WORLD, (r + 9u))) {
         DIE("MPI_Irecv(GJ)q");
       }
-      if (MPI_Irecv((hVD + ldhV * n_col), (ldhV * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, (r + 10u))) {
+      if (MPI_Irecv((hVD + ldhV * n_col), (ldhV * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 11, MPI_COMM_WORLD, (r + 10u))) {
         DIE("MPI_Irecv(VD)q");
       }
-      if (MPI_Irecv((hVJ + ldhV * n_col), (ldhV * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, (r + 11u))) {
+      if (MPI_Irecv((hVJ + ldhV * n_col), (ldhV * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 12, MPI_COMM_WORLD, (r + 11u))) {
         DIE("MPI_Irecv(VJ)q");
       }
 
@@ -217,41 +208,41 @@ int HZ_L3
       swp_rot[0u] += rot2s;
       swp_rot[1u] += rot2b;
    
-      if (MPI_Isend(dFD, (lddF * n_col), MPI_DOUBLE, sp, tp, MPI_COMM_WORLD, (r + 12u))) {
+      if (MPI_Isend(dFD, (lddF * n_col), MPI_DOUBLE, sp, (1 + tp), MPI_COMM_WORLD, (r + 12u))) {
         DIE("MPI_Isend(FD)p");
       }
-      if (MPI_Isend(dFJ, (lddF * n_col), MPI_DOUBLE, sp, tp, MPI_COMM_WORLD, (r + 13u))) {
+      if (MPI_Isend(dFJ, (lddF * n_col), MPI_DOUBLE, sp, (2 + tp), MPI_COMM_WORLD, (r + 13u))) {
         DIE("MPI_Isend(FJ)p");
       }
-      if (MPI_Isend(dGD, (lddG * n_col), MPI_DOUBLE, sp, tp, MPI_COMM_WORLD, (r + 14u))) {
+      if (MPI_Isend(dGD, (lddG * n_col), MPI_DOUBLE, sp, (3 + tp), MPI_COMM_WORLD, (r + 14u))) {
         DIE("MPI_Isend(GD)p");
       }
-      if (MPI_Isend(dGJ, (lddG * n_col), MPI_DOUBLE, sp, tp, MPI_COMM_WORLD, (r + 15u))) {
+      if (MPI_Isend(dGJ, (lddG * n_col), MPI_DOUBLE, sp, (4 + tp), MPI_COMM_WORLD, (r + 15u))) {
         DIE("MPI_Isend(GJ)p");
       }
-      if (MPI_Isend(dVD, (lddV * n_col), MPI_DOUBLE, sp, tp, MPI_COMM_WORLD, (r + 16u))) {
+      if (MPI_Isend(dVD, (lddV * n_col), MPI_DOUBLE, sp, (5 + tp), MPI_COMM_WORLD, (r + 16u))) {
         DIE("MPI_Isend(VD)p");
       }
-      if (MPI_Isend(dVJ, (lddV * n_col), MPI_DOUBLE, sp, tp, MPI_COMM_WORLD, (r + 17u))) {
+      if (MPI_Isend(dVJ, (lddV * n_col), MPI_DOUBLE, sp, (6 + tp), MPI_COMM_WORLD, (r + 17u))) {
         DIE("MPI_Isend(VJ)p");
       }
 
-      if (MPI_Isend((dFD + lddF * n_col), (lddF * n_col), MPI_DOUBLE, sq, tq, MPI_COMM_WORLD, (r + 18u))) {
+      if (MPI_Isend((dFD + lddF * n_col), (lddF * n_col), MPI_DOUBLE, sq, (1 + tq), MPI_COMM_WORLD, (r + 18u))) {
         DIE("MPI_Isend(FD)q");
       }
-      if (MPI_Isend((dFJ + lddF * n_col), (lddF * n_col), MPI_DOUBLE, sq, tq, MPI_COMM_WORLD, (r + 19u))) {
+      if (MPI_Isend((dFJ + lddF * n_col), (lddF * n_col), MPI_DOUBLE, sq, (2 + tq), MPI_COMM_WORLD, (r + 19u))) {
         DIE("MPI_Isend(FJ)q");
       }
-      if (MPI_Isend((dGD + lddG * n_col), (lddG * n_col), MPI_DOUBLE, sq, tq, MPI_COMM_WORLD, (r + 20u))) {
+      if (MPI_Isend((dGD + lddG * n_col), (lddG * n_col), MPI_DOUBLE, sq, (3 + tq), MPI_COMM_WORLD, (r + 20u))) {
         DIE("MPI_Isend(GD)q");
       }
-      if (MPI_Isend((dGJ + lddG * n_col), (lddG * n_col), MPI_DOUBLE, sq, tq, MPI_COMM_WORLD, (r + 21u))) {
+      if (MPI_Isend((dGJ + lddG * n_col), (lddG * n_col), MPI_DOUBLE, sq, (4 + tq), MPI_COMM_WORLD, (r + 21u))) {
         DIE("MPI_Isend(GJ)q");
       }
-      if (MPI_Isend((dVD + lddV * n_col), (lddV * n_col), MPI_DOUBLE, sq, tq, MPI_COMM_WORLD, (r + 22u))) {
+      if (MPI_Isend((dVD + lddV * n_col), (lddV * n_col), MPI_DOUBLE, sq, (5 + tq), MPI_COMM_WORLD, (r + 22u))) {
         DIE("MPI_Isend(VD)q");
       }
-      if (MPI_Isend((dVJ + lddV * n_col), (lddV * n_col), MPI_DOUBLE, sq, tq, MPI_COMM_WORLD, (r + 23u))) {
+      if (MPI_Isend((dVJ + lddV * n_col), (lddV * n_col), MPI_DOUBLE, sq, (6 + tq), MPI_COMM_WORLD, (r + 23u))) {
         DIE("MPI_Isend(VJ)q");
       }
 

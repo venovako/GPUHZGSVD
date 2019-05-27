@@ -24,10 +24,48 @@ MYDEVFN unsigned zHZ_L0_sv
     Fp_J, Fq_J, Gp_J, Gq_J, Vp_J, Vq_J,
     ApqJ, BpqJ;
 
-  F32(VD, x, p) = ((x == p) ? 1.0 : 0.0);
-  F32(VJ, x, p) = 0.0;
-  F32(VD, x, q) = ((x == q) ? 1.0 : 0.0);
-  F32(VJ, x, q) = 0.0;
+  GpD = F32(GD, x, p);
+  GpJ = F32(GJ, x, p);
+  Bpp = zSsq32(GpD, GpJ);
+  assert(Bpp > 0.0);
+  assert(Bpp < INFTY);
+
+  GqD = F32(GD, x, q);
+  GqJ = F32(GJ, x, q);
+  Bqq = zSsq32(GqD, GqJ);
+  assert(Bqq > 0.0);
+  assert(Bqq < INFTY);
+
+  __syncthreads();
+
+  if (Bpp != 1.0) {
+    FpD = F32(FD, x, p);
+    FpJ = F32(FJ, x, p);
+    Vpp = my_drsqrt_rn(Bpp);
+    F32(FD, x, p) = FpD * Vpp;
+    F32(FJ, x, p) = FpJ * Vpp;
+    F32(GD, x, p) = GpD * Vpp;
+    F32(GJ, x, p) = GpJ * Vpp;
+  }
+  else
+    Vpp = 1.0;
+  F32(VD, x, p) = ((x == p) ? Vpp : +0.0);
+  F32(VJ, x, p) = +0.0;
+  __syncthreads();
+
+  if (Bqq != 1.0) {
+    FqD = F32(FD, x, q);
+    FqJ = F32(FJ, x, q);
+    Vqq = my_drsqrt_rn(Bqq);
+    F32(FD, x, q) = FqD * Vqq;
+    F32(FJ, x, q) = FqJ * Vqq;
+    F32(GD, x, q) = GqD * Vqq;
+    F32(GJ, x, q) = GqJ * Vqq;
+  }
+  else
+    Vqq = 1.0;
+  F32(VD, x, q) = ((x == q) ? Vqq : +0.0);
+  F32(VJ, x, q) = +0.0;
   __syncthreads();
 
   for (unsigned swp = 0u; swp < _nSwp; ++swp) {
@@ -64,34 +102,8 @@ MYDEVFN unsigned zHZ_L0_sv
       assert(Aqq > 0.0);
       assert(Aqq < INFTY);
 
-      Bpp = zSsq32(GpD, GpJ);
-      assert(Bpp > 0.0);
-      assert(Bpp < INFTY);
-
-      Bqq = zSsq32(GqD, GqJ);
-      assert(Bqq > 0.0);
-      assert(Bqq < INFTY);
-
       zDot32(ApqD, ApqJ, FpD, FpJ, FqD, FqJ);
       zDot32(BpqD, BpqJ, GpD, GpJ, GqD, GqJ);
-
-      if (Bpp != 1.0) {
-        App = __ddiv_rn(App, Bpp);
-        Bpp = my_drsqrt_rn(Bpp);
-        ApqD *= Bpp;
-        ApqJ *= Bpp;
-        BpqD *= Bpp;
-        BpqJ *= Bpp;
-      }
-
-      if (Bqq != 1.0) {
-        Aqq = __ddiv_rn(Aqq, Bqq);
-        Bqq = my_drsqrt_rn(Bqq);
-        ApqD *= Bqq;
-        ApqJ *= Bqq;
-        BpqD *= Bqq;
-        BpqJ *= Bqq;
-      }
 
       const double Bpq_ = hypot(BpqD, BpqJ);
       assert(Bpq_ < 1.0);
@@ -105,23 +117,11 @@ MYDEVFN unsigned zHZ_L0_sv
         double CosF, CosP;
         cuD SinFD, _SinPD;
         cuJ SinFJ, _SinPJ;
+        int fn1, pn1;
 
-        zRot(App, Aqq, ApqD, ApqJ, BpqD, BpqJ, Bpq_, CosF, SinFD, SinFJ, CosP, _SinPD, _SinPJ);
-        transf_b = ((CosF != 1.0) || (CosP != 1.0));
-
-        if (Bpp != 1.0) {
-          CosF *= Bpp;
-          SinFD *= Bpp;
-          SinFJ *= Bpp;
-        }
-        if (Bqq != 1.0) {
-          CosP *= Bqq;
-          _SinPD *= Bqq;
-          _SinPJ *= Bqq;
-        }
-        const int
-          fn1 = (CosF != 1.0),
-          pn1 = (CosP != 1.0);
+        transf_b = zRot(App, Aqq, ApqD, ApqJ, BpqD, BpqJ, Bpq_, CosF, SinFD, SinFJ, CosP, _SinPD, _SinPJ, fn1, pn1);
+        fn1 = (CosF != 1.0);
+        pn1 = (CosP != 1.0);
 
         if (fn1) {
           if (pn1) {
@@ -289,7 +289,7 @@ MYDEVFN unsigned zHZ_L0_sv
     F32(VJ, x, p) *= Vpp;
   }
   __syncthreads();
- 
+
   Aqq = zSsq32(Fq_D, Fq_J);
   assert(Aqq > 0.0);
   assert(Aqq < INFTY);

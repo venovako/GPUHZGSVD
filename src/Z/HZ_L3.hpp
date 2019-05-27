@@ -5,8 +5,8 @@
 
 EXTERN_C int // 0 if OK, < 0 if invalid argument, > 0 if error
 HZ_L3
-(const unsigned routine,    // IN, routine ID, <= 15, (Bb__)_2,
- // bits B, b: block-oriented (else, full-block), level 1 and 2;
+(const unsigned routine,    // IN, routine ID, <= 15, (BbN_)_2,
+ // bits B, b: block-oriented (else, full-block), level 1 and 2, N: no sort;
  const size_t gpu,          // IN, GPU ID (0 <= gpu < gpus);
  const size_t gpus,         // IN, number of GPUs;
  const size_t mF,           // IN, number of rows of F, == 0 (mod 64);

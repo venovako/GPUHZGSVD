@@ -1,7 +1,10 @@
+#include "device_code.hpp"
+
 #include "HZ.hpp"
 #include "HZ_L.hpp"
+#include "cuda_helper.hpp"
+#include "my_utils.hpp"
 
-#include "device_code.hpp"
 #include "device_code_common.hpp"
 #include "device_code_accumV.hpp"
 #if (CVG == 0)
@@ -24,8 +27,6 @@
 #error CVG unknown
 #endif // ?CVG
 #include "device_code_cdsort_accumV.hpp"
-
-#include "my_utils.hpp"
 
 static const dim3 hzL1bD(HZ_L1_THREADS_PER_BLOCK_X, HZ_L1_THREADS_PER_BLOCK_Y, 1u);
 
