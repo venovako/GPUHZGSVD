@@ -3,7 +3,6 @@
 #include "HZ.hpp"
 #include "HZ_L.hpp"
 #include "cuda_helper.hpp"
-#include "my_utils.hpp"
 
 #include "device_code_common.hpp"
 #include "device_code_accumV.hpp"
@@ -69,6 +68,7 @@ void initSymbols
  double *const K,
  const unsigned nRowF,
  const unsigned nRowG,
+ const unsigned nRowV,
  const unsigned nRank,
  const unsigned ldF,
  const unsigned ldG,
@@ -84,6 +84,7 @@ void initSymbols
   CUDA_CALL(cudaMemcpyToSymbolAsync(_K, &K, sizeof(double*)));
   CUDA_CALL(cudaMemcpyToSymbolAsync(_nRowF, &nRowF, sizeof(unsigned)));
   CUDA_CALL(cudaMemcpyToSymbolAsync(_nRowG, &nRowG, sizeof(unsigned)));
+  CUDA_CALL(cudaMemcpyToSymbolAsync(_nRowV, &nRowV, sizeof(unsigned)));
   CUDA_CALL(cudaMemcpyToSymbolAsync(_nRank, &nRank, sizeof(unsigned)));
   CUDA_CALL(cudaMemcpyToSymbolAsync(_ldF, &ldF, sizeof(unsigned)));
   CUDA_CALL(cudaMemcpyToSymbolAsync(_ldG, &ldG, sizeof(unsigned)));

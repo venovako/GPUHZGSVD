@@ -10,6 +10,6 @@ EXTERN_C void initV(const int sclV, const unsigned nRank
   , const unsigned ifc0, const unsigned ifc1
 #endif // USE_MPI
 ) throw();
-EXTERN_C void initSymbols(double *const F, double *const G, double *const V, double *const S, double *const H, double *const K, const unsigned nRowF, const unsigned nRowG, const unsigned nRank, const unsigned ldF, const unsigned ldG, const unsigned ldV, const unsigned nSwp) throw();
+EXTERN_C void initSymbols(double *const F, double *const G, double *const V, double *const S, double *const H, double *const K, const unsigned nRowF, const unsigned nRowG, const unsigned nRowV, const unsigned nRank, const unsigned ldF, const unsigned ldG, const unsigned ldV, const unsigned nSwp) throw();
 
 #endif // !DEVICE_CODE_HPP

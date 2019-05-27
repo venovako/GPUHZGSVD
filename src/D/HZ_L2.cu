@@ -9,15 +9,12 @@
 
 int // 0 if OK, < 0 if invalid argument, > 0 if error
 HZ_L2_gpu
-(unsigned &alg,             // IN, routine ID, <= 15, (B__I)_2,
- // B: block-oriented (else, full-block); I: init symbols (else, keep the previous ones);
+(const unsigned routine,    // IN, routine ID, <= 15, (B___)_2,
+ // B: block-oriented (else, full-block);
  const unsigned nrowF,      // IN, number of rows of F, == 0 (mod 64);
  const unsigned nrowG,      // IN, number of rows of G, == 0 (mod 64);
+ const unsigned nrowV,      // IN, number of rows of V, == 0 (mod 32);
  const unsigned ncol,       // IN, number of columns, <= min(nrowF, nrowG), == 0 (mod 32);
-#ifdef USE_MPI
- const unsigned ifc0,       // IN, index of the first column in the first block column;
- const unsigned ifc1,       // IN, index of the first column in the second block column;
-#endif // USE_MPI
 #ifdef ANIMATE
  double *const hF,          // INOUT, ldhF x ncol host array in Fortran order;
  const unsigned ldhF,       // IN, leading dimension of hF, >= nrowF;
@@ -31,7 +28,7 @@ HZ_L2_gpu
  double *const dG,          // INOUT, ldhG x ncol device array in Fortran order;
  const unsigned lddG,       // IN, leading dimension of dG, >= nrowG;
  double *const dV,          // OUT, ldhV x ncol device array in Fortran order;
- const unsigned lddV,       // IN, leading dimension of dV, >= ncol;
+ const unsigned lddV,       // IN, leading dimension of dV, >= nrowV;
  double *const hS,          // OUT, the generalized singular values, optionally sorted in descending order;
  double *const dS,          // OUT, the generalized singular values, optionally sorted in descending order;
  double *const dH,          // ||F_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2);
@@ -49,22 +46,13 @@ HZ_L2_gpu
 #endif // ANIMATE
 ) throw()
 {
-  if (alg & 1u) {
-    alg &= ~1u;
-    initSymbols(dF, dG, dV, dS, dH, dK, nrowF, nrowG, ncol, static_cast<unsigned>(lddF), static_cast<unsigned>(lddG), static_cast<unsigned>(lddV), ((alg & HZ_BO_1) ? 1u : HZ_NSWEEP));
-    CUDA_CALL(cudaDeviceSynchronize());
-    initV(((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5)), ncol
 #ifdef USE_MPI
-      , ifc0,ifc1
-#endif // USE_MPI
-    );
-  }
   CUDA_CALL(cudaMemsetAsync(dS, 0, ncol * sizeof(double)));
   CUDA_CALL(cudaDeviceSynchronize());
-
+#endif // USE_MPI
   void (*const HZ_L1)(const unsigned) = HZ_L1_sv;
 
-  const unsigned swp = ((alg & HZ_BO_2) ? 1u : HZ_NSWEEP);
+  const unsigned swp = ((routine & HZ_BO_2) ? 1u : HZ_NSWEEP);
   // stats per thread block
   const unsigned spb = 2u;
   // stats count
@@ -265,16 +253,9 @@ HZ_L2
 #endif // ANIMATE
 
   timers[1] = stopwatch_lap(timers[3]);
-  unsigned alg = (routine | 1u);
-#ifdef USE_MPI
-  const unsigned ifc0 = 0u;
-  const unsigned ifc1 = (ncol >> 1u);
-#endif // USE_MPI
   const int ret = HZ_L2_gpu
-    (alg, nrowF,nrowG,ncol,
-#ifdef USE_MPI
-     ifc0,ifc1,
-#endif // USE_MPI
+    (routine,
+     nrowF,nrowG,ncol,ncol,
 #ifdef ANIMATE
      hF,ldhF,
 #endif // ANIMATE

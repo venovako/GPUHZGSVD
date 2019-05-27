@@ -17,7 +17,7 @@ MYDEVFN void dMultV
 {
   dMultAV(F0, F1, A, C, x, y0, y1, _nRowF);
   dMultAV(G0, G1, B, C, x, y0, y1, _nRowG);
-  dMultAV(V0, V1, A, C, x, y0, y1, _nRank);
+  dMultAV(V0, V1, A, C, x, y0, y1, _nRowV);
 }
 
 #endif // !DEVICE_CODE_ACCUMV_HPP

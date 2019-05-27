@@ -13,15 +13,12 @@
 
 EXTERN_C int // 0 if OK, < 0 if invalid argument, > 0 if error
 HZ_L2_gpu
-(unsigned &alg,             // IN, routine ID, <= 15, (B_NI)_2,
- // B: block-oriented (else, full-block), N: no sort, I: init symbols (else, keep the previous ones);
+(const unsigned routine,    // IN, routine ID, <= 15, (B_N_)_2,
+ // B: block-oriented (else, full-block), N: no sort;
  const unsigned nrowF,      // IN, number of rows of F, == 0 (mod 64);
  const unsigned nrowG,      // IN, number of rows of G, == 0 (mod 64);
+ const unsigned nrowV,      // IN, number of rows of V, == 0 (mod 32);
  const unsigned ncol,       // IN, number of columns, <= min(nrowF, nrowG), == 0 (mod 32);
-#ifdef USE_MPI
- const unsigned ifc0,       // IN, index of the first column in the first block column;
- const unsigned ifc1,       // IN, index of the first column in the second block column;
-#endif // USE_MPI
 #ifdef ANIMATE
  cuD *const hFD,            // INOUT, ldhF x ncol host array in Fortran order;
  cuJ *const hFJ,            // INOUT, ldhF x ncol host array in Fortran order;
@@ -40,7 +37,7 @@ HZ_L2_gpu
  const unsigned lddG,       // IN, leading dimension of dG, >= nrowG;
  cuD *const dVD,            // OUT, lddV x ncol host array in Fortran order;
  cuJ *const dVJ,            // OUT, lddV x ncol host array in Fortran order;
- const unsigned lddV,       // IN, leading dimension of dV, >= ncol;
+ const unsigned lddV,       // IN, leading dimension of dV, >= nrowV;
  double *const hS,          // OUT, the generalized singular values, optionally sorted in descending order;
  double *const dS,          // OUT, the generalized singular values, optionally sorted in descending order;
  double *const dH,          // ||F_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2);

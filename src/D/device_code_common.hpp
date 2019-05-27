@@ -234,6 +234,7 @@ MYDEVFN void dGlobalPostScaleFast
  double *const S,
  const unsigned nRowF,
  const unsigned nRowG,
+ const unsigned nRowV,
  const unsigned nRank,
  const unsigned ldF,
  const unsigned ldG,
@@ -254,7 +255,7 @@ MYDEVFN void dGlobalPostScaleFast
     const double Rhyp = my_drsqrt_rn(Fi_ssq + Gi_ssq);
     if (Rhyp != 1.0) {
       double *const bVi = V + (cix * ldV + lid);
-      const double *const eVi = V + (cix * ldV + nRank);
+      const double *const eVi = V + (cix * ldV + nRowV);
       dScalC(bVi, eVi, Rhyp);
     }
     if (!lid)
@@ -271,6 +272,7 @@ MYDEVFN void dGlobalPostScaleFull
  double *const K,
  const unsigned nRowF,
  const unsigned nRowG,
+ const unsigned nRowV,
  const unsigned nRank,
  const unsigned ldF,
  const unsigned ldG,
@@ -304,7 +306,7 @@ MYDEVFN void dGlobalPostScaleFull
       Hi *= Rhyp;
       Ki *= Rhyp;
       double *const bVi = V + (cix * ldV + lid);
-      const double *const eVi = V + (cix * ldV + nRank);
+      const double *const eVi = V + (cix * ldV + nRowV);
       dScalC(bVi, eVi, Rhyp);
     }
     if (!lid) {
@@ -318,9 +320,9 @@ MYDEVFN void dGlobalPostScaleFull
 MYKERN dInitS(const int full)
 {
   if (full)
-    dGlobalPostScaleFull(_F, _G, _V, _S, _H, _K, _nRowF, _nRowG, _nRank, _ldF, _ldG, _ldV);
+    dGlobalPostScaleFull(_F, _G, _V, _S, _H, _K, _nRowF, _nRowG, _nRowV, _nRank, _ldF, _ldG, _ldV);
   else
-    dGlobalPostScaleFast(_F, _G, _V, _S, _nRowF, _nRowG, _nRank, _ldF, _ldG, _ldV);
+    dGlobalPostScaleFast(_F, _G, _V, _S, _nRowF, _nRowG, _nRank, _nRowV, _ldF, _ldG, _ldV);
 }
 
 MYDEVFN void dGlobalInitV

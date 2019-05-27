@@ -17,7 +17,7 @@ MYDEVFN void zMultV
 {
   zMultAV(F0D, F0J, F1D, F1J, AD, AJ, CD, CJ, x, y0, y1, _nRowF);
   zMultAV(G0D, G0J, G1D, G1J, BD, BJ, CD, CJ, x, y0, y1, _nRowG);
-  zMultAV(V0D, V0J, V1D, V1J, AD, AJ, CD, CJ, x, y0, y1, _nRank);
+  zMultAV(V0D, V0J, V1D, V1J, AD, AJ, CD, CJ, x, y0, y1, _nRowV);
 }
 
 #endif // !DEVICE_CODE_ACCUMV_HPP

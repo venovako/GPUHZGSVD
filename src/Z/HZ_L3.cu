@@ -3,6 +3,7 @@
 #include "HZ_L.hpp"
 #include "HZ_L2.hpp"
 #include "cuda_memory_helper.hpp"
+#include "device_code.hpp"
 
 int HZ_L3
 (const unsigned routine,    // IN, routine ID, <= 15, (BbN_)_2,
@@ -114,12 +115,19 @@ int HZ_L3
   glb_b = 0ull;
   glbSwp = 0u;
   timing = 0.0;
-  unsigned alg = (routine | 1u);
 
+  initSymbols(dFD,dFJ, dGD,dGJ, dVD,dVJ, dS,dH,dK, mF,mG,n,n_gpu, lddF,lddG,lddV, ((routine & HZ_BO_1) ? 1u : HZ_NSWEEP));
   CUDA_CALL(cudaMemset2DAsync(dVD, lddV * sizeof(cuD), 0, n * sizeof(cuD), n_gpu));
   CUDA_CALL(cudaMemset2DAsync(dVJ, lddV * sizeof(cuJ), 0, n * sizeof(cuJ), n_gpu));
+  CUDA_CALL(cudaMemsetAsync(dS, 0, n_gpu * sizeof(double)));
   CUDA_CALL(cudaMemsetAsync(dH, 0, n_gpu * sizeof(double)));
   CUDA_CALL(cudaMemsetAsync(dK, 0, n_gpu * sizeof(double)));
+  CUDA_CALL(cudaDeviceSynchronize());
+  unsigned p = static_cast<unsigned>(strat2[0u][gpu][0u][0u]);
+  unsigned q = static_cast<unsigned>(strat2[0u][gpu][0u][1u]);
+  const size_t ifc0 = p * n_col;
+  const size_t ifc1 = q * n_col;
+  initV(((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5)), n_gpu, ifc0, ifc1);
   CUDA_CALL(cudaDeviceSynchronize());
 
   stopwatch_reset(swp_tim);
@@ -128,6 +136,9 @@ int HZ_L3
     unsigned swp_swp = 0u;
     unsigned long long swp_rot[2u] = { 0ull, 0ull };
     for (unsigned stp = 0u; stp < STRAT2_STEPS; ++stp) {
+      if (MPI_Barrier(MPI_COMM_WORLD)) {
+        DIE("MPI_Barrier");
+      }
       CUDA_CALL(cudaMemcpy2DAsync(dFD, lddF * sizeof(cuD), hFD, ldhF * sizeof(double), mF * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
       CUDA_CALL(cudaMemcpy2DAsync(dFJ, lddF * sizeof(cuJ), hFJ, ldhF * sizeof(double), mF * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
       CUDA_CALL(cudaMemcpy2DAsync(dGD, lddG * sizeof(cuD), hGD, ldhG * sizeof(double), mG * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
@@ -190,15 +201,12 @@ int HZ_L3
         DIE("MPI_Irecv(VJ)q");
       }
 
-      const unsigned p = static_cast<unsigned>(strat2[stp][gpu][0u][0u]);
-      const unsigned q = static_cast<unsigned>(strat2[stp][gpu][0u][1u]);
-
-      const size_t ifc0 = p * n_col;
-      const size_t ifc1 = q * n_col;
+      // p = static_cast<unsigned>(strat2[stp][gpu][0u][0u]);
+      // q = static_cast<unsigned>(strat2[stp][gpu][0u][1u]);
 
       unsigned swp2 = 0u;
       unsigned long long rot2s = 0ull, rot2b = 0ull;
-      const int ret = HZ_L2_gpu(alg, mF,mG,n_gpu, ifc0,ifc1, dFD,dFJ,lddF, dGD,dGJ,lddG, dVD,dVJ,lddV, hS,dS,dH,dK, swp2,rot2s,rot2b);
+      const int ret = HZ_L2_gpu(routine, mF,mG,n,n_gpu, dFD,dFJ,lddF, dGD,dGJ,lddG, dVD,dVJ,lddV, hS,dS,dH,dK, swp2,rot2s,rot2b);
       if (ret) {
         (void)snprintf(err_msg, err_msg_size, "HZ_L2_gpu @GPU(%u) SWP(%u) STP(%u): %d", gpu, glbSwp, stp, ret);
         DIE(err_msg);

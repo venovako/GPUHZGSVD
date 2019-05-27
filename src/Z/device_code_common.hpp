@@ -281,6 +281,7 @@ MYDEVFN void zGlobalPostScaleFast
  double *const S,
  const unsigned nRowF,
  const unsigned nRowG,
+ const unsigned nRowV,
  const unsigned nRank,
  const unsigned ldF,
  const unsigned ldG,
@@ -309,7 +310,7 @@ MYDEVFN void zGlobalPostScaleFast
       off = cix * ldV + lid;
       cuD *const bViD = VD + off;
       cuJ *const bViJ = VJ + off;
-      off = cix * ldV + nRank;
+      off = cix * ldV + nRowV;
       const cuD *const eViD = VD + off;
       zScalC(bViD, eViD, bViJ, Rhyp);
     }
@@ -327,6 +328,7 @@ MYDEVFN void zGlobalPostScaleFull
  double *const K,
  const unsigned nRowF,
  const unsigned nRowG,
+ const unsigned nRowV,
  const unsigned nRank,
  const unsigned ldF,
  const unsigned ldG,
@@ -368,7 +370,7 @@ MYDEVFN void zGlobalPostScaleFull
       off = cix * ldV + lid;
       cuD *const bViD = VD + off;
       cuJ *const bViJ = VJ + off;
-      off = cix * ldV + nRank;
+      off = cix * ldV + nRowV;
       const cuD *const eViD = VD + off;
       zScalC(bViD, eViD, bViJ, Rhyp);
     }
@@ -383,9 +385,9 @@ MYDEVFN void zGlobalPostScaleFull
 MYKERN zInitS(const int full)
 {
   if (full)
-    zGlobalPostScaleFull(_FD, _FJ, _GD, _GJ, _VD, _VJ, _S, _H, _K, _nRowF, _nRowG, _nRank, _ldF, _ldG, _ldV);
+    zGlobalPostScaleFull(_FD, _FJ, _GD, _GJ, _VD, _VJ, _S, _H, _K, _nRowF, _nRowG, _nRowV, _nRank, _ldF, _ldG, _ldV);
   else
-    zGlobalPostScaleFast(_FD, _FJ, _GD, _GJ, _VD, _VJ, _S, _nRowF, _nRowG, _nRank, _ldF, _ldG, _ldV);
+    zGlobalPostScaleFast(_FD, _FJ, _GD, _GJ, _VD, _VJ, _S, _nRowF, _nRowG, _nRowV, _nRank, _ldF, _ldG, _ldV);
 }
 
 MYDEVFN void zGlobalInitV
