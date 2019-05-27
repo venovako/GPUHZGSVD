@@ -60,8 +60,9 @@ HZ_L2_gpu
       , ifc0, ifc1
 #endif // USE_MPI
     );
-    CUDA_CALL(cudaDeviceSynchronize());
   }
+  CUDA_CALL(cudaMemsetAsync(dS, 0, ncol * sizeof(double)));
+  CUDA_CALL(cudaDeviceSynchronize());
 
   void (*const HZ_L1)(const unsigned) = HZ_L1_sv;
 
@@ -134,9 +135,11 @@ HZ_L2_gpu
     glb_s += cvg_s;
     glb_b += cvg_b;
 
+#ifndef USE_MPI
     const double tim_s = stopwatch_lap(swp_tim) * TS2S;
     (void)fprintf(stdout, "BLK_SWP(%2u), ROT_S(%10llu), ROT_B(%10llu), TIME(%#12.6f s)\n", blk_swp, cvg_s, cvg_b, tim_s);
     (void)fflush(stdout);
+#endif // !USE_MPI
     if (!cvg_b)
       break;
 
@@ -274,7 +277,6 @@ HZ_L2
   CUDA_CALL(cudaMemcpy2DAsync(dGJ, lddG * sizeof(cuJ), hGJ, ldhG * sizeof(double), nrowG * sizeof(cuJ), ncol, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaMemset2DAsync(dVD, lddV * sizeof(cuD), 0, ncol * sizeof(cuD), ncol));
   CUDA_CALL(cudaMemset2DAsync(dVJ, lddV * sizeof(cuJ), 0, ncol * sizeof(cuJ), ncol));
-  CUDA_CALL(cudaMemsetAsync(dS, 0, ncol * sizeof(double)));
   CUDA_CALL(cudaMemsetAsync(dH, 0, ncol * sizeof(double)));
   CUDA_CALL(cudaMemsetAsync(dK, 0, ncol * sizeof(double)));
   CUDA_CALL(cudaDeviceSynchronize());

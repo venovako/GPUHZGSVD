@@ -5,7 +5,7 @@
 
 // maximal number of sweeps per Jacobi process
 #ifndef HZ_NSWEEP
-#define HZ_NSWEEP 99u
+#define HZ_NSWEEP 30u
 #endif // !HZ_NSWEEP
 
 // HEPS = DBL_EPSILON / 2 = 2^(-53) (* Lapack/RN Epsilon *)

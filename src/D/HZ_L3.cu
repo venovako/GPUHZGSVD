@@ -112,7 +112,6 @@ int HZ_L3
   unsigned alg = (routine | 1u);
 
   CUDA_CALL(cudaMemset2DAsync(dV, lddV * sizeof(double), 0, n * sizeof(double), n_gpu));
-  CUDA_CALL(cudaMemsetAsync(dS, 0, n_gpu * sizeof(double)));
   CUDA_CALL(cudaMemsetAsync(dH, 0, n_gpu * sizeof(double)));
   CUDA_CALL(cudaMemsetAsync(dK, 0, n_gpu * sizeof(double)));
   CUDA_CALL(cudaDeviceSynchronize());
@@ -207,28 +206,25 @@ int HZ_L3
       if (MPI_Waitall(12, r, MPI_STATUSES_IGNORE)) {
         DIE("MPI_Waitall");
       }
-      for (unsigned i = 12u; i; ) {
-        if (MPI_Request_free(r + --i)) {
-          DIE("MPI_Request_free");
-        }
-      }
       CUDA_CALL(cudaDeviceSynchronize());
     }
-    if (MPI_Allreduce(MPI_IN_PLACE, &swp_swp, 1, MPI_UNSIGNED, MPI_MAX, MPI_COMM_WORLD)) {
-      DIE("MPI_Allreduce(swp_swp)");
+    unsigned max_swp = 0u;
+    if (MPI_Allreduce(&swp_swp, &max_swp, 1, MPI_UNSIGNED, MPI_MAX, MPI_COMM_WORLD)) {
+      DIE("MPI_Allreduce(max_swp)");
     }
-    if (MPI_Allreduce(MPI_IN_PLACE, swp_rot, 2, MPI_UNSIGNED_LONG_LONG, MPI_SUM, MPI_COMM_WORLD)) {
-      DIE("MPI_Allreduce(swp_rot)");
+    unsigned long long all_rot[2u] = { 0ull, 0ull };
+    if (MPI_Allreduce(swp_rot, all_rot, 2, MPI_UNSIGNED_LONG_LONG, MPI_SUM, MPI_COMM_WORLD)) {
+      DIE("MPI_Allreduce(all_rot)");
     }
-    glb_s += swp_rot[0u];
-    glb_b += swp_rot[1u];
+    glb_s += all_rot[0u];
+    glb_b += all_rot[1u];
     ++glbSwp;
 
     if (!gpu) {
-      (void)fprintf(stdout, "MAX2SWP(%2u), ROT_S(%10llu), ROT_B(%10llu), TIME(%#12.6f s)\n", swp_swp, swp_rot[0u], swp_rot[1u], (stopwatch_lap(swp_tim) * TS2S));
+      (void)fprintf(stdout, "MAX2SWP(%2u), ROT_S(%10llu), ROT_B(%10llu), TIME(%#12.6f s)\n", max_swp, all_rot[0u], all_rot[1u], (stopwatch_lap(swp_tim) * TS2S));
       (void)fflush(stdout);
     }
-    if (!swp_rot[1u])
+    if (!all_rot[1u])
       break;
   }
 
