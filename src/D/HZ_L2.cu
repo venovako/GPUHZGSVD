@@ -18,23 +18,23 @@ HZ_L2_gpu
  const unsigned ifc0,       // IN, index of the first column in the first block column;
  const unsigned ifc1,       // IN, index of the first column in the second block column;
 #endif // USE_MPI
+#ifdef ANIMATE
  double *const hF,          // INOUT, ldhF x ncol host array in Fortran order;
  const unsigned ldhF,       // IN, leading dimension of hF, >= nrowF;
+#endif // ANIMATE
  double *const dF,          // INOUT, ldhF x ncol device array in Fortran order;
  const unsigned lddF,       // IN, leading dimension of dF, >= nrowF;
+#ifdef ANIMATE
  double *const hG,          // INOUT, ldhG x ncol host array in Fortran order;
  const unsigned ldhG,       // IN, leading dimension of fG, >= nrowG;
+#endif // ANIMATE
  double *const dG,          // INOUT, ldhG x ncol device array in Fortran order;
  const unsigned lddG,       // IN, leading dimension of dG, >= nrowG;
- double *const hV,          // OUT, ldhV x ncol host array in Fortran order;
- const unsigned ldhV,       // IN, leading dimension of hV, >= ncol;
  double *const dV,          // OUT, ldhV x ncol device array in Fortran order;
  const unsigned lddV,       // IN, leading dimension of dV, >= ncol;
  double *const hS,          // OUT, the generalized singular values, optionally sorted in descending order;
  double *const dS,          // OUT, the generalized singular values, optionally sorted in descending order;
- double *const hH,          // ||F_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2);
  double *const dH,          // ||F_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2);
- double *const hK,          // ||G_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2);
  double *const dK,          // ||G_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2);
  unsigned &glbSwp,          // OUT, number of sweeps at the outermost level;
  unsigned long long &glb_s, // OUT, number of rotations;
@@ -273,7 +273,17 @@ HZ_L2
 #ifdef USE_MPI
      ifc0,ifc1,
 #endif // USE_MPI
-     hF,ldhF, dF,lddF, hG,ldhG, dG,lddG, hV,ldhV, dV,lddV, hS,dS, hH,dH, hK,dK, glbSwp,glb_s,glb_b
+#ifdef ANIMATE
+     hF,ldhF,
+#endif // ANIMATE
+     dF,lddF,
+#ifdef ANIMATE
+     hG,ldhG,
+#endif // ANIMATE
+     dG,lddG,
+     dV,lddV,
+     hS,dS,dH,dK,
+     glbSwp,glb_s,glb_b
 #ifdef ANIMATE
 #if (ANIMATE == 1)
      , ctx
