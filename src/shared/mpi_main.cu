@@ -364,7 +364,7 @@ int main(int argc, char *argv[])
 
   unsigned glbSwp = 0u;
   unsigned long long glb_s = 0ull, glb_b = 0ull;
-  double timing[4u] = { -0.0, -0.0, -0.0, -0.0 };
+  double timing = -0.0;
 
 #ifdef USE_COMPLEX
   const int ret = HZ_L3(routine, gpu, gpus, mF_, mG_, n_, n_gpu, n_col, hFD, hFJ, ldhF, hGD, hGJ, ldhG, hVD, hVJ, ldhV, hS, hH, hK, glbSwp, glb_s, glb_b, timing);
@@ -379,7 +379,7 @@ int main(int argc, char *argv[])
   else if (!gpu) {
     (void)fprintf(stdout, "GLB_ROT_S(%20llu), GLB_ROT_B(%20llu)\n", glb_s, glb_b);
     (void)fflush(stdout);
-    (void)fprintf(stdout, "%#12.6f s %2u sweeps\n", *timing, glbSwp);
+    (void)fprintf(stdout, "%#12.6f s %2u sweeps\n", timing, glbSwp);
     (void)fflush(stdout);
   }
 

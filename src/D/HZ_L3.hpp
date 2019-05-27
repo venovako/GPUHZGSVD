@@ -26,7 +26,7 @@ HZ_L3
  unsigned &glbSwp,          // OUT, number of sweeps at the outermost level;
  unsigned long long &glb_s, // OUT, number of rotations;
  unsigned long long &glb_b, // OUT, number of ``big'' rotations;
- double *const timing       // OUT, optional, in seconds, double[4];
+ double &timing             // OUT, in seconds;
 ) throw();
 
 #endif // !HZ_L3_HPP
