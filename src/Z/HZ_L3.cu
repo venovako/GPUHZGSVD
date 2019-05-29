@@ -127,25 +127,34 @@ int HZ_L3
   CUDA_CALL(cudaMemsetAsync(dH, 0, n_gpu * sizeof(double)));
   CUDA_CALL(cudaMemsetAsync(dK, 0, n_gpu * sizeof(double)));
   CUDA_CALL(cudaDeviceSynchronize());
-  unsigned p = static_cast<unsigned>(strat2[0u][gpu][0u][0u]);
-  unsigned q = static_cast<unsigned>(strat2[0u][gpu][0u][1u]);
+  const unsigned p = static_cast<unsigned>(strat2[0u][gpu][0u][0u]);
+  const unsigned q = static_cast<unsigned>(strat2[0u][gpu][0u][1u]);
   const size_t ifc0 = p * n_col;
   const size_t ifc1 = q * n_col;
   initV(((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5)), n_gpu, ifc0, ifc1);
   CUDA_CALL(cudaDeviceSynchronize());
-  CUDA_CALL(cudaMemcpy2DAsync(hFD, ldhF * sizeof(double), dFD, lddF * sizeof(cuD), lddF /*mF*/ * sizeof(cuD), n_gpu, cudaMemcpyDeviceToHost));
-  CUDA_CALL(cudaMemcpy2DAsync(hFJ, ldhF * sizeof(double), dFJ, lddF * sizeof(cuJ), lddF /*mF*/ * sizeof(cuJ), n_gpu, cudaMemcpyDeviceToHost));
-  CUDA_CALL(cudaMemcpy2DAsync(hGD, ldhG * sizeof(double), dGD, lddG * sizeof(cuD), lddG /*mG*/ * sizeof(cuD), n_gpu, cudaMemcpyDeviceToHost));
-  CUDA_CALL(cudaMemcpy2DAsync(hGJ, ldhG * sizeof(double), dGJ, lddG * sizeof(cuJ), lddG /*mG*/ * sizeof(cuJ), n_gpu, cudaMemcpyDeviceToHost));
-  CUDA_CALL(cudaMemcpy2DAsync(hVD, ldhV * sizeof(double), dVD, lddV * sizeof(cuD), lddV /*n*/ * sizeof(cuD), n_gpu, cudaMemcpyDeviceToHost));
-  CUDA_CALL(cudaMemcpy2DAsync(hVJ, ldhV * sizeof(double), dVJ, lddV * sizeof(cuJ), lddV /*n*/ * sizeof(cuJ), n_gpu, cudaMemcpyDeviceToHost));
-  CUDA_CALL(cudaDeviceSynchronize());
+  if (!(HZ_NSWEEP)) {
+    CUDA_CALL(cudaMemcpy2DAsync(hFD, ldhF * sizeof(double), dFD, lddF * sizeof(cuD), lddF /*mF*/ * sizeof(cuD), n_gpu, cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaMemcpy2DAsync(hFJ, ldhF * sizeof(double), dFJ, lddF * sizeof(cuJ), lddF /*mF*/ * sizeof(cuJ), n_gpu, cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaMemcpy2DAsync(hGD, ldhG * sizeof(double), dGD, lddG * sizeof(cuD), lddG /*mG*/ * sizeof(cuD), n_gpu, cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaMemcpy2DAsync(hGJ, ldhG * sizeof(double), dGJ, lddG * sizeof(cuJ), lddG /*mG*/ * sizeof(cuJ), n_gpu, cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaMemcpy2DAsync(hVD, ldhV * sizeof(double), dVD, lddV * sizeof(cuD), lddV /*n*/ * sizeof(cuD), n_gpu, cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaMemcpy2DAsync(hVJ, ldhV * sizeof(double), dVJ, lddV * sizeof(cuJ), lddV /*n*/ * sizeof(cuJ), n_gpu, cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaMemcpyAsync(hS, dS, n_gpu * sizeof(double), cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaMemcpyAsync(hH, dH, n_gpu * sizeof(double), cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaMemcpyAsync(hK, dK, n_gpu * sizeof(double), cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaDeviceSynchronize());
+  }
 
   stopwatch_reset(swp_tim);
 
   while (glbSwp < HZ_NSWEEP) {
     unsigned swp_swp = 0u;
     unsigned long long swp_rot[2u] = { 0ull, 0ull };
+    if (!gpu) {
+      (void)fprintf(stdout, "%u: ", glbSwp);
+      (void)fflush(stdout);
+    }
     for (unsigned stp = 0u; stp < STRAT2_STEPS; ++stp) {
       if (!gpu) {
         (void)fprintf(stdout, "%u", stp);
@@ -161,24 +170,27 @@ int HZ_L3
         CUDA_CALL(cudaMemcpy2DAsync(dGJ, lddG * sizeof(cuJ), hGJ, ldhG * sizeof(double), ldhG /*mG*/ * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
         CUDA_CALL(cudaMemcpy2DAsync(dVD, lddV * sizeof(cuD), hVD, ldhV * sizeof(double), ldhV /*n*/ * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
         CUDA_CALL(cudaMemcpy2DAsync(dVJ, lddV * sizeof(cuJ), hVJ, ldhV * sizeof(double), ldhV /*n*/ * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
+        CUDA_CALL(cudaMemcpyAsync(dS, hS, n_gpu * sizeof(double), cudaMemcpyHostToDevice));
+        CUDA_CALL(cudaMemcpyAsync(dH, hH, n_gpu * sizeof(double), cudaMemcpyHostToDevice));
+        CUDA_CALL(cudaMemcpyAsync(dK, hK, n_gpu * sizeof(double), cudaMemcpyHostToDevice));
         CUDA_CALL(cudaDeviceSynchronize());
       }
 
       int sp = static_cast<int>(strat2[stp][gpu][1u][0u]);
-      const int tp = (sp ? ((sp < 0) ? 0 : 6) : -1);
+      const int tp = (sp ? ((sp < 0) ? 0 : 9) : -1);
       if (tp == -1) { DIE("tp"); }
       sp = abs(sp) - 1;
 
       int sq = static_cast<int>(strat2[stp][gpu][1u][1u]);
-      const int tq = (sq ? ((sq < 0) ? 0 : 6) : -1);
+      const int tq = (sq ? ((sq < 0) ? 0 : 9) : -1);
       if (tq == -1) { DIE("tq"); }
       sq = abs(sq) - 1;
 
-      MPI_Request r[24u] =
-        { MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL,
-          MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL,
-          MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL,
-          MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL };
+      MPI_Request r[36u] =
+        { MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL,
+          MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL,
+          MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL,
+          MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL, MPI_REQUEST_NULL };
 
       if (MPI_Irecv(hFD, (ldhF * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, (r + 0u))) {
         DIE("MPI_Irecv(FD)p");
@@ -198,24 +210,42 @@ int HZ_L3
       if (MPI_Irecv(hVJ, (ldhV * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 6, MPI_COMM_WORLD, (r + 5u))) {
         DIE("MPI_Irecv(VJ)p");
       }
+      if (MPI_Irecv(hS, n_col, MPI_DOUBLE, MPI_ANY_SOURCE, 7, MPI_COMM_WORLD, (r + 6u))) {
+        DIE("MPI_Irecv(S)p");
+      }
+      if (MPI_Irecv(hH, n_col, MPI_DOUBLE, MPI_ANY_SOURCE, 8, MPI_COMM_WORLD, (r + 7u))) {
+        DIE("MPI_Irecv(H)p");
+      }
+      if (MPI_Irecv(hK, n_col, MPI_DOUBLE, MPI_ANY_SOURCE, 9, MPI_COMM_WORLD, (r + 8u))) {
+        DIE("MPI_Irecv(K)p");
+      }
 
-      if (MPI_Irecv((hFD + ldhF * n_col), (ldhF * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 7, MPI_COMM_WORLD, (r + 6u))) {
+      if (MPI_Irecv((hFD + ldhF * n_col), (ldhF * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 10, MPI_COMM_WORLD, (r + 9u))) {
         DIE("MPI_Irecv(FD)q");
       }
-      if (MPI_Irecv((hFJ + ldhF * n_col), (ldhF * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 8, MPI_COMM_WORLD, (r + 7u))) {
+      if (MPI_Irecv((hFJ + ldhF * n_col), (ldhF * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 11, MPI_COMM_WORLD, (r + 10u))) {
         DIE("MPI_Irecv(FJ)q");
       }
-      if (MPI_Irecv((hGD + ldhG * n_col), (ldhG * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 9, MPI_COMM_WORLD, (r + 8u))) {
+      if (MPI_Irecv((hGD + ldhG * n_col), (ldhG * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 12, MPI_COMM_WORLD, (r + 11u))) {
         DIE("MPI_Irecv(GD)q");
       }
-      if (MPI_Irecv((hGJ + ldhG * n_col), (ldhG * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 10, MPI_COMM_WORLD, (r + 9u))) {
+      if (MPI_Irecv((hGJ + ldhG * n_col), (ldhG * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 13, MPI_COMM_WORLD, (r + 12u))) {
         DIE("MPI_Irecv(GJ)q");
       }
-      if (MPI_Irecv((hVD + ldhV * n_col), (ldhV * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 11, MPI_COMM_WORLD, (r + 10u))) {
+      if (MPI_Irecv((hVD + ldhV * n_col), (ldhV * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 14, MPI_COMM_WORLD, (r + 13u))) {
         DIE("MPI_Irecv(VD)q");
       }
-      if (MPI_Irecv((hVJ + ldhV * n_col), (ldhV * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 12, MPI_COMM_WORLD, (r + 11u))) {
+      if (MPI_Irecv((hVJ + ldhV * n_col), (ldhV * n_col), MPI_DOUBLE, MPI_ANY_SOURCE, 15, MPI_COMM_WORLD, (r + 14u))) {
         DIE("MPI_Irecv(VJ)q");
+      }
+      if (MPI_Irecv((hS + n_col), n_col, MPI_DOUBLE, MPI_ANY_SOURCE, 16, MPI_COMM_WORLD, (r + 15u))) {
+        DIE("MPI_Irecv(S)q");
+      }
+      if (MPI_Irecv((hH + n_col), n_col, MPI_DOUBLE, MPI_ANY_SOURCE, 17, MPI_COMM_WORLD, (r + 16u))) {
+        DIE("MPI_Irecv(H)q");
+      }
+      if (MPI_Irecv((hK + n_col), n_col, MPI_DOUBLE, MPI_ANY_SOURCE, 18, MPI_COMM_WORLD, (r + 17u))) {
+        DIE("MPI_Irecv(K)q");
       }
 
       // p = static_cast<unsigned>(strat2[stp][gpu][0u][0u]);
@@ -233,45 +263,63 @@ int HZ_L3
       swp_rot[0u] += rot2s;
       swp_rot[1u] += rot2b;
    
-      if (MPI_Isend(dFD, (lddF * n_col), MPI_DOUBLE, sp, (1 + tp), MPI_COMM_WORLD, (r + 12u))) {
+      if (MPI_Isend(dFD, (lddF * n_col), MPI_DOUBLE, sp, (1 + tp), MPI_COMM_WORLD, (r + 18u))) {
         DIE("MPI_Isend(FD)p");
       }
-      if (MPI_Isend(dFJ, (lddF * n_col), MPI_DOUBLE, sp, (2 + tp), MPI_COMM_WORLD, (r + 13u))) {
+      if (MPI_Isend(dFJ, (lddF * n_col), MPI_DOUBLE, sp, (2 + tp), MPI_COMM_WORLD, (r + 19u))) {
         DIE("MPI_Isend(FJ)p");
       }
-      if (MPI_Isend(dGD, (lddG * n_col), MPI_DOUBLE, sp, (3 + tp), MPI_COMM_WORLD, (r + 14u))) {
+      if (MPI_Isend(dGD, (lddG * n_col), MPI_DOUBLE, sp, (3 + tp), MPI_COMM_WORLD, (r + 20u))) {
         DIE("MPI_Isend(GD)p");
       }
-      if (MPI_Isend(dGJ, (lddG * n_col), MPI_DOUBLE, sp, (4 + tp), MPI_COMM_WORLD, (r + 15u))) {
+      if (MPI_Isend(dGJ, (lddG * n_col), MPI_DOUBLE, sp, (4 + tp), MPI_COMM_WORLD, (r + 21u))) {
         DIE("MPI_Isend(GJ)p");
       }
-      if (MPI_Isend(dVD, (lddV * n_col), MPI_DOUBLE, sp, (5 + tp), MPI_COMM_WORLD, (r + 16u))) {
+      if (MPI_Isend(dVD, (lddV * n_col), MPI_DOUBLE, sp, (5 + tp), MPI_COMM_WORLD, (r + 22u))) {
         DIE("MPI_Isend(VD)p");
       }
-      if (MPI_Isend(dVJ, (lddV * n_col), MPI_DOUBLE, sp, (6 + tp), MPI_COMM_WORLD, (r + 17u))) {
+      if (MPI_Isend(dVJ, (lddV * n_col), MPI_DOUBLE, sp, (6 + tp), MPI_COMM_WORLD, (r + 23u))) {
         DIE("MPI_Isend(VJ)p");
       }
+      if (MPI_Isend(dS, n_col, MPI_DOUBLE, sp, (7 + tp), MPI_COMM_WORLD, (r + 24u))) {
+        DIE("MPI_Isend(S)p");
+      }
+      if (MPI_Isend(dH, n_col, MPI_DOUBLE, sp, (8 + tp), MPI_COMM_WORLD, (r + 25u))) {
+        DIE("MPI_Isend(H)p");
+      }
+      if (MPI_Isend(dK, n_col, MPI_DOUBLE, sp, (9 + tp), MPI_COMM_WORLD, (r + 26u))) {
+        DIE("MPI_Isend(K)p");
+      }
 
-      if (MPI_Isend((dFD + lddF * n_col), (lddF * n_col), MPI_DOUBLE, sq, (1 + tq), MPI_COMM_WORLD, (r + 18u))) {
+      if (MPI_Isend((dFD + lddF * n_col), (lddF * n_col), MPI_DOUBLE, sq, (1 + tq), MPI_COMM_WORLD, (r + 27u))) {
         DIE("MPI_Isend(FD)q");
       }
-      if (MPI_Isend((dFJ + lddF * n_col), (lddF * n_col), MPI_DOUBLE, sq, (2 + tq), MPI_COMM_WORLD, (r + 19u))) {
+      if (MPI_Isend((dFJ + lddF * n_col), (lddF * n_col), MPI_DOUBLE, sq, (2 + tq), MPI_COMM_WORLD, (r + 28u))) {
         DIE("MPI_Isend(FJ)q");
       }
-      if (MPI_Isend((dGD + lddG * n_col), (lddG * n_col), MPI_DOUBLE, sq, (3 + tq), MPI_COMM_WORLD, (r + 20u))) {
+      if (MPI_Isend((dGD + lddG * n_col), (lddG * n_col), MPI_DOUBLE, sq, (3 + tq), MPI_COMM_WORLD, (r + 29u))) {
         DIE("MPI_Isend(GD)q");
       }
-      if (MPI_Isend((dGJ + lddG * n_col), (lddG * n_col), MPI_DOUBLE, sq, (4 + tq), MPI_COMM_WORLD, (r + 21u))) {
+      if (MPI_Isend((dGJ + lddG * n_col), (lddG * n_col), MPI_DOUBLE, sq, (4 + tq), MPI_COMM_WORLD, (r + 30u))) {
         DIE("MPI_Isend(GJ)q");
       }
-      if (MPI_Isend((dVD + lddV * n_col), (lddV * n_col), MPI_DOUBLE, sq, (5 + tq), MPI_COMM_WORLD, (r + 22u))) {
+      if (MPI_Isend((dVD + lddV * n_col), (lddV * n_col), MPI_DOUBLE, sq, (5 + tq), MPI_COMM_WORLD, (r + 31u))) {
         DIE("MPI_Isend(VD)q");
       }
-      if (MPI_Isend((dVJ + lddV * n_col), (lddV * n_col), MPI_DOUBLE, sq, (6 + tq), MPI_COMM_WORLD, (r + 23u))) {
+      if (MPI_Isend((dVJ + lddV * n_col), (lddV * n_col), MPI_DOUBLE, sq, (6 + tq), MPI_COMM_WORLD, (r + 32u))) {
         DIE("MPI_Isend(VJ)q");
       }
+      if (MPI_Isend((dS + n_col), n_col, MPI_DOUBLE, sq, (7 + tq), MPI_COMM_WORLD, (r + 33u))) {
+        DIE("MPI_Isend(S)q");
+      }
+      if (MPI_Isend((dH + n_col), n_col, MPI_DOUBLE, sq, (8 + tq), MPI_COMM_WORLD, (r + 34u))) {
+        DIE("MPI_Isend(H)q");
+      }
+      if (MPI_Isend((dK + n_col), n_col, MPI_DOUBLE, sq, (9 + tq), MPI_COMM_WORLD, (r + 35u))) {
+        DIE("MPI_Isend(K)q");
+      }
 
-      if (MPI_Waitall(24, r, MPI_STATUSES_IGNORE)) {
+      if (MPI_Waitall(36, r, MPI_STATUSES_IGNORE)) {
         DIE("MPI_Waitall");
       }
       CUDA_CALL(cudaDeviceSynchronize());
@@ -300,10 +348,18 @@ int HZ_L3
       break;
   }
 
-  CUDA_CALL(cudaMemcpyAsync(hS, dS, n_gpu * sizeof(double), cudaMemcpyDeviceToHost));
-  CUDA_CALL(cudaMemcpyAsync(hH, dH, n_gpu * sizeof(double), cudaMemcpyDeviceToHost));
-  CUDA_CALL(cudaMemcpyAsync(hK, dK, n_gpu * sizeof(double), cudaMemcpyDeviceToHost));
-  CUDA_CALL(cudaDeviceSynchronize());
+  if (HZ_NSWEEP) {
+    CUDA_CALL(cudaMemcpy2DAsync(dFD, lddF * sizeof(cuD), hFD, ldhF * sizeof(double), ldhF /*mF*/ * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
+    CUDA_CALL(cudaMemcpy2DAsync(dFJ, lddF * sizeof(cuJ), hFJ, ldhF * sizeof(double), ldhF /*mF*/ * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
+    CUDA_CALL(cudaMemcpy2DAsync(dGD, lddG * sizeof(cuD), hGD, ldhG * sizeof(double), ldhG /*mG*/ * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
+    CUDA_CALL(cudaMemcpy2DAsync(dGJ, lddG * sizeof(cuJ), hGJ, ldhG * sizeof(double), ldhG /*mG*/ * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
+    CUDA_CALL(cudaMemcpy2DAsync(dVD, lddV * sizeof(cuD), hVD, ldhV * sizeof(double), ldhV /*n*/ * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
+    CUDA_CALL(cudaMemcpy2DAsync(dVJ, lddV * sizeof(cuJ), hVJ, ldhV * sizeof(double), ldhV /*n*/ * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
+    CUDA_CALL(cudaMemcpyAsync(dS, hS, n_gpu * sizeof(double), cudaMemcpyHostToDevice));
+    CUDA_CALL(cudaMemcpyAsync(dH, hH, n_gpu * sizeof(double), cudaMemcpyHostToDevice));
+    CUDA_CALL(cudaMemcpyAsync(dK, hK, n_gpu * sizeof(double), cudaMemcpyHostToDevice));
+    CUDA_CALL(cudaDeviceSynchronize());
+  }
 
   if (MPI_Barrier(MPI_COMM_WORLD)) {
     DIE("MPI_Barrier(fini)");
