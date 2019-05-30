@@ -142,9 +142,6 @@ int HZ_L3
         (void)fprintf(stdout, "%u", stp);
         (void)fflush(stdout);
       }
-      if (MPI_Barrier(MPI_COMM_WORLD)) {
-        DIE("MPI_Barrier");
-      }
       if (stp || glbSwp) {
         CUDA_CALL(cudaMemcpy2DAsync(dF, lddF * sizeof(double), hF, ldhF * sizeof(double), ldhF /*mF*/ * sizeof(double), n_gpu, cudaMemcpyHostToDevice));
         CUDA_CALL(cudaMemcpy2DAsync(dG, lddG * sizeof(double), hG, ldhG * sizeof(double), ldhG /*mG*/ * sizeof(double), n_gpu, cudaMemcpyHostToDevice));
@@ -269,6 +266,9 @@ int HZ_L3
       if (!gpu) {
         (void)fprintf(stdout, ";");
         (void)fflush(stdout);
+      }
+      if (MPI_Barrier(MPI_COMM_WORLD)) {
+        DIE("MPI_Barrier");
       }
     }
     unsigned max_swp = 0u;
