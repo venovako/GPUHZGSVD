@@ -345,12 +345,12 @@ int main(int argc, char *argv[])
 
   ldA = ldhV;
 #ifdef USE_COMPLEX
-  cuD *const hVD = allocHostMtx<cuD>(ldA, n_gpu, n_gpu, true);
+  cuD *const hVD = allocHostMtx<cuD>(ldA, n_, n_gpu, true);
   SYSP_CALL(hVD);
-  cuJ *const hVJ = allocHostMtx<cuJ>(ldA, n_gpu, n_gpu, true);
+  cuJ *const hVJ = allocHostMtx<cuJ>(ldA, n_, n_gpu, true);
   SYSP_CALL(hVJ);
 #else // !USE_COMPLEX
-  double *const hV = allocHostMtx<double>(ldA, n_gpu, n_gpu, true);
+  double *const hV = allocHostMtx<double>(ldA, n_, n_gpu, true);
   SYSP_CALL(hV);
 #endif // ?USE_COMPLEX
   ldhV = ldA;

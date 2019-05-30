@@ -61,7 +61,7 @@ HZ_L2
  const unsigned ldhF,       // IN, leading dimension of F, >= nrowF;
  double *const hG,          // INOUT, ldhG x ncol host array in Fortran order;
  const unsigned ldhG,       // IN, leading dimension of G, >= nrowG;
- double *const hV,          // OUT, ldhV x ncol host array in Fortran order;
+ double *const hV,          // INOUT, ldhV x ncol host array in Fortran order;
  const unsigned ldhV,       // IN, leading dimension of V, >= ncol;
  double *const hS,          // OUT, the generalized singular values, optionally sorted in descending order;
  double *const hH,          // ||F_i||_2/sqrt(||F_i||_2^2 + ||G_i||_2^2);

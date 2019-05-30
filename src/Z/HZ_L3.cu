@@ -117,15 +117,12 @@ int HZ_L3
   timing = 0.0;
 
   initSymbols(dFD,dFJ, dGD,dGJ, dVD,dVJ, dS,dH,dK, mF,mG,n,n_gpu, lddF,lddG,lddV, ((routine & HZ_BO_1) ? 1u : HZ_NSWEEP));
-  CUDA_CALL(cudaMemcpy2DAsync(dFD, lddF * sizeof(cuD), hFD, ldhF * sizeof(double), ldhF /*mF*/ * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
-  CUDA_CALL(cudaMemcpy2DAsync(dFJ, lddF * sizeof(cuJ), hFJ, ldhF * sizeof(double), ldhF /*mF*/ * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
-  CUDA_CALL(cudaMemcpy2DAsync(dGD, lddG * sizeof(cuD), hGD, ldhG * sizeof(double), ldhG /*mG*/ * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
-  CUDA_CALL(cudaMemcpy2DAsync(dGJ, lddG * sizeof(cuJ), hGJ, ldhG * sizeof(double), ldhG /*mG*/ * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
-  CUDA_CALL(cudaMemcpy2DAsync(dVD, lddV * sizeof(cuD), hVD, ldhV * sizeof(double), ldhV /*n*/ * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
-  CUDA_CALL(cudaMemcpy2DAsync(dVJ, lddV * sizeof(cuJ), hVJ, ldhV * sizeof(double), ldhV /*n*/ * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
-  CUDA_CALL(cudaMemsetAsync(dS, 0, n_gpu * sizeof(double)));
-  CUDA_CALL(cudaMemsetAsync(dH, 0, n_gpu * sizeof(double)));
-  CUDA_CALL(cudaMemsetAsync(dK, 0, n_gpu * sizeof(double)));
+  CUDA_CALL(cudaMemcpy2D(dFD, lddF * sizeof(cuD), hFD, ldhF * sizeof(double), mF * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
+  CUDA_CALL(cudaMemcpy2D(dFJ, lddF * sizeof(cuJ), hFJ, ldhF * sizeof(double), mF * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
+  CUDA_CALL(cudaMemcpy2D(dGD, lddG * sizeof(cuD), hGD, ldhG * sizeof(double), mG * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
+  CUDA_CALL(cudaMemcpy2D(dGJ, lddG * sizeof(cuJ), hGJ, ldhG * sizeof(double), mG * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
+  CUDA_CALL(cudaMemcpy2D(dVD, lddV * sizeof(cuD), hVD, ldhV * sizeof(double), n * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
+  CUDA_CALL(cudaMemcpy2D(dVJ, lddV * sizeof(cuJ), hVJ, ldhV * sizeof(double), n * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaDeviceSynchronize());
   const unsigned p = static_cast<unsigned>(strat2[0u][gpu][0u][0u]);
   const unsigned q = static_cast<unsigned>(strat2[0u][gpu][0u][1u]);
@@ -134,15 +131,15 @@ int HZ_L3
   initV(((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5)), n_gpu, ifc0, ifc1);
   CUDA_CALL(cudaDeviceSynchronize());
   if (!(HZ_NSWEEP)) {
-    CUDA_CALL(cudaMemcpy2DAsync(hFD, ldhF * sizeof(double), dFD, lddF * sizeof(cuD), lddF /*mF*/ * sizeof(cuD), n_gpu, cudaMemcpyDeviceToHost));
-    CUDA_CALL(cudaMemcpy2DAsync(hFJ, ldhF * sizeof(double), dFJ, lddF * sizeof(cuJ), lddF /*mF*/ * sizeof(cuJ), n_gpu, cudaMemcpyDeviceToHost));
-    CUDA_CALL(cudaMemcpy2DAsync(hGD, ldhG * sizeof(double), dGD, lddG * sizeof(cuD), lddG /*mG*/ * sizeof(cuD), n_gpu, cudaMemcpyDeviceToHost));
-    CUDA_CALL(cudaMemcpy2DAsync(hGJ, ldhG * sizeof(double), dGJ, lddG * sizeof(cuJ), lddG /*mG*/ * sizeof(cuJ), n_gpu, cudaMemcpyDeviceToHost));
-    CUDA_CALL(cudaMemcpy2DAsync(hVD, ldhV * sizeof(double), dVD, lddV * sizeof(cuD), lddV /*n*/ * sizeof(cuD), n_gpu, cudaMemcpyDeviceToHost));
-    CUDA_CALL(cudaMemcpy2DAsync(hVJ, ldhV * sizeof(double), dVJ, lddV * sizeof(cuJ), lddV /*n*/ * sizeof(cuJ), n_gpu, cudaMemcpyDeviceToHost));
-    CUDA_CALL(cudaMemcpyAsync(hS, dS, n_gpu * sizeof(double), cudaMemcpyDeviceToHost));
-    CUDA_CALL(cudaMemcpyAsync(hH, dH, n_gpu * sizeof(double), cudaMemcpyDeviceToHost));
-    CUDA_CALL(cudaMemcpyAsync(hK, dK, n_gpu * sizeof(double), cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaMemcpy2D(hFD, ldhF * sizeof(double), dFD, lddF * sizeof(cuD), mF * sizeof(cuD), n_gpu, cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaMemcpy2D(hFJ, ldhF * sizeof(double), dFJ, lddF * sizeof(cuJ), mF * sizeof(cuJ), n_gpu, cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaMemcpy2D(hGD, ldhG * sizeof(double), dGD, lddG * sizeof(cuD), mG * sizeof(cuD), n_gpu, cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaMemcpy2D(hGJ, ldhG * sizeof(double), dGJ, lddG * sizeof(cuJ), mG * sizeof(cuJ), n_gpu, cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaMemcpy2D(hVD, ldhV * sizeof(double), dVD, lddV * sizeof(cuD), n * sizeof(cuD), n_gpu, cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaMemcpy2D(hVJ, ldhV * sizeof(double), dVJ, lddV * sizeof(cuJ), n * sizeof(cuJ), n_gpu, cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaMemcpy(hS, dS, n_gpu * sizeof(double), cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaMemcpy(hH, dH, n_gpu * sizeof(double), cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaMemcpy(hK, dK, n_gpu * sizeof(double), cudaMemcpyDeviceToHost));
     CUDA_CALL(cudaDeviceSynchronize());
   }
 
@@ -161,15 +158,15 @@ int HZ_L3
         (void)fflush(stdout);
       }
       if (stp || glbSwp) {
-        CUDA_CALL(cudaMemcpy2DAsync(dFD, lddF * sizeof(cuD), hFD, ldhF * sizeof(double), ldhF /*mF*/ * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
-        CUDA_CALL(cudaMemcpy2DAsync(dFJ, lddF * sizeof(cuJ), hFJ, ldhF * sizeof(double), ldhF /*mF*/ * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
-        CUDA_CALL(cudaMemcpy2DAsync(dGD, lddG * sizeof(cuD), hGD, ldhG * sizeof(double), ldhG /*mG*/ * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
-        CUDA_CALL(cudaMemcpy2DAsync(dGJ, lddG * sizeof(cuJ), hGJ, ldhG * sizeof(double), ldhG /*mG*/ * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
-        CUDA_CALL(cudaMemcpy2DAsync(dVD, lddV * sizeof(cuD), hVD, ldhV * sizeof(double), ldhV /*n*/ * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
-        CUDA_CALL(cudaMemcpy2DAsync(dVJ, lddV * sizeof(cuJ), hVJ, ldhV * sizeof(double), ldhV /*n*/ * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
-        CUDA_CALL(cudaMemcpyAsync(dS, hS, n_gpu * sizeof(double), cudaMemcpyHostToDevice));
-        CUDA_CALL(cudaMemcpyAsync(dH, hH, n_gpu * sizeof(double), cudaMemcpyHostToDevice));
-        CUDA_CALL(cudaMemcpyAsync(dK, hK, n_gpu * sizeof(double), cudaMemcpyHostToDevice));
+        CUDA_CALL(cudaMemcpy2D(dFD, lddF * sizeof(cuD), hFD, ldhF * sizeof(double), mF * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
+        CUDA_CALL(cudaMemcpy2D(dFJ, lddF * sizeof(cuJ), hFJ, ldhF * sizeof(double), mF * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
+        CUDA_CALL(cudaMemcpy2D(dGD, lddG * sizeof(cuD), hGD, ldhG * sizeof(double), mG * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
+        CUDA_CALL(cudaMemcpy2D(dGJ, lddG * sizeof(cuJ), hGJ, ldhG * sizeof(double), mG * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
+        CUDA_CALL(cudaMemcpy2D(dVD, lddV * sizeof(cuD), hVD, ldhV * sizeof(double), n * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
+        CUDA_CALL(cudaMemcpy2D(dVJ, lddV * sizeof(cuJ), hVJ, ldhV * sizeof(double), n * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
+        CUDA_CALL(cudaMemcpy(dS, hS, n_gpu * sizeof(double), cudaMemcpyHostToDevice));
+        CUDA_CALL(cudaMemcpy(dH, hH, n_gpu * sizeof(double), cudaMemcpyHostToDevice));
+        CUDA_CALL(cudaMemcpy(dK, hK, n_gpu * sizeof(double), cudaMemcpyHostToDevice));
         CUDA_CALL(cudaDeviceSynchronize());
       }
 
@@ -349,15 +346,15 @@ int HZ_L3
   }
 
   if (HZ_NSWEEP) {
-    CUDA_CALL(cudaMemcpy2DAsync(dFD, lddF * sizeof(cuD), hFD, ldhF * sizeof(double), ldhF /*mF*/ * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
-    CUDA_CALL(cudaMemcpy2DAsync(dFJ, lddF * sizeof(cuJ), hFJ, ldhF * sizeof(double), ldhF /*mF*/ * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
-    CUDA_CALL(cudaMemcpy2DAsync(dGD, lddG * sizeof(cuD), hGD, ldhG * sizeof(double), ldhG /*mG*/ * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
-    CUDA_CALL(cudaMemcpy2DAsync(dGJ, lddG * sizeof(cuJ), hGJ, ldhG * sizeof(double), ldhG /*mG*/ * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
-    CUDA_CALL(cudaMemcpy2DAsync(dVD, lddV * sizeof(cuD), hVD, ldhV * sizeof(double), ldhV /*n*/ * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
-    CUDA_CALL(cudaMemcpy2DAsync(dVJ, lddV * sizeof(cuJ), hVJ, ldhV * sizeof(double), ldhV /*n*/ * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
-    CUDA_CALL(cudaMemcpyAsync(dS, hS, n_gpu * sizeof(double), cudaMemcpyHostToDevice));
-    CUDA_CALL(cudaMemcpyAsync(dH, hH, n_gpu * sizeof(double), cudaMemcpyHostToDevice));
-    CUDA_CALL(cudaMemcpyAsync(dK, hK, n_gpu * sizeof(double), cudaMemcpyHostToDevice));
+    CUDA_CALL(cudaMemcpy2D(dFD, lddF * sizeof(cuD), hFD, ldhF * sizeof(double), mF * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
+    CUDA_CALL(cudaMemcpy2D(dFJ, lddF * sizeof(cuJ), hFJ, ldhF * sizeof(double), mF * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
+    CUDA_CALL(cudaMemcpy2D(dGD, lddG * sizeof(cuD), hGD, ldhG * sizeof(double), mG * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
+    CUDA_CALL(cudaMemcpy2D(dGJ, lddG * sizeof(cuJ), hGJ, ldhG * sizeof(double), mG * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
+    CUDA_CALL(cudaMemcpy2D(dVD, lddV * sizeof(cuD), hVD, ldhV * sizeof(double), n * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
+    CUDA_CALL(cudaMemcpy2D(dVJ, lddV * sizeof(cuJ), hVJ, ldhV * sizeof(double), n * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
+    CUDA_CALL(cudaMemcpy(dS, hS, n_gpu * sizeof(double), cudaMemcpyHostToDevice));
+    CUDA_CALL(cudaMemcpy(dH, hH, n_gpu * sizeof(double), cudaMemcpyHostToDevice));
+    CUDA_CALL(cudaMemcpy(dK, hK, n_gpu * sizeof(double), cudaMemcpyHostToDevice));
     CUDA_CALL(cudaDeviceSynchronize());
   }
 
