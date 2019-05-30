@@ -355,6 +355,43 @@ int main(int argc, char *argv[])
 #endif // ?USE_COMPLEX
   ldhV = ldA;
 
+  if ((p_ + n_col) > n) {
+    if (p_ >= n) {
+      const size_t o = (p_ - n);
+#ifdef USE_COMPLEX
+      SYSI_CALL(bdinit((n + o), (o + 1u), hVD, ldA));
+#else // !USE_COMPLEX
+      SYSI_CALL(bdinit((n + o), (o + 1u), hV, ldA));
+#endif // ?USE_COMPLEX
+    }
+    else {
+      const size_t f = (n - p_);
+#ifdef USE_COMPLEX
+      SYSI_CALL(bdinit(n, (n_col - f), (hVD + ldA * f), ldA));
+#else // !USE_COMPLEX
+      SYSI_CALL(bdinit(n, (n_col - f), (hV + ldA * f), ldA));
+#endif // ?USE_COMPLEX
+    }
+  }
+  if ((q_ + n_col) > n) {
+    if (q_ >= n) {
+      const size_t o = (q_ - n);
+#ifdef USE_COMPLEX
+      SYSI_CALL(bdinit((n + o), (o + 1u), (hVD + ldA * n_col), ldA));
+#else // !USE_COMPLEX
+      SYSI_CALL(bdinit((n + o), (o + 1u), (hV + ldA * n_col), ldA));
+#endif // ?USE_COMPLEX
+    }
+    else {
+      const size_t f = (n - p_);
+#ifdef USE_COMPLEX
+      SYSI_CALL(bdinit(n, (n_col - f), (hVD + ldA * (n_col + f)), ldA));
+#else // !USE_COMPLEX
+      SYSI_CALL(bdinit(n, (n_col - f), (hV + ldA * (n_col + f)), ldA));
+#endif // ?USE_COMPLEX
+    }
+  }
+
   double *const hS = allocHostVec<double>(n_gpu);
   SYSP_CALL(hS);
   double *const hH = allocHostVec<double>(n_gpu);

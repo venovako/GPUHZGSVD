@@ -284,6 +284,12 @@ int main(int argc, char *argv[])
 #endif // ?USE_COMPLEX
   ldhV = ldA;
 
+#ifdef USE_COMPLEX
+  SYSI_CALL(bdinit(n, (n_ - n), (hVD + ldA * n), ldA));
+#else // !USE_COMPLEX
+  SYSI_CALL(bdinit(n, (n_ - n), (hV + ldA * n), ldA));
+#endif // ?USE_COMPLEX
+
   double *const hS = allocHostVec<double>(n_);
   SYSP_CALL(hS);
   double *const hH = allocHostVec<double>(n_);
