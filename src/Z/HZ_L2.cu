@@ -60,8 +60,10 @@ HZ_L2_gpu
 
   glb_s = 0ull;
   glb_b = 0ull;
+#ifndef USE_MPI
   long long swp_tim = 0ll;
   stopwatch_reset(swp_tim);
+#endif // !USE_MPI
 
   unsigned blk_swp = 0u;
   while (blk_swp < swp) {
@@ -385,15 +387,15 @@ HZ_L2
   }
 #endif // ANIMATE
 
-  CUDA_CALL(cudaFree(static_cast<void*>(dK)));
-  CUDA_CALL(cudaFree(static_cast<void*>(dH)));
-  CUDA_CALL(cudaFree(static_cast<void*>(dS)));
-  CUDA_CALL(cudaFree(static_cast<void*>(dVJ)));
-  CUDA_CALL(cudaFree(static_cast<void*>(dVD)));
-  CUDA_CALL(cudaFree(static_cast<void*>(dGJ)));
-  CUDA_CALL(cudaFree(static_cast<void*>(dGD)));
-  CUDA_CALL(cudaFree(static_cast<void*>(dFJ)));
-  CUDA_CALL(cudaFree(static_cast<void*>(dFD)));
+  CUDA_CALL(cudaFree(dK));
+  CUDA_CALL(cudaFree(dH));
+  CUDA_CALL(cudaFree(dS));
+  CUDA_CALL(cudaFree(dVJ));
+  CUDA_CALL(cudaFree(dVD));
+  CUDA_CALL(cudaFree(dGJ));
+  CUDA_CALL(cudaFree(dGD));
+  CUDA_CALL(cudaFree(dFJ));
+  CUDA_CALL(cudaFree(dFD));
   CUDA_CALL(cudaDeviceSynchronize());
 
   timers[3] = stopwatch_lap(timers[3]);

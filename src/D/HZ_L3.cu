@@ -281,7 +281,7 @@ int HZ_L3
         DIE("MPI_Isend(K)q");
       }
 
-      if (MPI_Waitall(24, r, MPI_STATUSES_IGNORE)) {
+      if (MPI_Waitall(24, r, s)) {
         DIE("MPI_Waitall");
       }
       for (unsigned i = 0u; i < 24u; ++i) {
