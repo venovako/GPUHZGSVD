@@ -133,8 +133,8 @@ int HZ_L3
   CUDA_CALL(cudaMemcpy2D(dG, lddG * sizeof(double), hG, ldhG * sizeof(double), mG * sizeof(double), n_gpu, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaMemcpy2D(dV, lddV * sizeof(double), hV, ldhV * sizeof(double), n * sizeof(double), n_gpu, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaDeviceSynchronize());
-  unsigned p = static_cast<unsigned>(strat2[0u][gpu][0u][0u]);
-  unsigned q = static_cast<unsigned>(strat2[0u][gpu][0u][1u]);
+  const unsigned p = static_cast<unsigned>(strat2[0u][gpu][0u][0u]);
+  const unsigned q = static_cast<unsigned>(strat2[0u][gpu][0u][1u]);
   const size_t ifc0 = p * n_col;
   const size_t ifc1 = q * n_col;
   initV(((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5)), n_gpu, ifc0,ifc1);
