@@ -173,6 +173,21 @@ int HZ_L3
         CUDA_CALL(cudaDeviceSynchronize());
       }
 
+      // p = static_cast<unsigned>(strat2[stp][gpu][0u][0u]);
+      // q = static_cast<unsigned>(strat2[stp][gpu][0u][1u]);
+
+      unsigned swp2 = 0u;
+      unsigned long long rot2s = 0ull, rot2b = 0ull;
+      const int ret = HZ_L2_gpu(routine, mF,mG,n,n_gpu, dFD,dFJ,lddF, dGD,dGJ,lddG, dVD,dVJ,lddV, hS,dS,dH,dK, swp2,rot2s,rot2b);
+      if (ret) {
+        (void)snprintf(err_msg, err_msg_size, "HZ_L2_gpu @GPU(%u) SWP(%u) STP(%u): %d", gpu, glbSwp, stp, ret);
+        DIE(err_msg);
+      }
+      if (swp2 > swp_swp)
+        swp_swp = swp2;
+      swp_rot[0u] += rot2s;
+      swp_rot[1u] += rot2b;
+
       int sp = static_cast<int>(strat2[stp][gpu][1u][0u]);
       const int tp = (sp ? ((sp < 0) ? 0 : 9) : -1);
       if (tp == -1) { DIE("tp"); }
@@ -245,21 +260,6 @@ int HZ_L3
         DIE("MPI_Irecv(K)q");
       }
 
-      // p = static_cast<unsigned>(strat2[stp][gpu][0u][0u]);
-      // q = static_cast<unsigned>(strat2[stp][gpu][0u][1u]);
-
-      unsigned swp2 = 0u;
-      unsigned long long rot2s = 0ull, rot2b = 0ull;
-      const int ret = HZ_L2_gpu(routine, mF,mG,n,n_gpu, dFD,dFJ,lddF, dGD,dGJ,lddG, dVD,dVJ,lddV, hS,dS,dH,dK, swp2,rot2s,rot2b);
-      if (ret) {
-        (void)snprintf(err_msg, err_msg_size, "HZ_L2_gpu @GPU(%u) SWP(%u) STP(%u): %d", gpu, glbSwp, stp, ret);
-        DIE(err_msg);
-      }
-      if (swp2 > swp_swp)
-        swp_swp = swp2;
-      swp_rot[0u] += rot2s;
-      swp_rot[1u] += rot2b;
-   
       if (MPI_Isend(dFD, (lddF * n_col), MPI_DOUBLE, sp, (1 + tp), MPI_COMM_WORLD, (r + 18u))) {
         DIE("MPI_Isend(FD)p");
       }

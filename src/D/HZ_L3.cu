@@ -152,6 +152,21 @@ int HZ_L3
         CUDA_CALL(cudaDeviceSynchronize());
       }
 
+      // p = static_cast<unsigned>(strat2[stp][gpu][0u][0u]);
+      // q = static_cast<unsigned>(strat2[stp][gpu][0u][1u]);
+
+      unsigned swp2 = 0u;
+      unsigned long long rot2s = 0ull, rot2b = 0ull;
+      const int ret = HZ_L2_gpu(routine, mF,mG,n,n_gpu, dF,lddF, dG,lddG, dV,lddV, hS,dS,dH,dK, swp2,rot2s,rot2b);
+      if (ret) {
+        (void)snprintf(err_msg, err_msg_size, "HZ_L2_gpu @GPU(%u) SWP(%u) STP(%u): %d", gpu, glbSwp, stp, ret);
+        DIE(err_msg);
+      }
+      if (swp2 > swp_swp)
+        swp_swp = swp2;
+      swp_rot[0u] += rot2s;
+      swp_rot[1u] += rot2b;
+
       int sp = static_cast<int>(strat2[stp][gpu][1u][0u]);
       const int tp = (sp ? ((sp < 0) ? 0 : 6) : -1);
       if (tp == -1) { DIE("tp"); }
@@ -206,21 +221,6 @@ int HZ_L3
         DIE("MPI_Irecv(K)q");
       }
 
-      // p = static_cast<unsigned>(strat2[stp][gpu][0u][0u]);
-      // q = static_cast<unsigned>(strat2[stp][gpu][0u][1u]);
-
-      unsigned swp2 = 0u;
-      unsigned long long rot2s = 0ull, rot2b = 0ull;
-      const int ret = HZ_L2_gpu(routine, mF,mG,n,n_gpu, dF,lddF, dG,lddG, dV,lddV, hS,dS,dH,dK, swp2,rot2s,rot2b);
-      if (ret) {
-        (void)snprintf(err_msg, err_msg_size, "HZ_L2_gpu @GPU(%u) SWP(%u) STP(%u): %d", gpu, glbSwp, stp, ret);
-        DIE(err_msg);
-      }
-      if (swp2 > swp_swp)
-        swp_swp = swp2;
-      swp_rot[0u] += rot2s;
-      swp_rot[1u] += rot2b;
-   
       if (MPI_Isend(dF, (lddF * n_col), MPI_DOUBLE, sp, (1 + tp), MPI_COMM_WORLD, (r + 12u))) {
         DIE("MPI_Isend(F)p");
       }
@@ -284,7 +284,7 @@ int HZ_L3
     ++glbSwp;
 
     if (!gpu) {
-      (void)fprintf(stdout, "MAX2SWP(%2u), ROT_S(%10llu), ROT_B(%10llu), TIME(%#12.6f s)\n", max_swp, all_rot[0u], all_rot[1u], (stopwatch_lap(swp_tim) * TS2S));
+      (void)fprintf(stdout, "\nMAX2SWP(%2u), ROT_S(%10llu), ROT_B(%10llu), TIME(%#12.6f s)\n", max_swp, all_rot[0u], all_rot[1u], (stopwatch_lap(swp_tim) * TS2S));
       (void)fflush(stdout);
     }
     if (!all_rot[1u])
