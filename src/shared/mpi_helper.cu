@@ -3,12 +3,13 @@
 #include "cuda_helper.hpp"
 #include "my_utils.hpp"
 
+int mpi_size = 0;
+int mpi_rank = 0;
+
+#ifdef USE_MPI_CUDA
 #ifdef OMPI_MPI_H
 #include <mpi-ext.h>
 #endif // OMPI_MPI_H
-
-int mpi_size = 0;
-int mpi_rank = 0;
 bool mpi_cuda_aware = false;
 
 static bool mpi_cuda() throw()
@@ -22,6 +23,7 @@ static bool mpi_cuda() throw()
   return false;
 #endif // TODO: any other MPI?
 }
+#endif // USE_MPI_CUDA
 
 int init_MPI(int *const argc, char ***const argv) throw()
 {
@@ -44,7 +46,9 @@ int init_MPI(int *const argc, char ***const argv) throw()
     return e;
   if ((e = MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank)))
     return e;
+#ifdef USE_MPI_CUDA
   mpi_cuda_aware = mpi_cuda();
+#endif // USE_MPI_CUDA
   return MPI_SUCCESS;
 }
 
