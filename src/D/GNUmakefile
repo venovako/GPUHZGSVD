@@ -67,7 +67,7 @@ SOURCES=			\
 	device_code.cu
 
 ifdef MPI
-NVPPFLAGS+=-DUSE_MPI
+NVPPFLAGS+=-DUSE_MPI -DUSE_MPI_CUDA
 ifndef MPIINC
 MPIINC=-I$(MPI)/include
 endif # !MPIINC
