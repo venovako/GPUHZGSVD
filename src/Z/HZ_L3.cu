@@ -202,6 +202,7 @@ int HZ_L3
       CUDA_CALL(cudaMemcpy(hS_, dS, n_gpu * sizeof(double), cudaMemcpyDeviceToHost));
       CUDA_CALL(cudaMemcpy(hH_, dH, n_gpu * sizeof(double), cudaMemcpyDeviceToHost));
       CUDA_CALL(cudaMemcpy(hK_, dK, n_gpu * sizeof(double), cudaMemcpyDeviceToHost));
+      CUDA_CALL(cudaDeviceSynchronize());
 #endif // !USE_MPI_CUDA
 
       int sp = static_cast<int>(strat2[stp][gpu][1u][0u]);

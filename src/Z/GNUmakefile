@@ -4,10 +4,6 @@ ifndef NVCC
 NVCC=nvcc
 endif # !NVCC
 
-ifndef GPU_ARCH
-GPU_ARCH=30
-endif # !GPU_ARCH
-
 ifndef CVG
 CVG=0
 endif # !CVG
@@ -17,8 +13,12 @@ ifndef STD
 STD=11
 endif # !STD
 
-NVPPFLAGS=-I. -I../shared -I../../../JACSD/jstrat -DCVG=$(CVG) -DUSE_COMPLEX -DGPU_ARCH=$(GPU_ARCH)
-NVCCFLAGS=-std c++$(STD) -arch sm_$(GPU_ARCH) -restrict -res-usage -Xcompiler -march=native -Xcompiler -pthread
+NVPPFLAGS=-I. -I../shared -I../../../JACSD/jstrat -DCVG=$(CVG) -DUSE_COMPLEX
+NVCCFLAGS=-std c++$(STD) -restrict -res-usage -Xcompiler -march=native -Xcompiler -pthread
+ifdef GPU_ARCH
+GENCODE=-gencode arch=compute_$(ARCH),code=sm_$(ARCH)
+NVCCFLAGS+=$(foreach ARCH,$(GPU_ARCH),$(GENCODE))
+endif # GPU_ARCH
 NVLDFLAGS=-L../../../JACSD -ljstrat
 
 ifdef NDEBUG

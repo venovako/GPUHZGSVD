@@ -11,8 +11,8 @@ int configureGPUex(const int dev, const unsigned maxShMemB) throw()
   CUDA_CALL(cudaGetDeviceProperties(&cdp, dev));
   const int dcc = cdp.major * 10 + cdp.minor;
 
-  if (dcc < GPU_ARCH) {
-    (void)snprintf(err_msg, err_msg_size, "CUDA Device %d Compute Capability %d < %d", dev, dcc, GPU_ARCH);
+  if (dcc < 30) {
+    (void)snprintf(err_msg, err_msg_size, "CUDA Device %d Compute Capability %d < 30", dev, dcc);
     DIE(err_msg);
   }
 

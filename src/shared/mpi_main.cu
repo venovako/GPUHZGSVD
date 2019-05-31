@@ -74,12 +74,13 @@ int main(int argc, char *argv[])
   if (dev < 0) {
     DIE("assign_dev2host failed");
   }
+  if (MPI_Barrier(MPI_COMM_WORLD)) {
+    DIE("MPI_Barrier1");
+  }
 
   const int dcc = configureGPU(dev);
-#ifndef NDEBUG
   (void)fprintf(stdout, "[%u] device(%d) has CC(%d)\n", gpu, dev, dcc);
   (void)fflush(stdout);
-#endif // !NDEBUG
 
   size_t mF_ = 0u, mG_ = 0u, n_ = 0u;
   border_sizes(gpus, mF, mG, n, mF_, mG_, n_);
@@ -404,6 +405,9 @@ int main(int argc, char *argv[])
   unsigned glbSwp = 0u;
   unsigned long long glb_s = 0ull, glb_b = 0ull;
   double timing = -0.0;
+  if (MPI_Barrier(MPI_COMM_WORLD)) {
+    DIE("MPI_Barrier2");
+  }
 
 #ifdef USE_COMPLEX
   const int ret = HZ_L3(routine, gpu, gpus, mF_, mG_, n_, n_gpu, n_col, hFD, hFJ, ldhF, hGD, hGJ, ldhG, hVD, hVJ, ldhV, hS, hH, hK, glbSwp, glb_s, glb_b, timing);
