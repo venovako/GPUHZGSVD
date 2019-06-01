@@ -219,6 +219,14 @@ HZ_L2
   CUDA_CALL(cudaMemcpy2D(dG, lddG * sizeof(double), hG, ldhG * sizeof(double), nrowG * sizeof(double), ncol, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaMemcpy2D(dV, lddV * sizeof(double), hV, ldhV * sizeof(double), ncol * sizeof(double), ncol, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaDeviceSynchronize());
+#ifdef USE_MPI
+  const unsigned ifc0 = 0u;
+  const unsigned ifc1 = (ncol >> 1u);
+  initV(((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5)), ncol, ifc0, ifc1);
+#else // !USE_MPI
+  initV(((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5)), ncol);
+#endif // USE_MPI
+  CUDA_CALL(cudaDeviceSynchronize());
 
 #ifdef ANIMATE
 #if (ANIMATE == 1)
