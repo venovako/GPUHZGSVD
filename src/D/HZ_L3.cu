@@ -187,23 +187,23 @@ int HZ_L3
       swp_rot[0u] += rot2s;
       swp_rot[1u] += rot2b;
 
-      if (MPI_Isend(hF_, (ldhF * n_col), MPI_DOUBLE, sp, (1 + tp), MPI_COMM_WORLD, (r + 6u))) {
+      if (MPI_Isend(dF, (ldhF * n_col), MPI_DOUBLE, sp, (1 + tp), MPI_COMM_WORLD, (r + 6u))) {
         DIE("MPI_Isend(F)p");
       }
-      if (MPI_Isend(hG_, (ldhG * n_col), MPI_DOUBLE, sp, (2 + tp), MPI_COMM_WORLD, (r + 7u))) {
+      if (MPI_Isend(dG, (ldhG * n_col), MPI_DOUBLE, sp, (2 + tp), MPI_COMM_WORLD, (r + 7u))) {
         DIE("MPI_Isend(G)p");
       }
-      if (MPI_Isend(hV_, (ldhV * n_col), MPI_DOUBLE, sp, (3 + tp), MPI_COMM_WORLD, (r + 8u))) {
+      if (MPI_Isend(dV, (ldhV * n_col), MPI_DOUBLE, sp, (3 + tp), MPI_COMM_WORLD, (r + 8u))) {
         DIE("MPI_Isend(V)p");
       }
 
-      if (MPI_Isend((hF_ + ldhF * n_col), (ldhF * n_col), MPI_DOUBLE, sq, (1 + tq), MPI_COMM_WORLD, (r + 9u))) {
+      if (MPI_Isend((dF + ldhF * n_col), (ldhF * n_col), MPI_DOUBLE, sq, (1 + tq), MPI_COMM_WORLD, (r + 9u))) {
         DIE("MPI_Isend(F)q");
       }
-      if (MPI_Isend((hG_ + ldhG * n_col), (ldhG * n_col), MPI_DOUBLE, sq, (2 + tq), MPI_COMM_WORLD, (r + 10u))) {
+      if (MPI_Isend((dG + ldhG * n_col), (ldhG * n_col), MPI_DOUBLE, sq, (2 + tq), MPI_COMM_WORLD, (r + 10u))) {
         DIE("MPI_Isend(G)q");
       }
-      if (MPI_Isend((hV_ + ldhV * n_col), (ldhV * n_col), MPI_DOUBLE, sq, (3 + tq), MPI_COMM_WORLD, (r + 11u))) {
+      if (MPI_Isend((dV + ldhV * n_col), (ldhV * n_col), MPI_DOUBLE, sq, (3 + tq), MPI_COMM_WORLD, (r + 11u))) {
         DIE("MPI_Isend(V)q");
       }
 
@@ -250,9 +250,9 @@ int HZ_L3
   initS(1, n_gpu);
   CUDA_CALL(cudaDeviceSynchronize());
 
-  CUDA_CALL(cudaMemcpy2D(hF, ldhF * sizeof(double), dF, lddF * sizeof(double), mF * sizeof(cuD), n_gpu, cudaMemcpyDeviceToHost));
-  CUDA_CALL(cudaMemcpy2D(hG, ldhG * sizeof(double), dG, lddG * sizeof(double), mG * sizeof(cuD), n_gpu, cudaMemcpyDeviceToHost));
-  CUDA_CALL(cudaMemcpy2D(hV, ldhV * sizeof(double), dV, lddV * sizeof(double), n * sizeof(cuD), n_gpu, cudaMemcpyDeviceToHost));
+  CUDA_CALL(cudaMemcpy2D(hF, ldhF * sizeof(double), dF, lddF * sizeof(double), mF * sizeof(double), n_gpu, cudaMemcpyDeviceToHost));
+  CUDA_CALL(cudaMemcpy2D(hG, ldhG * sizeof(double), dG, lddG * sizeof(double), mG * sizeof(double), n_gpu, cudaMemcpyDeviceToHost));
+  CUDA_CALL(cudaMemcpy2D(hV, ldhV * sizeof(double), dV, lddV * sizeof(double), n * sizeof(double), n_gpu, cudaMemcpyDeviceToHost));
   CUDA_CALL(cudaMemcpy(hS, dS, n_gpu * sizeof(double), cudaMemcpyDeviceToHost));
   CUDA_CALL(cudaMemcpy(hH, dH, n_gpu * sizeof(double), cudaMemcpyDeviceToHost));
   CUDA_CALL(cudaMemcpy(hK, dK, n_gpu * sizeof(double), cudaMemcpyDeviceToHost));

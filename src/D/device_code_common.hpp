@@ -231,7 +231,6 @@ MYDEVFN void dGlobalPostScaleFast
 (double *const F,
  double *const G,
  double *const V,
- double *const S,
  const unsigned nRowF,
  const unsigned nRowG,
  const unsigned nRowV,
@@ -258,8 +257,6 @@ MYDEVFN void dGlobalPostScaleFast
       const double *const eVi = V + (cix * ldV + nRowV);
       dScalC(bVi, eVi, Rhyp);
     }
-    if (!lid)
-      S[cix] = +0.0;
   }
 }
 
@@ -322,7 +319,7 @@ MYKERN dInitS(const int full)
   if (full)
     dGlobalPostScaleFull(_F, _G, _V, _S, _H, _K, _nRowF, _nRowG, _nRowV, _nRank, _ldF, _ldG, _ldV);
   else
-    dGlobalPostScaleFast(_F, _G, _V, _S, _nRowF, _nRowG, _nRank, _nRowV, _ldF, _ldG, _ldV);
+    dGlobalPostScaleFast(_F, _G, _V, _nRowF, _nRowG, _nRank, _nRowV, _ldF, _ldG, _ldV);
 }
 
 MYDEVFN void dGlobalInitV
