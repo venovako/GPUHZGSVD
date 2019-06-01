@@ -278,7 +278,6 @@ MYDEVFN void zGlobalPostScaleFast
 (cuD *const FD, cuJ *const FJ,
  cuD *const GD, cuJ *const GJ,
  cuD *const VD, cuJ *const VJ,
- double *const S,
  const unsigned nRowF,
  const unsigned nRowG,
  const unsigned nRowV,
@@ -314,8 +313,6 @@ MYDEVFN void zGlobalPostScaleFast
       const cuD *const eViD = VD + off;
       zScalC(bViD, eViD, bViJ, Rhyp);
     }
-    if (!lid)
-      S[cix] = +0.0;
   }
 }
 
@@ -387,7 +384,7 @@ MYKERN zInitS(const int full)
   if (full)
     zGlobalPostScaleFull(_FD, _FJ, _GD, _GJ, _VD, _VJ, _S, _H, _K, _nRowF, _nRowG, _nRowV, _nRank, _ldF, _ldG, _ldV);
   else
-    zGlobalPostScaleFast(_FD, _FJ, _GD, _GJ, _VD, _VJ, _S, _nRowF, _nRowG, _nRowV, _nRank, _ldF, _ldG, _ldV);
+    zGlobalPostScaleFast(_FD, _FJ, _GD, _GJ, _VD, _VJ, _nRowF, _nRowG, _nRowV, _nRank, _ldF, _ldG, _ldV);
 }
 
 MYDEVFN void zGlobalInitV

@@ -11,7 +11,6 @@ HZ_L2_gpu
  // B: block-oriented (else, full-block), N: no sort;
  const unsigned nrowF,      // IN, number of rows of F, == 0 (mod 64);
  const unsigned nrowG,      // IN, number of rows of G, == 0 (mod 64);
- const unsigned nrowV,      // IN, number of rows of V, == 0 (mod 32);
  const unsigned ncol,       // IN, number of columns, <= min(nrowF, nrowG), == 0 (mod 32);
 #ifdef ANIMATE
  cuD *const hFD,            // INOUT, ldhF x ncol host array in Fortran order;
@@ -31,11 +30,12 @@ HZ_L2_gpu
  const unsigned lddG,       // IN, leading dimension of dG, >= nrowG;
  cuD *const dVD,            // OUT, lddV x ncol host array in Fortran order;
  cuJ *const dVJ,            // OUT, lddV x ncol host array in Fortran order;
- const unsigned lddV,       // IN, leading dimension of dV, >= nrowV;
- double *const hS,          // OUT, the generalized singular values, optionally sorted in descending order;
+ const unsigned lddV,       // IN, leading dimension of dV;
  double *const dS,          // OUT, the generalized singular values, optionally sorted in descending order;
  double *const dH,          // ||F_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2);
  double *const dK,          // ||G_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2);
+ unsigned long long *const hC, // OUT, convergence vector
+ unsigned long long *const dC, // OUT, convergence vector
  unsigned &glbSwp,          // OUT, number of sweeps at the outermost level;
  unsigned long long &glb_s, // OUT, number of rotations;
  unsigned long long &glb_b  // OUT, number of ``big'' rotations;
@@ -46,10 +46,6 @@ HZ_L2_gpu
 #endif // ANIMATE
  ) throw()
 {
-#ifdef USE_MPI
-  CUDA_CALL(cudaMemset(dS, 0, ncol * sizeof(double)));
-  CUDA_CALL(cudaDeviceSynchronize());
-#endif // USE_MPI
   void (*const HZ_L1)(const unsigned) = ((routine & 2u) ? HZ_L1_v : HZ_L1_sv);
 
   const unsigned swp = ((routine & HZ_BO_2) ? 1u : HZ_NSWEEP);
@@ -57,6 +53,8 @@ HZ_L2_gpu
   const unsigned spb = 2u;
   // stats count
   const unsigned sc = STRAT1_PAIRS * spb;
+  // stats len
+  const size_t sl = sc * sizeof(unsigned long long);
 
   glb_s = 0ull;
   glb_b = 0ull;
@@ -67,6 +65,8 @@ HZ_L2_gpu
 
   unsigned blk_swp = 0u;
   while (blk_swp < swp) {
+    CUDA_CALL(cudaMemset(dC, 0, sl));
+    CUDA_CALL(cudaDeviceSynchronize());
     for (unsigned blk_stp = 0u; blk_stp < STRAT1_STEPS; ++blk_stp) {
       if (blk_stp)
         CUDA_CALL(cudaDeviceSynchronize());
@@ -108,17 +108,15 @@ HZ_L2_gpu
 #endif // ANIMATE
     }
 
-    ++blk_swp;
     CUDA_CALL(cudaDeviceSynchronize());
-
-    CUDA_CALL(cudaMemcpy(hS, dS, sc * sizeof(double), cudaMemcpyDeviceToHost));
+    CUDA_CALL(cudaMemcpy(hC, dC, sl, cudaMemcpyDeviceToHost));
     CUDA_CALL(cudaDeviceSynchronize());
 
     unsigned long long cvg_s = 0ull;
     unsigned long long cvg_b = 0ull;
     for (unsigned i = 0u; i < sc; i += spb) {
-      cvg_s += ((const unsigned long long*)hS)[i];
-      cvg_b += ((const unsigned long long*)hS)[i + 1u];
+      cvg_s += hC[i];
+      cvg_b += hC[i + 1u];
     }
     glb_s += cvg_s;
     glb_b += cvg_b;
@@ -130,7 +128,7 @@ HZ_L2_gpu
 #endif // !USE_MPI
     if (!cvg_b)
       break;
-
+    ++blk_swp;
     initS(0, ncol);
     CUDA_CALL(cudaDeviceSynchronize());
 #ifdef ANIMATE
@@ -168,8 +166,16 @@ HZ_L2_gpu
 #endif // ANIMATE
   }
 
-  glbSwp = blk_swp;
+  if (blk_swp < swp)
+    glbSwp = (blk_swp + 1u);
+  else
+    glbSwp = blk_swp;
+#ifdef USE_MPI
+  if (blk_swp < swp)
+    initS(0, ncol);
+#else // !USE_MPI
   initS(1, ncol);
+#endif // !USE_MPI
   CUDA_CALL(cudaDeviceSynchronize());
   return 0;
 }
@@ -259,7 +265,10 @@ HZ_L2
   double *const dH = allocDeviceVec<double>(static_cast<size_t>(ncol));
   double *const dK = allocDeviceVec<double>(static_cast<size_t>(ncol));
 
-  initSymbols(dFD,dFJ, dGD,dGJ, dVD,dVJ, dS,dH,dK, nrowF,nrowG,ncol,ncol, lddF,lddG,lddV, ((routine & HZ_BO_1) ? 1u : HZ_NSWEEP));
+  unsigned long long *const dC = allocDeviceVec<unsigned long long>(static_cast<size_t>(STRAT1_PAIRS) * 2u);
+  unsigned long long *const hC = allocHostVec<unsigned long long>(static_cast<size_t>(STRAT1_PAIRS) * 2u);
+
+  initSymbols(dFD,dFJ, dGD,dGJ, dVD,dVJ, dS,dH,dK, dC, nrowF,nrowG,ncol,ncol, lddF,lddG,lddV, ((routine & HZ_BO_1) ? 1u : HZ_NSWEEP));
   CUDA_CALL(cudaMemcpy2D(dFD, lddF * sizeof(cuD), hFD, ldhF * sizeof(double), nrowF * sizeof(cuD), ncol, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaMemcpy2D(dFJ, lddF * sizeof(cuJ), hFJ, ldhF * sizeof(double), nrowF * sizeof(cuJ), ncol, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaMemcpy2D(dGD, lddG * sizeof(cuD), hGD, ldhG * sizeof(double), nrowG * sizeof(cuD), ncol, cudaMemcpyHostToDevice));
@@ -327,7 +336,7 @@ HZ_L2
   timers[1] = stopwatch_lap(timers[3]);
   const int ret = HZ_L2_gpu
     (routine,
-     nrowF,nrowG,ncol,ncol,
+     nrowF,nrowG,ncol,
 #ifdef ANIMATE
      hFD,hFJ,ldhF,
 #endif // ANIMATE
@@ -337,8 +346,8 @@ HZ_L2
 #endif // ANIMATE
      dGD,dGJ,lddG,
      dVD,dVJ,lddV,
-     hS,dS,dH,dK,
-     glbSwp,glb_s,glb_b
+     dS,dH,dK,
+     hC,dC, glbSwp,glb_s,glb_b
 #ifdef ANIMATE
      , ctx,hDJ,nrow
 #endif // ANIMATE
@@ -387,6 +396,8 @@ HZ_L2
   }
 #endif // ANIMATE
 
+  CUDA_CALL(cudaFreeHost(hC));
+  CUDA_CALL(cudaFree(dC));
   CUDA_CALL(cudaFree(dK));
   CUDA_CALL(cudaFree(dH));
   CUDA_CALL(cudaFree(dS));

@@ -69,6 +69,7 @@ void initSymbols
  double *const S,
  double *const H,
  double *const K,
+ unsigned long long *const C,
  const unsigned nRowF,
  const unsigned nRowG,
  const unsigned nRowV,
@@ -88,6 +89,7 @@ void initSymbols
   CUDA_CALL(cudaMemcpyToSymbol(_S, &S, sizeof(double*)));
   CUDA_CALL(cudaMemcpyToSymbol(_H, &H, sizeof(double*)));
   CUDA_CALL(cudaMemcpyToSymbol(_K, &K, sizeof(double*)));
+  CUDA_CALL(cudaMemcpyToSymbol(_C, &C, sizeof(unsigned long long*)));
   CUDA_CALL(cudaMemcpyToSymbol(_nRowF, &nRowF, sizeof(unsigned)));
   CUDA_CALL(cudaMemcpyToSymbol(_nRowG, &nRowG, sizeof(unsigned)));
   CUDA_CALL(cudaMemcpyToSymbol(_nRowV, &nRowV, sizeof(unsigned)));

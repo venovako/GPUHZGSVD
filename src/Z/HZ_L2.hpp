@@ -17,7 +17,6 @@ HZ_L2_gpu
  // B: block-oriented (else, full-block), N: no sort;
  const unsigned nrowF,      // IN, number of rows of F, == 0 (mod 64);
  const unsigned nrowG,      // IN, number of rows of G, == 0 (mod 64);
- const unsigned nrowV,      // IN, number of rows of V, == 0 (mod 32);
  const unsigned ncol,       // IN, number of columns, <= min(nrowF, nrowG), == 0 (mod 32);
 #ifdef ANIMATE
  cuD *const hFD,            // INOUT, ldhF x ncol host array in Fortran order;
@@ -37,11 +36,12 @@ HZ_L2_gpu
  const unsigned lddG,       // IN, leading dimension of dG, >= nrowG;
  cuD *const dVD,            // OUT, lddV x ncol host array in Fortran order;
  cuJ *const dVJ,            // OUT, lddV x ncol host array in Fortran order;
- const unsigned lddV,       // IN, leading dimension of dV, >= nrowV;
- double *const hS,          // OUT, the generalized singular values, optionally sorted in descending order;
+ const unsigned lddV,       // IN, leading dimension of dV;
  double *const dS,          // OUT, the generalized singular values, optionally sorted in descending order;
  double *const dH,          // ||F_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2);
  double *const dK,          // ||G_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2);
+ unsigned long long *const hC, // OUT, convergence vector
+ unsigned long long *const dC, // OUT, convergence vector
  unsigned &glbSwp,          // OUT, number of sweeps at the outermost level;
  unsigned long long &glb_s, // OUT, number of rotations;
  unsigned long long &glb_b  // OUT, number of ``big'' rotations;

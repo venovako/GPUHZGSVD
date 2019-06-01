@@ -55,11 +55,10 @@ int main(int argc, char *argv[])
     (void)snprintf(err_msg, err_msg_size, "%s[%d] init_MPI failed\n", ca_exe, mpi_rank);
     DIE(err_msg);
   }
-#ifdef USE_MPI_CUDA
   if (!mpi_cuda_aware) {
     DIE("MPI is not CUDA aware");
   }
-#endif // USE_MPI_CUDA
+
   const size_t gpu = static_cast<size_t>(mpi_rank);
   const size_t gpus = static_cast<size_t>(mpi_size);
   if (gpus < 2u) {
