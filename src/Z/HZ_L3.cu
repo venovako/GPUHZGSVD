@@ -140,14 +140,16 @@ int HZ_L3
     unsigned swp_swp = 0u;
     unsigned long long swp_rot[2u] = { 0ull, 0ull };
     if (!gpu) {
-      (void)fprintf(stdout, "%u: ", glbSwp);
+      (void)fprintf(stdout, "%2u: ", glbSwp);
       (void)fflush(stdout);
     }
     for (unsigned stp = 0u; stp < STRAT2_STEPS; ++stp) {
+#ifndef NDEBUG
       if (!gpu) {
         (void)fprintf(stdout, "%u", stp);
         (void)fflush(stdout);
       }
+#endif // !NDEBUG
       // p = static_cast<unsigned>(strat2[stp][gpu][0u][0u]);
       // q = static_cast<unsigned>(strat2[stp][gpu][0u][1u]);
 
@@ -273,10 +275,12 @@ int HZ_L3
       CUDA_CALL(cudaMemcpy2D(dVD, lddV * sizeof(cuD), hVD, ldhV * sizeof(cuD), n * sizeof(cuD), n_gpu, cudaMemcpyHostToDevice));
       CUDA_CALL(cudaMemcpy2D(dVJ, lddV * sizeof(cuJ), hVJ, ldhV * sizeof(cuJ), n * sizeof(cuJ), n_gpu, cudaMemcpyHostToDevice));
       CUDA_CALL(cudaDeviceSynchronize());
+#ifndef NDEBUG
       if (!gpu) {
         (void)fprintf(stdout, ";");
         (void)fflush(stdout);
       }
+#endif // !NDEBUG
       if (MPI_Barrier(MPI_COMM_WORLD)) {
         DIE("MPI_Barrier");
       }
@@ -294,7 +298,7 @@ int HZ_L3
     ++glbSwp;
 
     if (!gpu) {
-      (void)fprintf(stdout, "\nMAX2SWP(%2u), ROT_S(%10llu), ROT_B(%10llu), TIME(%#12.6f s)\n", max_swp, all_rot[0u], all_rot[1u], (stopwatch_lap(swp_tim) * TS2S));
+      (void)fprintf(stdout, "MAX2SWP(%2u), ROT_S(%10llu), ROT_B(%10llu), TIME(%#12.6f s)\n", max_swp, all_rot[0u], all_rot[1u], (stopwatch_lap(swp_tim) * TS2S));
       (void)fflush(stdout);
     }
     if (!all_rot[1u])
