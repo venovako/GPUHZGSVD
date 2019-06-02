@@ -66,7 +66,7 @@
 #define STRAT0_MAX_STEPS 32u
 #endif // !STRAT0_MAX_STEPS
 #ifndef STRAT1_MAX_STEPS
-#define STRAT1_MAX_STEPS 1024u
+#define STRAT1_MAX_STEPS 2048u
 #endif // !STRAT1_MAX_STEPS
 
 // n/2 for even n
@@ -74,7 +74,7 @@
 #define STRAT0_MAX_PAIRS 16u
 #endif // !STRAT0_MAX_PAIRS
 #ifndef STRAT1_MAX_PAIRS
-#define STRAT1_MAX_PAIRS 512u
+#define STRAT1_MAX_PAIRS 1024u
 #endif // !STRAT1_MAX_PAIRS
 
 #ifndef STRAT0_STORAGE

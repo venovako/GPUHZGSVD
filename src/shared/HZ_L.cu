@@ -32,8 +32,14 @@ void init_strats(const unsigned snp0, const unsigned n0, const unsigned snp1, co
   default:
     DIE("SNP0 \\notin { 2, 4 }");
   }
+  if (STRAT0_STEPS > STRAT0_MAX_STEPS) {
+    DIE("STRAT0_STEPS > STRAT0_MAX_STEPS");
+  }
 
   STRAT0_PAIRS = (n0 >> 1u);
+  if (STRAT0_PAIRS > STRAT0_MAX_PAIRS) {
+    DIE("STRAT0_PAIRS > STRAT0_MAX_PAIRS");
+  }
   (void)memset(strat0, 0, sizeof(strat0));
 
   switch (snp1) {
@@ -48,8 +54,14 @@ void init_strats(const unsigned snp0, const unsigned n0, const unsigned snp1, co
   default:
     DIE("SNP1 \\notin { 2, 4 }");
   }
+  if (STRAT1_STEPS > STRAT1_MAX_STEPS) {
+    DIE("STRAT1_STEPS > STRAT1_MAX_STEPS");
+  }
 
   STRAT1_PAIRS = (n1 >> 1u);
+  if (STRAT1_PAIRS > STRAT1_MAX_PAIRS) {
+    DIE("STRAT1_PAIRS > STRAT1_MAX_PAIRS");
+  }
   (void)memset(strat1, 0, sizeof(strat1));
 
   unsigned ap = ((n1 >= n0) ? n1 : n0);
@@ -67,8 +79,14 @@ void init_strats(const unsigned snp0, const unsigned n0, const unsigned snp1, co
   default:
     DIE("SNP2 \\notin { 3, 5 }");
   }
+  if (STRAT2_STEPS > STRAT2_MAX_STEPS) {
+    DIE("STRAT2_STEPS > STRAT2_MAX_STEPS");
+  }
 
   STRAT2_PAIRS = (n2 >> 1u);
+  if (STRAT2_PAIRS > STRAT2_MAX_PAIRS) {
+    DIE("STRAT2_PAIRS > STRAT2_MAX_PAIRS");
+  }
   (void)memset(strat2, 0, sizeof(strat2));
 
   ap = (((ap >= n2) ? ap : n2) << 1u);
