@@ -114,7 +114,7 @@ HZ_L2_gpu
 
 #ifndef USE_MPI
     const double tim_s = stopwatch_lap(swp_tim) * TS2S;
-    (void)fprintf(stdout, "BLK_SWP(%2u), ROT_S(%10llu), ROT_B(%10llu), TIME(%#12.6f s)\n", blk_swp, cvg_s, cvg_b, tim_s);
+    (void)fprintf(stdout, "BLK_SWP(%2u), ROT_S(%13llu), ROT_B(%13llu), TIME(%#14.6f s)\n", blk_swp, cvg_s, cvg_b, tim_s);
     (void)fflush(stdout);
 #endif // !USE_MPI
     if (!cvg_b)

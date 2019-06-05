@@ -298,7 +298,7 @@ int HZ_L3
     ++glbSwp;
 
     if (!gpu) {
-      (void)fprintf(stdout, "MAX2SWP(%2u), ROT_S(%10llu), ROT_B(%10llu), TIME(%#12.6f s)\n", max_swp, all_rot[0u], all_rot[1u], (stopwatch_lap(swp_tim) * TS2S));
+      (void)fprintf(stdout, "MAX2SWP(%2u), ROT_S(%13llu), ROT_B(%13llu), TIME(%#14.6f s)\n", max_swp, all_rot[0u], all_rot[1u], (stopwatch_lap(swp_tim) * TS2S));
       (void)fflush(stdout);
     }
     if (!all_rot[1u])

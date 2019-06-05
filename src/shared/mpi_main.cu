@@ -419,9 +419,9 @@ int main(int argc, char *argv[])
     DIE(err_msg);
   }
   else if (!gpu) {
-    (void)fprintf(stdout, "GLB_ROT_S(%20llu), GLB_ROT_B(%20llu)\n", glb_s, glb_b);
+    (void)fprintf(stdout, "GLB_ROT_S(%16llu), GLB_ROT_B(%16llu)\n", glb_s, glb_b);
     (void)fflush(stdout);
-    (void)fprintf(stdout, "%#12.6f s %2u sweeps\n", timing, glbSwp);
+    (void)fprintf(stdout, "%#16.6f s %2u sweeps\n", timing, glbSwp);
     (void)fflush(stdout);
   }
 
