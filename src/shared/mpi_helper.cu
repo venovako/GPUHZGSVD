@@ -114,8 +114,9 @@ static int dev_host_get(dev_host &dh) throw()
 static dev_host *get_dev_hosts() throw()
 {
   dev_host my;
-  if (dev_host_get(my) <= 0)
-    (void)fprintf(stderr, "Cannot query the host information (%d)\n", my.dev_count);
+  if (dev_host_get(my) <= 0) {
+    DIE("dev_host_get");
+  }
 
   dev_host *const rcv = static_cast<dev_host*>(malloc(static_cast<unsigned>(mpi_size) * sizeof(dev_host)));
   if (!rcv) {
@@ -123,14 +124,17 @@ static dev_host *get_dev_hosts() throw()
   }
 
   if (MPI_Allgather(&my, static_cast<int>(sizeof(dev_host)), MPI_BYTE, rcv, static_cast<int>(sizeof(dev_host)), MPI_BYTE, MPI_COMM_WORLD)) {
-    DIE("MPI_Allgather should have not failed");
+    DIE("MPI_Allgather should not have failed");
   }
-
+#ifndef NDEBUG
   if (!mpi_rank)
     (void)fprintf(stderr, "RANK,GPUS,HOSTNAME\n");
+#endif // !NDEBUG
   for (int i = 0; i < mpi_size; ++i) {
+#ifndef NDEBUG
     if (!mpi_rank)
       (void)fprintf(stderr, "%4d,%4d,%s\n", rcv[i].rank, rcv[i].dev_count, rcv[i].host);
+#endif // !NDEBUG
     if (rcv[i].dev_count <= 0) {
       free(rcv);
       return static_cast<dev_host*>(NULL);
@@ -151,7 +155,7 @@ int assign_dev2host() throw()
 
   int dev = -3;
   if (!mpi_rank)
-    (void)fprintf(stderr, "\nRANK,GPUS,LGPU,HOSTNAME\n");
+    (void)fprintf(stderr, "RANK,GPUS,LGPU,HOSTNAME\n");
   dh[0].dev = 0;
   if (!mpi_rank)
     (void)fprintf(stderr, "%4d,%4d,%4d,%s\n", dh[0].rank, dh[0].dev_count, dh[0].dev, dh[0].host);
