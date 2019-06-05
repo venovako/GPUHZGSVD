@@ -194,8 +194,8 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
 
   const int dcc = configureGPU(dev);
-  (void)fprintf(stdout, "device(%d) has CC(%d)\n", dev, dcc);
-  (void)fflush(stdout);
+  (void)fprintf(stderr, "device(%d) has CC(%d)\n", dev, dcc);
+  (void)fflush(stderr);
 
   size_t mF_ = 0u, mG_ = 0u, n_ = 0u;
   const size_t gpus = static_cast<size_t>(1u);

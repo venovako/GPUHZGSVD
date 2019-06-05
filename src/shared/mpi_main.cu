@@ -78,8 +78,8 @@ int main(int argc, char *argv[])
   }
 
   const int dcc = configureGPU(dev);
-  (void)fprintf(stdout, "[%u] device(%d) has CC(%d)\n", gpu, dev, dcc);
-  (void)fflush(stdout);
+  (void)fprintf(stderr, "[%u] device(%d) has CC(%d)\n", gpu, dev, dcc);
+  (void)fflush(stderr);
 
   size_t mF_ = 0u, mG_ = 0u, n_ = 0u;
   border_sizes(gpus, mF, mG, n, mF_, mG_, n_);
