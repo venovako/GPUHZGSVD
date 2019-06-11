@@ -186,6 +186,7 @@ int assign_dev2host() throw()
   }
 
  end:
+  (void)fflush(stderr);
   free(dh);
   return dev;
 }
