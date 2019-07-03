@@ -179,7 +179,7 @@ int HZ_L3
 
       unsigned swp2 = 0u;
       unsigned long long rot2s = 0ull, rot2b = 0ull;
-      const int ret = HZ_L2_gpu(routine, mF,mG,n_gpu, dF,lddF, dG,lddG, dV,lddV, dS,dH,dK, hC,dC, swp2,rot2s,rot2b);
+      const int ret = HZ_L2_gpu(routine,n_gpu, hC,dC, swp2,rot2s,rot2b);
       if (ret) {
         (void)snprintf(err_msg, err_msg_size, "HZ_L2_gpu @GPU(%u) SWP(%u) STP(%u): %d", gpu, glbSwp, stp, ret);
         DIE(err_msg);
