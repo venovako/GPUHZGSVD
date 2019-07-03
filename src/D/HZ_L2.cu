@@ -11,26 +11,19 @@ int // 0 if OK, < 0 if invalid argument, > 0 if error
 HZ_L2_gpu
 (const unsigned routine,    // IN, routine ID, <= 15, (B___)_2,
  // B: block-oriented (else, full-block);
- const unsigned nrowF,      // IN, number of rows of F, == 0 (mod 64);
- const unsigned nrowG,      // IN, number of rows of G, == 0 (mod 64);
  const unsigned ncol,       // IN, number of columns, <= min(nrowF, nrowG), == 0 (mod 32);
 #ifdef ANIMATE
+ const unsigned nrowF,      // IN, number of rows of F, == 0 (mod 64);
+ const unsigned nrowG,      // IN, number of rows of G, == 0 (mod 64);
  double *const hF,          // INOUT, ldhF x ncol host array in Fortran order;
  const unsigned ldhF,       // IN, leading dimension of hF, >= nrowF;
-#endif // ANIMATE
  double *const dF,          // INOUT, ldhF x ncol device array in Fortran order;
  const unsigned lddF,       // IN, leading dimension of dF, >= nrowF;
-#ifdef ANIMATE
  double *const hG,          // INOUT, ldhG x ncol host array in Fortran order;
  const unsigned ldhG,       // IN, leading dimension of fG, >= nrowG;
-#endif // ANIMATE
  double *const dG,          // INOUT, ldhG x ncol device array in Fortran order;
  const unsigned lddG,       // IN, leading dimension of dG, >= nrowG;
- double *const dV,          // OUT, ldhV x ncol device array in Fortran order;
- const unsigned lddV,       // IN, leading dimension of dV, >= nrowV;
- double *const dS,          // OUT, the generalized singular values, optionally sorted in descending order;
- double *const dH,          // ||F_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2);
- double *const dK,          // ||G_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2);
+#endif // ANIMATE
  unsigned long long *const hC, // OUT, convergence vector
  unsigned long long *const dC, // OUT, convergence vector
  unsigned &glbSwp,          // OUT, number of sweeps at the outermost level;
@@ -272,18 +265,10 @@ HZ_L2
 
   timers[1] = stopwatch_lap(timers[3]);
   const int ret = HZ_L2_gpu
-    (routine,
-     nrowF,nrowG,ncol,
+    (routine,ncol,
 #ifdef ANIMATE
-     hF,ldhF,
+     nrowF,nrowG, hF,ldhF, dF,lddF, hG,ldhG, dG,lddG,
 #endif // ANIMATE
-     dF,lddF,
-#ifdef ANIMATE
-     hG,ldhG,
-#endif // ANIMATE
-     dG,lddG,
-     dV,lddV,
-     dS,dH,dK,
      hC,dC, glbSwp,glb_s,glb_b
 #ifdef ANIMATE
 #if (ANIMATE == 1)

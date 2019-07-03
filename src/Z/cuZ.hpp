@@ -22,4 +22,4 @@ MYDEVFN void Zmul(cuD &cD, cuJ &cJ, const cuD aD, const cuJ aJ, const cuD bD, co
   cJ = y;
 }
 
-#endif /* !CU_Z_HPP */
+#endif // !CU_Z_HPP

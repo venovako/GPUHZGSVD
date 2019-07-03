@@ -11,7 +11,7 @@
 #define err_msg_size static_cast<size_t>(1024u)
 #else // err_msg_size
 #error err_msg_size not definable externally
-#endif // !err_msg_size
+#endif // ?err_msg_size
 
 extern char err_msg[err_msg_size];
 

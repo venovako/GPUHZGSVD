@@ -61,32 +61,42 @@
 #error STRAT_MMSTEP not definable externally
 #endif // !STRAT_MMSTEP
 
-// n-1 for cyclic, n for quasi-cyclic
-#ifndef STRAT0_MAX_STEPS
-#define STRAT0_MAX_STEPS 32u
-#endif // !STRAT0_MAX_STEPS
-#ifndef STRAT1_MAX_STEPS
-#define STRAT1_MAX_STEPS 2048u
-#endif // !STRAT1_MAX_STEPS
-
 // n/2 for even n
 #ifndef STRAT0_MAX_PAIRS
 #define STRAT0_MAX_PAIRS 16u
-#endif // !STRAT0_MAX_PAIRS
-#ifndef STRAT1_MAX_PAIRS
-#define STRAT1_MAX_PAIRS 1024u
-#endif // !STRAT1_MAX_PAIRS
+#else // STRAT0_MAX_PAIRS
+#error STRAT0_MAX_PAIRS not definable externally
+#endif // ?STRAT0_MAX_PAIRS
+
+// n-1 for cyclic, n for quasi-cyclic
+#ifndef STRAT0_MAX_STEPS
+#define STRAT0_MAX_STEPS ((STRAT0_MAX_PAIRS) * 2u)
+#else // STRAT0_MAX_STEPS
+#error STRAT0_MAX_STEPS not definable externally
+#endif // ?STRAT0_MAX_STEPS
 
 #ifndef STRAT0_STORAGE
 #define STRAT0_STORAGE __constant__
 #endif // !STRAT0_STORAGE
-#ifndef STRAT1_STORAGE
-#define STRAT1_STORAGE __device__
-#endif // !STRAT1_STORAGE
 
 #ifndef STRAT0_DTYPE
 #define STRAT0_DTYPE char
 #endif // !STRAT0_DTYPE
+
+#ifndef STRAT1_MAX_PAIRS
+#define STRAT1_MAX_PAIRS 1024u
+#endif // !STRAT1_MAX_PAIRS
+
+#ifndef STRAT1_MAX_STEPS
+#define STRAT1_MAX_STEPS ((STRAT1_MAX_PAIRS) * 2u)
+#else // STRAT1_MAX_STEPS
+#error STRAT1_MAX_STEPS not definable externally
+#endif // ?STRAT1_MAX_STEPS
+
+#ifndef STRAT1_STORAGE
+#define STRAT1_STORAGE __device__
+#endif // !STRAT1_STORAGE
+
 #ifndef STRAT1_DTYPE
 #define STRAT1_DTYPE short
 #endif // !STRAT1_DTYPE
@@ -100,12 +110,22 @@ extern unsigned STRAT1_DTYPE strat1[STRAT1_MAX_STEPS][STRAT1_MAX_PAIRS][2u];
 extern jstrat_common js0, js1;
 
 #ifdef USE_MPI
-#ifndef STRAT2_MAX_STEPS
-#define STRAT2_MAX_STEPS 1024u
-#endif // !STRAT2_MAX_STEPS
+#ifndef HZ_MAX_DEVICES
+#define HZ_MAX_DEVICES 512u
+#endif // !HZ_MAX_DEVICES
+
 #ifndef STRAT2_MAX_PAIRS
-#define STRAT2_MAX_PAIRS 512u
-#endif // !STRAT2_MAX_PAIRS
+#define STRAT2_MAX_PAIRS HZ_MAX_DEVICES
+#else // STRAT2_MAX_PAIRS
+#error STRAT2_MAX_PAIRS not definable externally
+#endif // ?STRAT2_MAX_PAIRS
+
+#ifndef STRAT2_MAX_STEPS
+#define STRAT2_MAX_STEPS ((STRAT2_MAX_PAIRS) * 2u)
+#else // STRAT2_MAX_STEPS
+#error STRAT2_MAX_STEPS not definable externally
+#endif // ?STRAT2_MAX_STEPS
+
 #ifndef STRAT2_DTYPE
 #define STRAT2_DTYPE short
 #endif // !STRAT2_DTYPE

@@ -9,31 +9,23 @@ int // 0 if OK, < 0 if invalid argument, > 0 if error
 HZ_L2_gpu
 (const unsigned routine,    // IN, routine ID, <= 15, (B_N_)_2,
  // B: block-oriented (else, full-block), N: no sort;
- const unsigned nrowF,      // IN, number of rows of F, == 0 (mod 64);
- const unsigned nrowG,      // IN, number of rows of G, == 0 (mod 64);
  const unsigned ncol,       // IN, number of columns, <= min(nrowF, nrowG), == 0 (mod 32);
 #ifdef ANIMATE
+ const unsigned nrowF,      // IN, number of rows of F, == 0 (mod 64);
+ const unsigned nrowG,      // IN, number of rows of G, == 0 (mod 64);
  cuD *const hFD,            // INOUT, ldhF x ncol host array in Fortran order;
  cuJ *const hFJ,            // INOUT, ldhF x ncol host array in Fortran order;
  const unsigned ldhF,       // IN, leading dimension of hF, >= nrowF;
-#endif // ANIMATE
  cuD *const dFD,            // INOUT, lddF x ncol device array in Fortran order;
  cuJ *const dFJ,            // INOUT, lddF x ncol device array in Fortran order;
  const unsigned lddF,       // IN, leading dimension of dF, >= nrowF;
-#ifdef ANIMATE
  cuD *const hGD,            // INOUT, ldhG x ncol host array in Fortran order;
  cuJ *const hGJ,            // INOUT, ldhG x ncol host array in Fortran order;
  const unsigned ldhG,       // IN, leading dimension of hG, >= nrowG;
-#endif // ANIMATE
  cuD *const dGD,            // INOUT, lddG x ncol device array in Fortran order;
  cuJ *const dGJ,            // INOUT, lddG x ncol device array in Fortran order;
  const unsigned lddG,       // IN, leading dimension of dG, >= nrowG;
- cuD *const dVD,            // OUT, lddV x ncol host array in Fortran order;
- cuJ *const dVJ,            // OUT, lddV x ncol host array in Fortran order;
- const unsigned lddV,       // IN, leading dimension of dV;
- double *const dS,          // OUT, the generalized singular values, optionally sorted in descending order;
- double *const dH,          // ||F_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2);
- double *const dK,          // ||G_i||_F/sqrt(||F_i||_F^2 + ||G_i||_F^2);
+#endif // ANIMATE
  unsigned long long *const hC, // OUT, convergence vector
  unsigned long long *const dC, // OUT, convergence vector
  unsigned &glbSwp,          // OUT, number of sweeps at the outermost level;
@@ -335,18 +327,10 @@ HZ_L2
 
   timers[1] = stopwatch_lap(timers[3]);
   const int ret = HZ_L2_gpu
-    (routine,
-     nrowF,nrowG,ncol,
+    (routine,ncol,
 #ifdef ANIMATE
-     hFD,hFJ,ldhF,
+     nrowF,nrowG, hFD,hFJ,ldhF, dFD,dFJ,lddF, hGD,hGJ,ldhG, dGD,dGJ,lddG,
 #endif // ANIMATE
-     dFD,dFJ,lddF,
-#ifdef ANIMATE
-     hGD,hGJ,ldhG,
-#endif // ANIMATE
-     dGD,dGJ,lddG,
-     dVD,dVJ,lddV,
-     dS,dH,dK,
      hC,dC, glbSwp,glb_s,glb_b
 #ifdef ANIMATE
      , ctx,hDJ,nrow

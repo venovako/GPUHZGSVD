@@ -63,11 +63,6 @@
 #error EXTERN_C not definable externally
 #endif // !EXTERN_C
 
-#ifdef VAR_UNUSED
-#error VAR_UNUSED not definable externally
-#endif // VAR_UNUSED
-#define VAR_UNUSED __attribute__ ((unused))
-
 #ifdef USE_COMPLEX
 typedef double cuD;
 typedef double cuJ;
