@@ -15,14 +15,14 @@
 #define SQRT_HEPS 1.05367121277235087E-08
 #else // SQRT_HEPS
 #error SQRT_HEPS not definable externally
-#endif // !SQRT_HEPS
+#endif // ?SQRT_HEPS
 
 // sqrt(2 / HEPS)
 #ifndef SQRT_2_HEPS
 #define SQRT_2_HEPS 1.34217728000000000E+08
 #else // SQRT_2_HEPS
 #error SQRT_2_HEPS not definable externally
-#endif // !SQRT_2_HEPS
+#endif // ?SQRT_2_HEPS
 
 // sqrt(32) * HEPS
 #ifndef HZ_MYTOL
@@ -33,19 +33,19 @@
 #define HZ_BO_1 8u
 #else // HZ_BO_1
 #error HZ_BO_1 not definable externally
-#endif // !HZ_BO_1
+#endif // ?HZ_BO_1
 
 #ifndef HZ_BO_2
 #define HZ_BO_2 4u
 #else // HZ_BO_2
 #error HZ_BO_2 not definable externally
-#endif // !HZ_BO_2
+#endif // ?HZ_BO_2
 
 #ifndef HZ_L1_NCOLB
 #define HZ_L1_NCOLB 16u
 #else // HZ_L1_NCOLB
 #error HZ_L1_NCOLB not definable externally
-#endif // !HZ_L1_NCOLB
+#endif // ?HZ_L1_NCOLB
 
 #include "jstrat.h"
 
@@ -53,13 +53,13 @@
 #define STRAT_CYCWOR 2u
 #else // STRAT_CYCWOR
 #error STRAT_CYCWOR not definable externally
-#endif // !STRAT_CYCWOR
+#endif // ?STRAT_CYCWOR
 
 #ifndef STRAT_MMSTEP
 #define STRAT_MMSTEP 4u
 #else // STRAT_MMSTEP
 #error STRAT_MMSTEP not definable externally
-#endif // !STRAT_MMSTEP
+#endif // ?STRAT_MMSTEP
 
 // n/2 for even n
 #ifndef STRAT0_MAX_PAIRS

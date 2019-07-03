@@ -16,8 +16,8 @@
 #else // C99
 #include <math.h>
 #include <complex.h>
-#endif // __cplusplus
-#endif // __INTEL_COMPILER
+#endif // ?__cplusplus
+#endif // ?__INTEL_COMPILER
 
 #ifdef __cplusplus
 #include <cassert>
@@ -43,7 +43,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#endif // __cplusplus
+#endif // ?__cplusplus
 
 #include <alloca.h>
 #include <sys/time.h>
@@ -58,10 +58,10 @@
 #define EXTERN_C extern "C"
 #else // C
 #define EXTERN_C extern
-#endif // __cplusplus
+#endif // ?__cplusplus
 #else // EXTERN_C
 #error EXTERN_C not definable externally
-#endif // !EXTERN_C
+#endif // ?EXTERN_C
 
 #ifdef USE_COMPLEX
 typedef double cuD;

@@ -5,41 +5,41 @@
 #define MYKERN __global__ void
 #else // MYKERN
 #error MYKERN not definable externally
-#endif // !MYKERN
+#endif // ?MYKERN
 
 #ifndef MYDEVFN
 #ifdef NDEBUG
 #define MYDEVFN __device__ __forceinline__
 #else // DEBUG
 #define MYDEVFN __device__
-#endif // NDEBUG
+#endif // ?NDEBUG
 #else // MYDEVFN
 #error MYDEVFN not definable externally
-#endif // !MYDEVFN
+#endif // ?MYDEVFN
 
 #ifndef HZ_L1_MAX_THREADS_PER_BLOCK
 #define HZ_L1_MAX_THREADS_PER_BLOCK 512
 #else // HZ_L1_MAX_THREADS_PER_BLOCK
 #error HZ_L1_MAX_THREADS_PER_BLOCK not definable externally
-#endif // !HZ_L1_MAX_THREADS_PER_BLOCK
+#endif // ?HZ_L1_MAX_THREADS_PER_BLOCK
 
 #ifndef HZ_L1_THREADS_PER_BLOCK_X
 #define HZ_L1_THREADS_PER_BLOCK_X 32u
 #else // HZ_L1_THREADS_PER_BLOCK_X
 #error HZ_L1_THREADS_PER_BLOCK_X not definable externally
-#endif // !HZ_L1_THREADS_PER_BLOCK_X
+#endif // ?HZ_L1_THREADS_PER_BLOCK_X
 
 #ifndef HZ_L1_THREADS_PER_BLOCK_Y
 #define HZ_L1_THREADS_PER_BLOCK_Y 16u
 #else // HZ_L1_THREADS_PER_BLOCK_Y
 #error HZ_L1_THREADS_PER_BLOCK_Y not definable externally
-#endif // !HZ_L1_THREADS_PER_BLOCK_Y
+#endif // ?HZ_L1_THREADS_PER_BLOCK_Y
 
 #ifndef HZ_L1_MIN_BLOCKS_PER_SM
 #define HZ_L1_MIN_BLOCKS_PER_SM 1
 #else // HZ_L1_MIN_BLOCKS_PER_SM
 #error HZ_L1_MIN_BLOCKS_PER_SM not definable externally
-#endif // !HZ_L1_MIN_BLOCKS_PER_SM
+#endif // ?HZ_L1_MIN_BLOCKS_PER_SM
 
 #if (WARP_SZ != 32u)
 #error WARP_SZ not 32
@@ -49,31 +49,31 @@
 #define WARP_SZ_LG 5u
 #else // WARP_SZ_LG
 #error WARP_SZ_LG not definable externally
-#endif // !WARP_SZ_LG
+#endif // ?WARP_SZ_LG
 
 #ifndef WARP_SZ_LGi
 #define WARP_SZ_LGi 5
 #else // WARP_SZ_LGi
 #error WARP_SZ_LGi not definable externally
-#endif // !WARP_SZ_LGi
+#endif // ?WARP_SZ_LGi
 
 #ifndef WARP_SZ_SUB1
 #define WARP_SZ_SUB1 31u
 #else // WARP_SZ_SUB1
 #error WARP_SZ_SUB1 not definable externally
-#endif // !WARP_SZ_SUB1
+#endif // ?WARP_SZ_SUB1
 
 #ifndef F32
 #define F32(A, r, c) (A)[(c) * 32u + (r)]
 #else // F32
 #error F32 not definable externally
-#endif // !F32
+#endif // ?F32
 
 #ifndef F64
 #define F64(A, r, c) (A)[(c) * 64u + (r)]
 #else // F64
 #error F64 not definable externally
-#endif // !F64
+#endif // ?F64
 
 #include "device_code_globals.hpp"
 

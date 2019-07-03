@@ -31,7 +31,7 @@ extern char err_msg[err_msg_size];
   }
 #else // WARN
 #error WARN not definable externally
-#endif // !WARN
+#endif // ?WARN
 
 #ifndef DIE
 #define DIE(msg) {                                                            \
@@ -40,7 +40,7 @@ extern char err_msg[err_msg_size];
   }
 #else // DIE
 #error DIE not definable externally
-#endif // !DIE
+#endif // ?DIE
 
 #ifndef SYSI_CALL
 #define SYSI_CALL(call) {						\
@@ -52,7 +52,7 @@ extern char err_msg[err_msg_size];
   }
 #else // SYSI_CALL
 #error SYSI_CALL not definable externally
-#endif // !SYSI_CALL
+#endif // ?SYSI_CALL
 
 #ifndef SYSP_CALL
 #define SYSP_CALL(call) {						\
@@ -64,7 +64,7 @@ extern char err_msg[err_msg_size];
   }
 #else // SYSP_CALL
 #error SYSP_CALL not definable externally
-#endif // !SYSP_CALL
+#endif // ?SYSP_CALL
 
 template <typename T>
 T udiv_ceil(const T a, const T b) throw()
@@ -91,13 +91,13 @@ EXTERN_C unsigned long long atou(const char *const s) throw();
 #define TS2S 1e-6
 #else // TS2S
 #error TS2S not definable externally
-#endif // !TS2S
+#endif // ?TS2S
 
 #ifndef TS_S
 #define TS_S 1000000ll
 #else // TS_S
 #error TS_S not definable externally
-#endif // !TS_S
+#endif // ?TS_S
 
 EXTERN_C long long timestamp() throw();
 EXTERN_C void stopwatch_reset(long long &sw) throw();

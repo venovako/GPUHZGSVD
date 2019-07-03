@@ -19,13 +19,13 @@
 }
 #else // CUDA_CALL
 #error CUDA_CALL not definable externally
-#endif // !CUDA_CALL
+#endif // ?CUDA_CALL
 
 #ifndef WARP_SZ
 #define WARP_SZ 32u
 #else // WARP_SZ
 #error WARP_SZ not definable externally
-#endif // !WARP_SZ
+#endif // ?WARP_SZ
 
 EXTERN_C int configureGPU(const int dev) throw();
 EXTERN_C int configureGPUex(const int dev, const unsigned maxShMemB) throw();
