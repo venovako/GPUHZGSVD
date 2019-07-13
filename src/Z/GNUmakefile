@@ -13,20 +13,25 @@ ifndef STD
 STD=11
 endif # !STD
 
+ifdef NDEBUG
+DEBUG=
+else # DEBUG
+DEBUG=g
+endif # ?NDEBUG
+
 NVPPFLAGS=-I. -I../shared -I../../../JACSD/jstrat -DCVG=$(CVG) -DUSE_COMPLEX
 NVCCFLAGS=-std c++$(STD) -restrict -res-usage -Xcompiler -march=native -Xcompiler -pthread
 ifdef GPU_ARCH
 GENCODE=-gencode arch=compute_$(ARCH),code=sm_$(ARCH)
 NVCCFLAGS+=$(foreach ARCH,$(GPU_ARCH),$(GENCODE))
 endif # GPU_ARCH
-NVLDFLAGS=-L../../../JACSD -ljstrat
+NVLDFLAGS=-L../../../JACSD -ljstrat$(DEBUG)
 
 ifdef NDEBUG
 NVPPFLAGS+=-DNDEBUG
 NVCCFLAGS+=-O$(NDEBUG)
 else # debug
-NVPPFLAGS+=-UNDEBUG
-NVCCFLAGS+=-O0 -g -G -src-in-ptx -Xptxas -no-bb-merge,-ret-end
+NVCCFLAGS+=-O0 -$(DEBUG) -G -src-in-ptx -Xptxas -no-bb-merge,-ret-end
 endif # NDEBUG
 
 # e.g. -ffp-contract=on,-integrated-as
@@ -36,7 +41,7 @@ endif # HOST_FLAGS
 
 ifdef ANIMATE
 NVPPFLAGS+=-DUSE_MKL -DANIMATE=$(ANIMATE) -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
-NVLDFLAGS+=-lvn -L${MKLROOT}/lib -Xlinker -rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Xlinker -rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_core -lmkl_intel_thread -liomp5 -lpthread
+NVLDFLAGS+=-lvn$(DEBUG) -L${MKLROOT}/lib -Xlinker -rpath,${MKLROOT}/lib -L${MKLROOT}/../compiler/lib -Xlinker -rpath,${MKLROOT}/../compiler/lib -lmkl_intel_ilp64 -lmkl_core -lmkl_intel_thread -liomp5 -lpthread
 endif # ANIMATE
 
 NVLDFLAGS+=-l dl,m
