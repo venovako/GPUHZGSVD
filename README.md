@@ -7,7 +7,7 @@ A part of the supplementary material for the paper arXiv:[1909.00101](https://ar
 
 ### Prerequisites
 
-A reasonably recent (e.g., 10.1) full CUDA installation on a 64-bit Linux or macOS is required.
+A reasonably recent (e.g., 10.1.243) full CUDA installation on a 64-bit Linux (e.g., CentOS 7.7, optionally with devtoolset-8) is required.
 
 For the Level 3 (multi-GPU) version an MPI installation on Linux built with the CUDA support (e.g., [Open MPI](https://www.open-mpi.org)) is required.
 
