@@ -28,6 +28,7 @@ extern char err_msg[err_msg_size];
 #ifndef WARN
 #define WARN(msg) {                                                             \
     (void)fprintf(stderr, "[WARNING] %s(%d): %s\n", __FILE__, __LINE__, (msg)); \
+    (void)fflush(stderr);                                                       \
   }
 #else // WARN
 #error WARN not definable externally
@@ -36,6 +37,7 @@ extern char err_msg[err_msg_size];
 #ifndef DIE
 #define DIE(msg) {                                                            \
     (void)fprintf(stderr, "[ERROR] %s(%d): %s\n", __FILE__, __LINE__, (msg)); \
+    (void)fflush(stderr);                                                     \
     EXIT;                                                                     \
   }
 #else // DIE
@@ -43,33 +45,32 @@ extern char err_msg[err_msg_size];
 #endif // ?DIE
 
 #ifndef SYSI_CALL
-#define SYSI_CALL(call) {						\
-    if (0 != static_cast<int>(call)) {					\
-      (void)fprintf(stderr, "[ERROR] %s(%d): %s",                       \
-		    __FILE__, __LINE__, strerror(errno));		\
-      EXIT;                                                             \
-    }									\
+#define SYSI_CALL(call) {                                                                 \
+    if (0 != static_cast<int>(call)) {                                                    \
+      (void)fprintf(stderr, "[ERROR] %s(%d): %s\n", __FILE__, __LINE__, strerror(errno)); \
+      (void)fflush(stderr);                                                               \
+      EXIT;                                                                               \
+    }                                                                                     \
   }
 #else // SYSI_CALL
 #error SYSI_CALL not definable externally
 #endif // ?SYSI_CALL
 
 #ifndef SYSP_CALL
-#define SYSP_CALL(call) {						\
-    if (NULL == static_cast<const void*>(call)) {			\
-      (void)fprintf(stderr, "[ERROR] %s(%d): %s",                       \
-		    __FILE__, __LINE__, strerror(errno));		\
-      EXIT;                                                             \
-    }									\
+#define SYSP_CALL(call) {                                                                 \
+    if (NULL == static_cast<const void*>(call)) {                                         \
+      (void)fprintf(stderr, "[ERROR] %s(%d): %s\n", __FILE__, __LINE__, strerror(errno)); \
+      EXIT;                                                                               \
+    }                                                                                     \
   }
 #else // SYSP_CALL
 #error SYSP_CALL not definable externally
 #endif // ?SYSP_CALL
 
 template <typename T>
-T udiv_ceil(const T a, const T b) throw()
+inline T udiv_ceil(const T a, const T b) throw()
 {
-  return (a + b - static_cast<T>(1u)) / b;
+  return (b ? ((a + (b - static_cast<T>(1u))) / b) : static_cast<T>(0u));
 }
 
 template <typename T>

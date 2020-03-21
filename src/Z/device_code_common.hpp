@@ -45,17 +45,17 @@
 #error WARP_SZ not 32
 #endif // WARP_SZ
 
-#ifndef WARP_SZ_LG
-#define WARP_SZ_LG 5u
-#else // WARP_SZ_LG
-#error WARP_SZ_LG not definable externally
-#endif // ?WARP_SZ_LG
-
 #ifndef WARP_SZ_LGi
 #define WARP_SZ_LGi 5
 #else // WARP_SZ_LGi
 #error WARP_SZ_LGi not definable externally
 #endif // ?WARP_SZ_LGi
+
+#ifndef WARP_SZ_LG
+#define WARP_SZ_LG 5u
+#else // WARP_SZ_LG
+#error WARP_SZ_LG not definable externally
+#endif // ?WARP_SZ_LG
 
 #ifndef WARP_SZ_SUB1
 #define WARP_SZ_SUB1 31u
