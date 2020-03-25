@@ -29,13 +29,17 @@ static const dim3 hzL1bD(HZ_L1_THREADS_PER_BLOCK_X, HZ_L1_THREADS_PER_BLOCK_Y, 1
 void HZ_L1_sv(const unsigned step) throw()
 {
   const dim3 hzL1gD(STRAT1_PAIRS, 1u, 1u);
+  cuda_prof_start();
   zHZ_L1_sv<<< hzL1gD, hzL1bD >>>(step);
+  cuda_prof_stop();
 }
 
 void HZ_L1_v(const unsigned step) throw()
 {
   const dim3 hzL1gD(STRAT1_PAIRS, 1u, 1u);
+  cuda_prof_start();
   zHZ_L1_v<<< hzL1gD, hzL1bD >>>(step);
+  cuda_prof_stop();
 }
 
 void initS(const int full, const unsigned nRank) throw()
@@ -43,7 +47,9 @@ void initS(const int full, const unsigned nRank) throw()
   const dim3 bD(2u * WARP_SZ, 1u, 1u);
   const dim3 gD(udiv_ceil(nRank * WARP_SZ, bD.x), 1u, 1u);
   const size_t shmD = static_cast<size_t>(0u);
+  cuda_prof_start();
   zInitS<<< gD, bD, shmD >>>(full);
+  cuda_prof_stop();
 }
 
 void initV(const int sclV, const unsigned nRank
@@ -55,11 +61,13 @@ void initV(const int sclV, const unsigned nRank
   const dim3 bD(2u * WARP_SZ, 1u, 1u);
   const dim3 gD(udiv_ceil(nRank * WARP_SZ, bD.x), 1u, 1u);
   const size_t shmD = static_cast<size_t>(0u);
+  cuda_prof_start();
   zInitV<<< gD, bD, shmD >>>(sclV
 #ifdef USE_MPI
     , ifc0, ifc1
 #endif // USE_MPI
   );
+  cuda_prof_stop();
 }
 
 void initSymbols

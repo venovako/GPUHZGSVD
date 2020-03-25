@@ -1,6 +1,11 @@
 #include "cuda_helper.hpp"
 
 #include "my_utils.hpp"
+#ifdef PROFILE
+#ifdef USE_MPI
+#include "mpi_helper.hpp"
+#endif // USE_MPI
+#endif // PROFILE
 
 int configureGPUex(const int dev, const unsigned maxShMemB) throw()
 {
@@ -22,18 +27,45 @@ int configureGPUex(const int dev, const unsigned maxShMemB) throw()
   }
 
   cudaFuncCache cacheConfig = cudaFuncCachePreferNone;
-  if (maxShMemB <= 16384u) // 16 kB
-    cacheConfig = cudaFuncCachePreferL1;
-  else if (maxShMemB <= 32768u) // 32 kB
-    cacheConfig = cudaFuncCachePreferEqual;
-  else if (maxShMemB <= 49152u) // 48 kB
-    cacheConfig = cudaFuncCachePreferShared;
-  else { // > 48 kB
-    (void)snprintf(err_msg, err_msg_size, "Maximum shared memory requested (%u B) > 48 kB", maxShMemB);
-    WARN(err_msg);
+  if (maxShMemB) {
+    if (maxShMemB <= 16384u) // 16 kB
+      cacheConfig = cudaFuncCachePreferL1;
+    else if (maxShMemB <= 32768u) // 32 kB
+      cacheConfig = cudaFuncCachePreferEqual;
+    else if (maxShMemB <= 49152u) // 48 kB
+      cacheConfig = cudaFuncCachePreferShared;
+    else { // > 48 kB
+      (void)snprintf(err_msg, err_msg_size, "Maximum shared memory requested (%u B) > 48 kB", maxShMemB);
+      WARN(err_msg);
+    }
   }
   CUDA_CALL(cudaDeviceSetCacheConfig(cacheConfig));
   CUDA_CALL(cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeEightByte));
+
+#ifdef PROFILE
+#ifndef STR1CONC
+#define STR1CONC(x) #x
+#else // STR1CONC
+#error STR1CONC not definable externally
+#endif // ?STR1CONC
+
+#ifdef USE_MPI
+#ifdef USE_COMPLEX
+  (void)snprintf(err_msg, err_msg_size, "Z" STR1CONC(CVG) "_" STR1CONC(PROFILE) "_%d_%d.csv", mpi_rank, dev);
+#else // !USE_COMPLEX
+  (void)snprintf(err_msg, err_msg_size, "D" STR1CONC(CVG) "_" STR1CONC(PROFILE) "_%d_%d.csv", mpi_rank, dev);
+#endif // ?USE_COMPLEX
+#else // !USE_MPI
+#ifdef USE_COMPLEX
+  (void)snprintf(err_msg, err_msg_size, "Z" STR1CONC(CVG) "_" STR1CONC(PROFILE) "_%d.csv", dev);
+#else // !USE_COMPLEX
+  (void)snprintf(err_msg, err_msg_size, "D" STR1CONC(CVG) "_" STR1CONC(PROFILE) "_%d.csv", dev);
+#endif // ?USE_COMPLEX
+#endif // ?USE_MPI
+  CUDA_CALL(cudaProfilerInitialize(STR1CONC(PROFILE) ".cfg", err_msg, cudaCSV));
+
+#undef STR1CONC
+#endif // PROFILE
 
   return dcc;
 }
@@ -46,4 +78,18 @@ int configureGPU(const int dev) throw()
   static const unsigned maxShMemB = 24576u; // 24 kB
 #endif // ?USE_COMPLEX
   return configureGPUex(dev, maxShMemB);
+}
+
+void cuda_prof_start() throw()
+{
+#ifdef PROFILE
+  CUDA_CALL(cudaProfilerStart());
+#endif // PROFILE
+}
+
+void cuda_prof_stop() throw()
+{
+#ifdef PROFILE
+  CUDA_CALL(cudaProfilerStop());
+#endif // PROFILE
 }

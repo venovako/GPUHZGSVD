@@ -400,9 +400,10 @@ int main(int argc, char *argv[])
   free(fn);
   free_strats();
 
-  // for profiling
   CUDA_CALL(cudaDeviceSynchronize());
+#ifdef PROFILE
   CUDA_CALL(cudaDeviceReset());
+#endif // PROFILE
 
   return ret;
 }

@@ -10,7 +10,8 @@
 int main(int argc, char *argv[])
 {
   if (9 != argc) {
-    DIE("Arguments: SNP0 SNP1 SNP2 ALG MF MG N FN");
+    (void)snprintf(err_msg, err_msg_size, "%s SNP0 SNP1 SNP2 ALG MF MG N FN", *argv);
+    DIE(err_msg);
   }
 
   const char *const ca_exe = argv[0];
@@ -755,9 +756,10 @@ int main(int argc, char *argv[])
   free(fn);  
   free_strats();
 
-  // for profiling
   CUDA_CALL(cudaDeviceSynchronize());
+#ifdef PROFILE
   CUDA_CALL(cudaDeviceReset());
+#endif // PROFILE
 
   return fini_MPI();
 }

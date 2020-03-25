@@ -1,5 +1,5 @@
 #!/bin/bash
-# Some possible flags: ANIMATE=1 HOST_FLAGS="-ffp-contract=on,-integrated-as"
+# Some possible flags: ANIMATE=1 HOST_FLAGS="-march=native" PROFILE="cuda_profile"
 GCCMAJORVER=`gcc -dumpversion | cut -d. -f1`
 if [ "$GCCMAJORVER" != "4" ]
 then

@@ -19,6 +19,9 @@ DEBUG=g
 endif # ?NDEBUG
 
 NVPPFLAGS=-I. -I../shared -I../../../JACSD/jstrat -DCVG=$(CVG)
+ifdef PROFILE
+NVPPFLAGS+=-DPROFILE=$(PROFILE)
+endif # PROFILE
 NVCCFLAGS=-std c++$(STD) -restrict -res-usage -Xcompiler -march=native -Xcompiler -pthread
 ifdef GPU_ARCH
 GENCODE=-gencode arch=compute_$(ARCH),code=sm_$(ARCH)
@@ -33,7 +36,7 @@ else # debug
 NVCCFLAGS+=-O0 -$(DEBUG) -G -src-in-ptx -Xptxas -no-bb-merge,-ret-end
 endif # NDEBUG
 
-# e.g. -ffp-contract=on,-integrated-as
+# e.g. -march=native
 ifdef HOST_FLAGS
 NVCCFLAGS+=-Xcompiler $(HOST_FLAGS)
 endif # HOST_FLAGS
