@@ -50,7 +50,9 @@ HZ_L2_gpu
 
   glb_s = 0ull;
   glb_b = 0ull;
+
 #ifndef USE_MPI
+  cuda_prof_start();
   long long swp_tim = 0ll;
   stopwatch_reset(swp_tim);
 #endif // !USE_MPI
@@ -169,6 +171,10 @@ HZ_L2_gpu
   initS(1, ncol);
 #endif // !USE_MPI
   CUDA_CALL(cudaDeviceSynchronize());
+
+#ifndef USE_MPI
+  cuda_prof_stop();
+#endif // !USE_MPI
   return 0;
 }
 

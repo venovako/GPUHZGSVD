@@ -1,11 +1,13 @@
 #include "cuda_helper.hpp"
 
 #include "my_utils.hpp"
+/* use nvprof
 #ifdef PROFILE
 #ifdef USE_MPI
 #include "mpi_helper.hpp"
 #endif // USE_MPI
 #endif // PROFILE
+*/
 
 int configureGPUex(const int dev, const unsigned maxShMemB) throw()
 {
@@ -42,30 +44,26 @@ int configureGPUex(const int dev, const unsigned maxShMemB) throw()
   CUDA_CALL(cudaDeviceSetCacheConfig(cacheConfig));
   CUDA_CALL(cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeEightByte));
 
+  /* use nvprof
 #ifdef PROFILE
-#ifndef STR1CONC
-#define STR1CONC(x) #x
-#else // STR1CONC
-#error STR1CONC not definable externally
-#endif // ?STR1CONC
-
 #ifdef USE_MPI
 #ifdef USE_COMPLEX
-  (void)snprintf(err_msg, err_msg_size, "Z" STR1CONC(CVG) "_" STR1CONC(PROFILE) "_%d_%d.csv", mpi_rank, dev);
+  (void)snprintf(err_msg, err_msg_size, "Z%d_%d_%d_%d.csv", CVG, PROFILE, mpi_rank, dev);
 #else // !USE_COMPLEX
-  (void)snprintf(err_msg, err_msg_size, "D" STR1CONC(CVG) "_" STR1CONC(PROFILE) "_%d_%d.csv", mpi_rank, dev);
+  (void)snprintf(err_msg, err_msg_size, "D%d_%d_%d_%d.csv", CVG, PROFILE, mpi_rank, dev);
 #endif // ?USE_COMPLEX
 #else // !USE_MPI
 #ifdef USE_COMPLEX
-  (void)snprintf(err_msg, err_msg_size, "Z" STR1CONC(CVG) "_" STR1CONC(PROFILE) "_%d.csv", dev);
+  (void)snprintf(err_msg, err_msg_size, "Z%d_%d_%d.csv", CVG, PROFILE, dev);
 #else // !USE_COMPLEX
-  (void)snprintf(err_msg, err_msg_size, "D" STR1CONC(CVG) "_" STR1CONC(PROFILE) "_%d.csv", dev);
+  (void)snprintf(err_msg, err_msg_size, "D%d_%d_%d.csv", CVG, PROFILE, dev);
 #endif // ?USE_COMPLEX
 #endif // ?USE_MPI
-  CUDA_CALL(cudaProfilerInitialize(STR1CONC(PROFILE) ".cfg", err_msg, cudaCSV));
-
-#undef STR1CONC
+  const size_t err_msg_size_2 = err_msg_size >> 1u;
+  (void)snprintf(err_msg + err_msg_size_2, err_msg_size_2, "%d.cfg", PROFILE);
+  CUDA_CALL(cudaProfilerInitialize(err_msg + err_msg_size_2, err_msg, cudaCSV));
 #endif // PROFILE
+  */
 
   return dcc;
 }
