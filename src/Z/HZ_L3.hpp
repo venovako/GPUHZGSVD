@@ -32,4 +32,4 @@ HZ_L3
  double &timing             // OUT, in seconds;
 ) throw();
 
-#endif // !HZ_L3_HPP
+#endif /* !HZ_L3_HPP */

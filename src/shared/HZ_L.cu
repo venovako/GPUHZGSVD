@@ -16,9 +16,9 @@ STRAT2_DTYPE strat2[STRAT2_MAX_STEPS][STRAT2_MAX_PAIRS][2u][2u];
 jstrat_common js2;
 
 void init_strats(const unsigned snp0, const unsigned n0, const unsigned snp1, const unsigned n1, const unsigned snp2, const unsigned n2) throw()
-#else // !USE_MPI
+#else /* !USE_MPI */
 void init_strats(const unsigned snp0, const unsigned n0, const unsigned snp1, const unsigned n1) throw()
-#endif // ?USE_MPI
+#endif /* ?USE_MPI */
 {
   switch (snp0) {
   case STRAT_CYCWOR:
@@ -90,7 +90,7 @@ void init_strats(const unsigned snp0, const unsigned n0, const unsigned snp1, co
   (void)memset(strat2, 0, sizeof(strat2));
 
   ap = (((ap >= n2) ? ap : n2) << 1u);
-#endif // USE_MPI
+#endif /* USE_MPI */
 
   integer (*const arr)[2u] = (integer (*)[2u])malloc(ap * sizeof(integer));
   if (!arr) {
@@ -185,7 +185,7 @@ void init_strats(const unsigned snp0, const unsigned n0, const unsigned snp1, co
         (void)fprintf(stderr, "%c", ((p == (STRAT2_PAIRS - 1u)) ? '\n' : ','));
     }
   }
-#endif // USE_MPI
+#endif /* USE_MPI */
 
   free(arr);
 }
@@ -194,7 +194,7 @@ void free_strats() throw()
 {
 #ifdef USE_MPI
   jstrat_free(&js2);
-#endif // USE_MPI
+#endif /* USE_MPI */
   jstrat_free(&js1);
   jstrat_free(&js0);
 }

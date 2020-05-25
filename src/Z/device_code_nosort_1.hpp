@@ -255,4 +255,4 @@ MYDEVFN unsigned zHZ_L0_v
   return blk_transf_s;
 }
 
-#endif // !DEVICE_CODE_NOSORT_HPP
+#endif /* !DEVICE_CODE_NOSORT_HPP */

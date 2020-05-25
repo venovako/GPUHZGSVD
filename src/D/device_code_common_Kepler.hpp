@@ -3,15 +3,15 @@
 
 #ifndef _shfl_xor
 #define _shfl_xor(x,y) __shfl_xor_sync(~0u, (x), (y))
-#else // _shfl_xor
+#else /* _shfl_xor */
 #error _shfl_xor already defined
-#endif // !_shfl_xor
+#endif /* !_shfl_xor */
 
 #ifndef _shfl
 #define _shfl(x,y) __shfl_sync(~0u, (x), (y))
-#else // _shfl
+#else /* _shfl */
 #error _shfl already defined
-#endif // !_shfl
+#endif /* !_shfl */
 
 // sum x
 // Kepler warp shuffle
@@ -191,6 +191,6 @@ dSSQ32(const double x, double &s0, double &s1)
 {
   return dSUM_PROD_32(x, x, s0, s1);
 }
-#endif // ?CVG
+#endif /* ?CVG */
 
-#endif // !DEVICE_CODE_COMMON_KEPLER_HPP
+#endif /* !DEVICE_CODE_COMMON_KEPLER_HPP */

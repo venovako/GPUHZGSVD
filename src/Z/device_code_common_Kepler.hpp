@@ -3,15 +3,15 @@
 
 #ifndef _shfl_xor
 #define _shfl_xor(x,y) __shfl_xor_sync(~0u, (x), (y))
-#else // _shfl_xor
+#else /* _shfl_xor */
 #error _shfl_xor already defined
-#endif // !_shfl_xor
+#endif /* !_shfl_xor */
 
 #ifndef _shfl
 #define _shfl(x,y) __shfl_sync(~0u, (x), (y))
-#else // _shfl
+#else /* _shfl */
 #error _shfl already defined
-#endif // !_shfl
+#endif /* !_shfl */
 
 // sum x
 // Kepler warp shuffle
@@ -175,7 +175,7 @@ MYDEVFN double zSsq32(const cuD D, const cuJ J)
   const double z = __fma_rn(D, D, J * J);
   return dSum32(z);
 }
-#else // ((CVG == 1) || (CVG == 3) || (CVG == 5) || (CVG == 7))
+#else /* ((CVG == 1) || (CVG == 3) || (CVG == 5) || (CVG == 7)) */
 MYDEVFN double zSsq32(const cuD D, const cuJ J)
 {
   const cuD vD = __dmul_rd(D, D);
@@ -186,7 +186,7 @@ MYDEVFN double zSsq32(const cuD D, const cuJ J)
   s = ((vD <= vJ) ? ((s + vD) + vJ) : ((s + vJ) + vD));
   return dSum32(s);
 }
-#endif // ?CVG
+#endif /* ?CVG */
 
 MYDEVFN void zDot32(cuD &cD, cuJ &cJ, const cuD aD, const cuJ aJ, const cuD bD, const cuJ bJ)
 {
@@ -197,4 +197,4 @@ MYDEVFN void zDot32(cuD &cD, cuJ &cJ, const cuD aD, const cuJ aJ, const cuD bD, 
   cJ = dSum32(y);
 }
 
-#endif // !DEVICE_CODE_COMMON_KEPLER_HPP
+#endif /* !DEVICE_CODE_COMMON_KEPLER_HPP */

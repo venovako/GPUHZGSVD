@@ -107,17 +107,17 @@ int main(int argc, char *argv[])
   const MPI_Offset opF = static_cast<MPI_Offset>((p_ * mF)
 #ifdef USE_COMPLEX
     * 2u
-#endif // USE_COMPLEX
+#endif /* USE_COMPLEX */
   );
   const MPI_Offset opG = static_cast<MPI_Offset>((p_ * mG)
 #ifdef USE_COMPLEX
     * 2u
-#endif // USE_COMPLEX
+#endif /* USE_COMPLEX */
   );
   const MPI_Offset opV = static_cast<MPI_Offset>((p_ * n)
 #ifdef USE_COMPLEX
     * 2u
-#endif // USE_COMPLEX
+#endif /* USE_COMPLEX */
   );
   const MPI_Offset opS = static_cast<MPI_Offset>(p_);
 
@@ -126,17 +126,17 @@ int main(int argc, char *argv[])
   const MPI_Offset oqF = static_cast<MPI_Offset>((q_ * mF)
 #ifdef USE_COMPLEX
     * 2u
-#endif // USE_COMPLEX
+#endif /* USE_COMPLEX */
   );
   const MPI_Offset oqG = static_cast<MPI_Offset>((q_ * mG)
 #ifdef USE_COMPLEX
     * 2u
-#endif // USE_COMPLEX
+#endif /* USE_COMPLEX */
   );
   const MPI_Offset oqV = static_cast<MPI_Offset>((q_ * n)
 #ifdef USE_COMPLEX
     * 2u
-#endif // USE_COMPLEX
+#endif /* USE_COMPLEX */
   );
   const MPI_Offset oqS = static_cast<MPI_Offset>(q_);
 
@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
 #ifdef USE_COMPLEX
   double *const buf = static_cast<double*>(calloc((((mF >= mG) ? mF : mG) * 2u), sizeof(double)));
   SYSP_CALL(buf);
-#endif // USE_COMPLEX
+#endif /* USE_COMPLEX */
 
   MPI_File fh = MPI_FILE_NULL;
   size_t ldA = static_cast<size_t>(0u);
@@ -156,10 +156,10 @@ int main(int argc, char *argv[])
   SYSP_CALL(hFD);
   cuJ *const hFJ = allocHostMtx<cuJ>(ldA, mF_, n_gpu, true);
   SYSP_CALL(hFJ);
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
   double *const hF = allocHostMtx<double>(ldA, mF_, n_gpu, true);
   SYSP_CALL(hF);
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
   ldhF = ldA;
 
   if (MPI_File_open(MPI_COMM_WORLD, strcat(strcpy(fn, ca_fn), ".Y"), MPI_MODE_RDONLY, MPI_INFO_NULL, &fh)) {
@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
       cJ[i] = static_cast<cuJ>(buf[i2 + 1u]);
     }
   }
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
   for (size_t j = 0u; j < n_p; ++j) {
     if (MPI_File_read_at(fh, (opF + j * mF), (hF + ldA * j), mF, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
       DIE("MPI_File_read_at(Y)p");
@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
       DIE("MPI_File_read_at(Y)q");
     }
   }
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
   if (MPI_File_close(&fh)) {
     DIE("MPI_File_close(Y)");
   }
@@ -216,17 +216,17 @@ int main(int argc, char *argv[])
       const size_t o = (p_ - n);
 #ifdef USE_COMPLEX
       SYSI_CALL(bdinit((mF + o), (o + 1u), hFD, ldA));
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
       SYSI_CALL(bdinit((mF + o), (o + 1u), hF, ldA));
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
     }
     else {
       const size_t f = (n - p_);
 #ifdef USE_COMPLEX
       SYSI_CALL(bdinit(mF, (n_col - f), (hFD + ldA * f), ldA));
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
       SYSI_CALL(bdinit(mF, (n_col - f), (hF + ldA * f), ldA));
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
     }
   }
   if ((q_ + n_col) > n) {
@@ -234,17 +234,17 @@ int main(int argc, char *argv[])
       const size_t o = (q_ - n);
 #ifdef USE_COMPLEX
       SYSI_CALL(bdinit((mF + o), (o + 1u), (hFD + ldA * n_col), ldA));
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
       SYSI_CALL(bdinit((mF + o), (o + 1u), (hF + ldA * n_col), ldA));
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
     }
     else {
       const size_t f = (n - p_);
 #ifdef USE_COMPLEX
       SYSI_CALL(bdinit(mF, (n_col - f), (hFD + ldA * (n_col + f)), ldA));
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
       SYSI_CALL(bdinit(mF, (n_col - f), (hF + ldA * (n_col + f)), ldA));
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
     }
   }
 
@@ -254,10 +254,10 @@ int main(int argc, char *argv[])
   SYSP_CALL(hGD);
   cuJ *const hGJ = allocHostMtx<cuJ>(ldA, mG_, n_gpu, true);
   SYSP_CALL(hGJ);
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
   double *const hG = allocHostMtx<double>(ldA, mG_, n_gpu, true);
   SYSP_CALL(hG);
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
   ldhG = ldA;
 
   if (MPI_File_open(MPI_COMM_WORLD, strcat(strcpy(fn, ca_fn), ".W"), MPI_MODE_RDONLY, MPI_INFO_NULL, &fh)) {
@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
       cJ[i] = static_cast<cuJ>(buf[i2 + 1u]);
     }
   }
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
   for (size_t j = 0u; j < n_p; ++j) {
     if (MPI_File_read_at(fh, (opG + j * mG), (hG + ldA * j), mG, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
       DIE("MPI_File_read_at(W)p");
@@ -304,7 +304,7 @@ int main(int argc, char *argv[])
       DIE("MPI_File_read_at(W)q");
     }
   }
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
   if (MPI_File_close(&fh)) {
     DIE("MPI_File_close(W)");
   }
@@ -314,17 +314,17 @@ int main(int argc, char *argv[])
       const size_t o = (p_ - n);
 #ifdef USE_COMPLEX
       SYSI_CALL(bdinit((mG + o), (o + 1u), hGD, ldA));
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
       SYSI_CALL(bdinit((mG + o), (o + 1u), hG, ldA));
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
     }
     else {
       const size_t f = (n - p_);
 #ifdef USE_COMPLEX
       SYSI_CALL(bdinit(mG, (n_col - f), (hGD + ldA * f), ldA));
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
       SYSI_CALL(bdinit(mG, (n_col - f), (hG + ldA * f), ldA));
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
     }
   }
   if ((q_ + n_col) > n) {
@@ -332,17 +332,17 @@ int main(int argc, char *argv[])
       const size_t o = (q_ - n);
 #ifdef USE_COMPLEX
       SYSI_CALL(bdinit((mG + o), (o + 1u), (hGD + ldA * n_col), ldA));
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
       SYSI_CALL(bdinit((mG + o), (o + 1u), (hG + ldA * n_col), ldA));
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
     }
     else {
       const size_t f = (n - p_);
 #ifdef USE_COMPLEX
       SYSI_CALL(bdinit(mG, (n_col - f), (hGD + ldA * (n_col + f)), ldA));
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
       SYSI_CALL(bdinit(mG, (n_col - f), (hG + ldA * (n_col + f)), ldA));
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
     }
   }
 
@@ -352,10 +352,10 @@ int main(int argc, char *argv[])
   SYSP_CALL(hVD);
   cuJ *const hVJ = allocHostMtx<cuJ>(ldA, n_, n_gpu, true);
   SYSP_CALL(hVJ);
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
   double *const hV = allocHostMtx<double>(ldA, n_, n_gpu, true);
   SYSP_CALL(hV);
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
   ldhV = ldA;
 
   if ((p_ + n_col) > n) {
@@ -363,17 +363,17 @@ int main(int argc, char *argv[])
       const size_t o = (p_ - n);
 #ifdef USE_COMPLEX
       SYSI_CALL(bdinit((n + o), (o + 1u), hVD, ldA));
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
       SYSI_CALL(bdinit((n + o), (o + 1u), hV, ldA));
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
     }
     else {
       const size_t f = (n - p_);
 #ifdef USE_COMPLEX
       SYSI_CALL(bdinit(n, (n_col - f), (hVD + ldA * f), ldA));
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
       SYSI_CALL(bdinit(n, (n_col - f), (hV + ldA * f), ldA));
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
     }
   }
   if ((q_ + n_col) > n) {
@@ -381,17 +381,17 @@ int main(int argc, char *argv[])
       const size_t o = (q_ - n);
 #ifdef USE_COMPLEX
       SYSI_CALL(bdinit((n + o), (o + 1u), (hVD + ldA * n_col), ldA));
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
       SYSI_CALL(bdinit((n + o), (o + 1u), (hV + ldA * n_col), ldA));
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
     }
     else {
       const size_t f = (n - p_);
 #ifdef USE_COMPLEX
       SYSI_CALL(bdinit(n, (n_col - f), (hVD + ldA * (n_col + f)), ldA));
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
       SYSI_CALL(bdinit(n, (n_col - f), (hV + ldA * (n_col + f)), ldA));
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
     }
   }
 
@@ -411,9 +411,9 @@ int main(int argc, char *argv[])
 
 #ifdef USE_COMPLEX
   const int ret = HZ_L3(routine, gpu, gpus, mF_, mG_, n_, n_gpu, n_col, hFD, hFJ, ldhF, hGD, hGJ, ldhG, hVD, hVJ, ldhV, hS, hH, hK, glbSwp, glb_s, glb_b, timing);
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
   const int ret = HZ_L3(routine, gpu, gpus, mF_, mG_, n_, n_gpu, n_col, hF, ldhF, hG, ldhG, hV, ldhV, hS, hH, hK, glbSwp, glb_s, glb_b, timing);
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
 
   if (ret) {
     (void)snprintf(err_msg, err_msg_size, "%s: error %d", ca_exe, ret);
@@ -431,7 +431,7 @@ int main(int argc, char *argv[])
   if (MPI_File_set_size(fh, (mF * n * sizeof(double)
 #ifdef USE_COMPLEX
     * 2u
-#endif // USE_COMPLEX
+#endif /* USE_COMPLEX */
   ))) {
     DIE("MPI_File_set_size(YU)");
   }
@@ -474,7 +474,7 @@ int main(int argc, char *argv[])
   if (MPI_File_sync(fh)) {
     DIE("MPI_File_sync(YU)q");
   }
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
   for (size_t j = 0u; j < n_p; ++j) {
     if (MPI_File_write_at(fh, (opF + j * mF), (hF + ldhF * j), mF, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
       DIE("MPI_File_write_at(YU)p");
@@ -491,7 +491,7 @@ int main(int argc, char *argv[])
   if (MPI_File_sync(fh)) {
     DIE("MPI_File_sync(YU)q");
   }
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
   if (MPI_File_close(&fh)) {
     DIE("MPI_File_close(YU)");
   }
@@ -502,7 +502,7 @@ int main(int argc, char *argv[])
   if (MPI_File_set_size(fh, (mG * n * sizeof(double)
 #ifdef USE_COMPLEX
     * 2u
-#endif // USE_COMPLEX
+#endif /* USE_COMPLEX */
   ))) {
     DIE("MPI_File_set_size(WV)");
   }
@@ -545,7 +545,7 @@ int main(int argc, char *argv[])
   if (MPI_File_sync(fh)) {
     DIE("MPI_File_sync(WV)q");
   }
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
   for (size_t j = 0u; j < n_p; ++j) {
     if (MPI_File_write_at(fh, (opG + j * mG), (hG + ldhG * j), mG, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
       DIE("MPI_File_write_at(WV)p");
@@ -562,7 +562,7 @@ int main(int argc, char *argv[])
   if (MPI_File_sync(fh)) {
     DIE("MPI_File_sync(WV)q");
   }
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
   if (MPI_File_close(&fh)) {
     DIE("MPI_File_close(WV)");
   }
@@ -573,7 +573,7 @@ int main(int argc, char *argv[])
   if (MPI_File_set_size(fh, (n * n * sizeof(double)
 #ifdef USE_COMPLEX
     * 2u
-#endif // USE_COMPLEX
+#endif /* USE_COMPLEX */
   ))) {
     DIE("MPI_File_set_size(Z)");
   }
@@ -616,7 +616,7 @@ int main(int argc, char *argv[])
   if (MPI_File_sync(fh)) {
     DIE("MPI_File_sync(Z)q");
   }
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
   for (size_t j = 0u; j < n_p; ++j) {
     if (MPI_File_write_at(fh, (opV + j * n), (hV + ldhV * j), n, MPI_DOUBLE, MPI_STATUS_IGNORE)) {
       DIE("MPI_File_write_at(Z)p");
@@ -633,7 +633,7 @@ int main(int argc, char *argv[])
   if (MPI_File_sync(fh)) {
     DIE("MPI_File_sync(Z)q");
   }
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
   if (MPI_File_close(&fh)) {
     DIE("MPI_File_close(Z)");
   }
@@ -741,25 +741,25 @@ int main(int argc, char *argv[])
     CUDA_CALL(cudaFreeHost(hFJ));
   if (hFD)
     CUDA_CALL(cudaFreeHost(hFD));
-#else // !USE_COMPLEX
+#else /* !USE_COMPLEX */
   if (hV)
     CUDA_CALL(cudaFreeHost(hV));
   if (hG)
     CUDA_CALL(cudaFreeHost(hG));
   if (hF)
     CUDA_CALL(cudaFreeHost(hF));
-#endif // ?USE_COMPLEX
+#endif /* ?USE_COMPLEX */
 
 #ifdef USE_COMPLEX
   free(buf);
-#endif // USE_COMPLEX
+#endif /* USE_COMPLEX */
   free(fn);  
   free_strats();
 
   CUDA_CALL(cudaDeviceSynchronize());
 #ifdef PROFILE
   CUDA_CALL(cudaDeviceReset());
-#endif // PROFILE
+#endif /* PROFILE */
 
   return fini_MPI();
 }

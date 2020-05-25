@@ -8,7 +8,7 @@ int mpi_rank = 0;
 
 #ifdef OMPI_MPI_H
 #include <mpi-ext.h>
-#endif // OMPI_MPI_H
+#endif /* OMPI_MPI_H */
 bool mpi_cuda_aware = false;
 
 static bool mpi_cuda() throw()
@@ -18,9 +18,9 @@ static bool mpi_cuda() throw()
 #elif (defined(MVAPICH2_NUMVERSION) && (MVAPICH2_NUMVERSION >= 20000000))
   const char *const e = getenv("MV2_USE_CUDA");
   return (e && atoi(e));
-#else // only OpenMPI and MVAPICH2 so far
+#else /* only OpenMPI and MVAPICH2 so far */
   return false;
-#endif // TODO: any other MPI?
+#endif /* TODO: any other MPI? */
 }
 
 int init_MPI(int *const argc, char ***const argv) throw()
@@ -64,7 +64,7 @@ int fini_MPI() throw()
 
 #ifndef DEV_HOST_NAME_LEN
 #define DEV_HOST_NAME_LEN 255u
-#endif // !DEV_HOST_NAME_LEN
+#endif /* !DEV_HOST_NAME_LEN */
 
 typedef struct {
   char host[DEV_HOST_NAME_LEN + 1u];
@@ -129,12 +129,12 @@ static dev_host *get_dev_hosts() throw()
 #ifndef NDEBUG
   if (!mpi_rank)
     (void)fprintf(stderr, "RANK,GPUS,HOSTNAME\n");
-#endif // !NDEBUG
+#endif /* !NDEBUG */
   for (int i = 0; i < mpi_size; ++i) {
 #ifndef NDEBUG
     if (!mpi_rank)
       (void)fprintf(stderr, "%4d,%4d,%s\n", rcv[i].rank, rcv[i].dev_count, rcv[i].host);
-#endif // !NDEBUG
+#endif /* !NDEBUG */
     if (rcv[i].dev_count <= 0) {
       free(rcv);
       return static_cast<dev_host*>(NULL);

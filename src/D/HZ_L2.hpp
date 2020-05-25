@@ -6,10 +6,10 @@
 #ifdef ANIMATE
 #ifdef USE_MPI
 #error Animation not supported with MPI
-#else // !USE_MPI
+#else /* !USE_MPI */
 #include "vn_lib.h"
-#endif // ?USE_MPI
-#endif // ANIMATE
+#endif /* ?USE_MPI */
+#endif /* ANIMATE */
 
 EXTERN_C int // 0 if OK, < 0 if invalid argument, > 0 if error
 HZ_L2_gpu
@@ -27,7 +27,7 @@ HZ_L2_gpu
  const unsigned ldhG,       // IN, leading dimension of fG, >= nrowG;
  double *const dG,          // INOUT, ldhG x ncol device array in Fortran order;
  const unsigned lddG,       // IN, leading dimension of dG, >= nrowG;
-#endif // ANIMATE
+#endif /* ANIMATE */
  unsigned long long *const hC, // OUT, convergence vector
  unsigned long long *const dC, // OUT, convergence vector
  unsigned &glbSwp,          // OUT, number of sweeps at the outermost level;
@@ -39,8 +39,8 @@ HZ_L2_gpu
 #elif (ANIMATE == 2)
  , vn_mtxvis_ctx *const ctxF
  , vn_mtxvis_ctx *const ctxG
-#endif // ?ANIMATE
-#endif // ANIMATE
+#endif /* ?ANIMATE */
+#endif /* ANIMATE */
 ) throw();
 
 EXTERN_C int // 0 if OK, < 0 if invalid argument, > 0 if error
@@ -66,4 +66,4 @@ HZ_L2
  // WALL, SETUP & HOST ==> GPUs, COMPUTATION, CLEANUP & GPUs ==> HOST;
 ) throw();
 
-#endif // !HZ_L2_HPP
+#endif /* !HZ_L2_HPP */

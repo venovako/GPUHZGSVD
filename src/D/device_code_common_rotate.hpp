@@ -4,9 +4,9 @@
 MYDEVFN
 #if ((CVG == 4) || (CVG == 5) || (CVG == 6) || (CVG == 7))
 int
-#else // ((CVG == 0) || (CVG == 1) || (CVG == 2) || (CVG == 3))
+#else /* ((CVG == 0) || (CVG == 1) || (CVG == 2) || (CVG == 3)) */
 void
-#endif // ?CVG
+#endif /* ?CVG */
 dRot
 (double &App,
  double &Aqq,
@@ -20,7 +20,7 @@ dRot
 #if ((CVG == 4) || (CVG == 5) || (CVG == 6) || (CVG == 7))
  , int &fn1
  , int &pn1
-#endif // ?CVG
+#endif /* ?CVG */
  ) {
   const double
     E = (Aqq - App),
@@ -40,7 +40,7 @@ dRot
 #if ((CVG == 4) || (CVG == 5) || (CVG == 6) || (CVG == 7))
     fn1 = 1;
     pn1 = 1;
-#endif // ?CVG
+#endif /* ?CVG */
   }
   else {
     const double
@@ -79,7 +79,7 @@ dRot
 #if ((CVG == 4) || (CVG == 5) || (CVG == 6) || (CVG == 7))
       fn1 = (CosF != 1.0);
       pn1 = (CosP != 1.0);
-#endif // ?CVG
+#endif /* ?CVG */
     }
     else {
       const double
@@ -111,7 +111,7 @@ dRot
 #if ((CVG == 4) || (CVG == 5) || (CVG == 6) || (CVG == 7))
       fn1 = (CosF != 1.0);
       pn1 = (CosP != 1.0);
-#endif // ?CVG
+#endif /* ?CVG */
       if (F != 1.0) {
         CosF *= F;
         SinF *= F;
@@ -126,7 +126,7 @@ dRot
 
 #if ((CVG == 4) || (CVG == 5) || (CVG == 6) || (CVG == 7))
   return (fn1 || pn1);
-#endif // ?CVG
+#endif /* ?CVG */
 }
 
-#endif // !DEVICE_CODE_COMMON_ROTATE_HPP
+#endif /* !DEVICE_CODE_COMMON_ROTATE_HPP */

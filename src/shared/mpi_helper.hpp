@@ -13,4 +13,4 @@ EXTERN_C int init_MPI(int *const argc, char ***const argv) throw();
 EXTERN_C int fini_MPI() throw();
 EXTERN_C int assign_dev2host() throw();
 
-#endif // !MPI_HELPER_HPP
+#endif /* !MPI_HELPER_HPP */

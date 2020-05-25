@@ -8,7 +8,7 @@
 #include <math_constants.h>
 #ifdef PROFILE
 #include <cuda_profiler_api.h>
-#endif // PROFILE
+#endif /* PROFILE */
 
 #ifndef CUDA_CALL
 #define CUDA_CALL(call) {                                             \
@@ -20,15 +20,15 @@
       EXIT;                                                           \
     }                                                                 \
 }
-#else // CUDA_CALL
+#else /* CUDA_CALL */
 #error CUDA_CALL not definable externally
-#endif // ?CUDA_CALL
+#endif /* ?CUDA_CALL */
 
 #ifndef WARP_SZ
 #define WARP_SZ 32u
-#else // WARP_SZ
+#else /* WARP_SZ */
 #error WARP_SZ not definable externally
-#endif // ?WARP_SZ
+#endif /* ?WARP_SZ */
 
 EXTERN_C int configureGPU(const int dev) throw();
 EXTERN_C int configureGPUex(const int dev, const unsigned maxShMemB) throw();
@@ -36,4 +36,4 @@ EXTERN_C int configureGPUex(const int dev, const unsigned maxShMemB) throw();
 EXTERN_C void cuda_prof_start() throw();
 EXTERN_C void cuda_prof_stop() throw();
 
-#endif // !CUDA_HELPER_HPP
+#endif /* !CUDA_HELPER_HPP */

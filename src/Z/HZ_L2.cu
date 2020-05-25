@@ -25,7 +25,7 @@ HZ_L2_gpu
  cuD *const dGD,            // INOUT, lddG x ncol device array in Fortran order;
  cuJ *const dGJ,            // INOUT, lddG x ncol device array in Fortran order;
  const unsigned lddG,       // IN, leading dimension of dG, >= nrowG;
-#endif // ANIMATE
+#endif /* ANIMATE */
  unsigned long long *const hC, // OUT, convergence vector
  unsigned long long *const dC, // OUT, convergence vector
  unsigned &glbSwp,          // OUT, number of sweeps at the outermost level;
@@ -35,7 +35,7 @@ HZ_L2_gpu
  , vn_cmplxvis_ctx *const ctx
  , std::complex<double> *const hDJ
  , const size_t nrow
-#endif // ANIMATE
+#endif /* ANIMATE */
  ) throw()
 {
   void (*const HZ_L1)(const unsigned) = ((routine & 2u) ? HZ_L1_v : HZ_L1_sv);
@@ -55,7 +55,7 @@ HZ_L2_gpu
   cuda_prof_start();
   long long swp_tim = 0ll;
   stopwatch_reset(swp_tim);
-#endif // !USE_MPI
+#endif /* !USE_MPI */
 
   unsigned blk_swp = 0u;
   while (blk_swp < swp) {
@@ -99,7 +99,7 @@ HZ_L2_gpu
         }
         SYSI_CALL(vn_cmplxvis_frame(ctx, (const vn_complex*)hDJ, nrow));
       }
-#endif // ANIMATE
+#endif /* ANIMATE */
     }
 
     CUDA_CALL(cudaDeviceSynchronize());
@@ -119,7 +119,7 @@ HZ_L2_gpu
     const double tim_s = stopwatch_lap(swp_tim) * TS2S;
     (void)fprintf(stdout, "BLK_SWP(%2u), ROT_S(%13llu), ROT_B(%13llu), TIME(%#14.6f s)\n", blk_swp, cvg_s, cvg_b, tim_s);
     (void)fflush(stdout);
-#endif // !USE_MPI
+#endif /* !USE_MPI */
     if (!cvg_b)
       break;
     ++blk_swp;
@@ -157,7 +157,7 @@ HZ_L2_gpu
       }
       SYSI_CALL(vn_cmplxvis_frame(ctx, (const vn_complex*)hDJ, nrow));
     }
-#endif // ANIMATE
+#endif /* ANIMATE */
   }
 
   if (blk_swp < swp)
@@ -167,14 +167,14 @@ HZ_L2_gpu
 #ifdef USE_MPI
   if (blk_swp < swp)
     initS(0, ncol);
-#else // !USE_MPI
+#else /* !USE_MPI */
   initS(1, ncol);
-#endif // !USE_MPI
+#endif /* ?USE_MPI */
   CUDA_CALL(cudaDeviceSynchronize());
 
 #ifndef USE_MPI
   cuda_prof_stop();
-#endif // !USE_MPI
+#endif /* !USE_MPI */
   return 0;
 }
 
@@ -278,9 +278,9 @@ HZ_L2
   const unsigned ifc0 = 0u;
   const unsigned ifc1 = (ncol >> 1u);
   initV(((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5)), ncol, ifc0, ifc1);
-#else // !USE_MPI
+#else /* !USE_MPI */
   initV(((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5)), ncol);
-#endif // USE_MPI
+#endif /* ?USE_MPI */
   CUDA_CALL(cudaDeviceSynchronize());
 
 #ifdef ANIMATE
@@ -329,18 +329,18 @@ HZ_L2
       SYSI_CALL(vn_cmplxvis_frame(ctx, (const vn_complex*)hDJ, nrow));
     }
   }
-#endif // ANIMATE
+#endif /* ANIMATE */
 
   timers[1] = stopwatch_lap(timers[3]);
   const int ret = HZ_L2_gpu
     (routine,ncol,
 #ifdef ANIMATE
      nrowF,nrowG, hFD,hFJ,ldhF, dFD,dFJ,lddF, hGD,hGJ,ldhG, dGD,dGJ,lddG,
-#endif // ANIMATE
+#endif /* ANIMATE */
      hC,dC, glbSwp,glb_s,glb_b
 #ifdef ANIMATE
      , ctx,hDJ,nrow
-#endif // ANIMATE
+#endif /* ANIMATE */
      );
   timers[2] = stopwatch_lap(timers[3]);
 
@@ -384,7 +384,7 @@ HZ_L2
     SYSI_CALL(vn_cmplxvis_stop(ctx));
     CUDA_CALL(cudaFreeHost((void*)hDJ));
   }
-#endif // ANIMATE
+#endif /* ANIMATE */
 
   CUDA_CALL(cudaFreeHost(hC));
   CUDA_CALL(cudaFree(dC));

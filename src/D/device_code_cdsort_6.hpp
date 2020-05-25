@@ -263,4 +263,4 @@ MYDEVFN unsigned dHZ_L0_sv
   return blk_transf_s;
 }
 
-#endif // !DEVICE_CODE_CDSORT_HPP
+#endif /* !DEVICE_CODE_CDSORT_HPP */

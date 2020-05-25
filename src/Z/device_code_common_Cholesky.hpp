@@ -219,4 +219,4 @@ MYDEVFN void zFactorize
   zCholesky32(BD, BJ, x, y0, y1);
 }
 
-#endif // !DEVICE_CODE_COMMON_CHOLESKY_HPP
+#endif /* !DEVICE_CODE_COMMON_CHOLESKY_HPP */

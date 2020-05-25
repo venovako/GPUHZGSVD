@@ -3,77 +3,77 @@
 
 #ifndef MYKERN
 #define MYKERN __global__ void
-#else // MYKERN
+#else /* MYKERN */
 #error MYKERN not definable externally
-#endif // ?MYKERN
+#endif /* ?MYKERN */
 
 #ifndef MYDEVFN
 #ifdef NDEBUG
 #define MYDEVFN __device__ __forceinline__
-#else // DEBUG
+#else /* DEBUG */
 #define MYDEVFN __device__
-#endif // ?NDEBUG
-#else // MYDEVFN
+#endif /* ?NDEBUG */
+#else /* MYDEVFN */
 #error MYDEVFN not definable externally
-#endif // ?MYDEVFN
+#endif /* ?MYDEVFN */
 
 #ifndef HZ_L1_MAX_THREADS_PER_BLOCK
 #define HZ_L1_MAX_THREADS_PER_BLOCK 512
-#else // HZ_L1_MAX_THREADS_PER_BLOCK
+#else /* HZ_L1_MAX_THREADS_PER_BLOCK */
 #error HZ_L1_MAX_THREADS_PER_BLOCK not definable externally
-#endif // ?HZ_L1_MAX_THREADS_PER_BLOCK
+#endif /* ?HZ_L1_MAX_THREADS_PER_BLOCK */
 
 #ifndef HZ_L1_THREADS_PER_BLOCK_X
 #define HZ_L1_THREADS_PER_BLOCK_X 32u
-#else // HZ_L1_THREADS_PER_BLOCK_X
+#else /* HZ_L1_THREADS_PER_BLOCK_X */
 #error HZ_L1_THREADS_PER_BLOCK_X not definable externally
-#endif // ?HZ_L1_THREADS_PER_BLOCK_X
+#endif /* ?HZ_L1_THREADS_PER_BLOCK_X */
 
 #ifndef HZ_L1_THREADS_PER_BLOCK_Y
 #define HZ_L1_THREADS_PER_BLOCK_Y 16u
-#else // HZ_L1_THREADS_PER_BLOCK_Y
+#else /* HZ_L1_THREADS_PER_BLOCK_Y */
 #error HZ_L1_THREADS_PER_BLOCK_Y not definable externally
-#endif // ?HZ_L1_THREADS_PER_BLOCK_Y
+#endif /* ?HZ_L1_THREADS_PER_BLOCK_Y */
 
 #ifndef HZ_L1_MIN_BLOCKS_PER_SM
 #define HZ_L1_MIN_BLOCKS_PER_SM 1
-#else // HZ_L1_MIN_BLOCKS_PER_SM
+#else /* HZ_L1_MIN_BLOCKS_PER_SM */
 #error HZ_L1_MIN_BLOCKS_PER_SM not definable externally
-#endif // ?HZ_L1_MIN_BLOCKS_PER_SM
+#endif /* ?HZ_L1_MIN_BLOCKS_PER_SM */
 
 #if (WARP_SZ != 32u)
 #error WARP_SZ not 32
-#endif // WARP_SZ
+#endif /* ?WARP_SZ */
 
 #ifndef WARP_SZ_LGi
 #define WARP_SZ_LGi 5
-#else // WARP_SZ_LGi
+#else /* WARP_SZ_LGi */
 #error WARP_SZ_LGi not definable externally
-#endif // ?WARP_SZ_LGi
+#endif /* ?WARP_SZ_LGi */
 
 #ifndef WARP_SZ_LG
 #define WARP_SZ_LG 5u
-#else // WARP_SZ_LG
+#else /* WARP_SZ_LG */
 #error WARP_SZ_LG not definable externally
-#endif // ?WARP_SZ_LG
+#endif /* ?WARP_SZ_LG */
 
 #ifndef WARP_SZ_SUB1
 #define WARP_SZ_SUB1 31u
-#else // WARP_SZ_SUB1
+#else /* WARP_SZ_SUB1 */
 #error WARP_SZ_SUB1 not definable externally
-#endif // ?WARP_SZ_SUB1
+#endif /* ?WARP_SZ_SUB1 */
 
 #ifndef F32
 #define F32(A, r, c) (A)[(c) * 32u + (r)]
-#else // F32
+#else /* F32 */
 #error F32 not definable externally
-#endif // ?F32
+#endif /* ?F32 */
 
 #ifndef F64
 #define F64(A, r, c) (A)[(c) * 64u + (r)]
-#else // F64
+#else /* F64 */
 #error F64 not definable externally
-#endif // ?F64
+#endif /* ?F64 */
 
 #include "device_code_globals.hpp"
 
@@ -96,7 +96,7 @@ my_drsqrt_rn(double a)
     h = __dmul_rn(y, y);
     l = __fma_rn(y, y, -h);
     e = __fma_rn(l, -a, __fma_rn(h, -a, 1.0));
-    /* Round as shown in Peter Markstein, "IA-64 and Elementary Functions" */
+    // Round as shown in Peter Markstein, "IA-64 and Elementary Functions"
     y = __fma_rn(__fma_rn(0.375, e, 0.5), e * y, y);
     d = d >> 1;
     a = __hiloint2double(__double2hiint(y) + d, __double2loint(y));
@@ -114,7 +114,7 @@ my_drsqrt_rn(double a)
     h = __dmul_rn(y, y);
     l = __fma_rn(y, y, -h);
     e = __fma_rn(l, -a, __fma_rn(h, -a, 1.0));
-    /* Round as shown in Peter Markstein, "IA-64 and Elementary Functions" */
+    // Round as shown in Peter Markstein, "IA-64 and Elementary Functions"
     y = __fma_rn(__fma_rn(0.375, e, 0.5), e * y, y);
     a = __hiloint2double(__double2hiint(y) + 0x1ff00000,__double2loint(y));
   }
@@ -178,7 +178,7 @@ MYDEVFN double dSsqC
   }
   return dSum32(x);
 }
-#else // ((CVG == 1) || (CVG == 3) || (CVG == 5) || (CVG == 7))
+#else /* ((CVG == 1) || (CVG == 3) || (CVG == 5) || (CVG == 7)) */
 MYDEVFN double dSsqC
 (const double *const bA,
  const double *const eA)
@@ -195,7 +195,7 @@ MYDEVFN double dSsqC
   y = dSum32(x);
   return (yy + y);
 }
-#endif // ?CVG
+#endif /* ?CVG */
 
 MYDEVFN void dInvNrm2C
 (const double *const bA,
@@ -329,7 +329,7 @@ MYDEVFN void dGlobalInitV
 #ifdef USE_MPI
  , const unsigned ifc0
  , const unsigned ifc1
-#endif // USE_MPI
+#endif /* USE_MPI */
 ) {
   const unsigned wpb = (blockDim.x + WARP_SZ_SUB1) >> WARP_SZ_LG;
   const unsigned wid = threadIdx.x >> WARP_SZ_LG;
@@ -344,9 +344,9 @@ MYDEVFN void dGlobalInitV
         V[cix * ldV + (cix + ifc0)] = 1.0;
       else
         V[cix * ldV + ((cix - nRank_2) + ifc1)] = 1.0;
-#else // !USE_MPI
+#else /* !USE_MPI */
       V[cix * ldV + cix] = 1.0;
-#endif // ?USE_MPI
+#endif /* ?USE_MPI */
     }
   }
 }
@@ -364,7 +364,7 @@ MYDEVFN void dGlobalInitVscl
 #ifdef USE_MPI
  , const unsigned ifc0
  , const unsigned ifc1
-#endif // USE_MPI
+#endif /* USE_MPI */
 ) {
   const unsigned wpb = (blockDim.x + WARP_SZ_SUB1) >> WARP_SZ_LG;
   const unsigned wid = threadIdx.x >> WARP_SZ_LG;
@@ -389,9 +389,9 @@ MYDEVFN void dGlobalInitVscl
         V[cix * ldV + (cix + ifc0)] = Gi_inv_nrm;
       else
         V[cix * ldV + ((cix - nRank_2) + ifc1)] = Gi_inv_nrm;
-#else // !USE_MPI
+#else /* !USE_MPI */
       V[cix * ldV + cix] = Gi_inv_nrm;
-#endif // ?USE_MPI
+#endif /* ?USE_MPI */
     }
   }
 }
@@ -399,20 +399,20 @@ MYDEVFN void dGlobalInitVscl
 MYKERN dInitV(const int sclV
 #ifdef USE_MPI
   , const unsigned ifc0, const unsigned ifc1
-#endif // USE_MPI
+#endif /* USE_MPI */
 ) {
   if (sclV)
     dGlobalInitVscl(_F, _G, _V, _nRowF, _nRowG, _nRank, _ldF, _ldG, _ldV
 #ifdef USE_MPI
       , ifc0, ifc1
-#endif // USE_MPI
+#endif /* USE_MPI */
     );
   else
     dGlobalInitV(_V, _nRank, _ldV
 #ifdef USE_MPI
       , ifc0, ifc1
-#endif // USE_MPI
+#endif /* USE_MPI */
     );
 }
 
-#endif // !DEVICE_CODE_COMMON_HPP
+#endif /* !DEVICE_CODE_COMMON_HPP */

@@ -149,7 +149,7 @@ int HZ_L3
         (void)fprintf(stdout, "%u", stp);
         (void)fflush(stdout);
       }
-#endif // !NDEBUG
+#endif /* !NDEBUG */
       // p = static_cast<unsigned>(strat2[stp][gpu][0u][0u]);
       // q = static_cast<unsigned>(strat2[stp][gpu][0u][1u]);
 
@@ -280,7 +280,7 @@ int HZ_L3
         (void)fprintf(stdout, ";");
         (void)fflush(stdout);
       }
-#endif // !NDEBUG
+#endif /* !NDEBUG */
       if (MPI_Barrier(MPI_COMM_WORLD)) {
         DIE("MPI_Barrier");
       }

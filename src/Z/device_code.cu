@@ -18,9 +18,9 @@
 #elif ((CVG == 6) || (CVG == 7))
 #include "device_code_cdsort_3.hpp"
 #include "device_code_nosort_3.hpp"
-#else // unknown CVG
+#else /* unknown CVG */
 #error CVG unknown
-#endif // ?CVG
+#endif /* ?CVG */
 #include "device_code_cdsort_accumV.hpp"
 #include "device_code_nosort_accumV.hpp"
 
@@ -49,7 +49,7 @@ void initS(const int full, const unsigned nRank) throw()
 void initV(const int sclV, const unsigned nRank
 #ifdef USE_MPI
   , const unsigned ifc0, const unsigned ifc1
-#endif // USE_MPI
+#endif /* USE_MPI */
 ) throw()
 {
   const dim3 bD(2u * WARP_SZ, 1u, 1u);
@@ -58,7 +58,7 @@ void initV(const int sclV, const unsigned nRank
   zInitV<<< gD, bD, shmD >>>(sclV
 #ifdef USE_MPI
     , ifc0, ifc1
-#endif // USE_MPI
+#endif /* USE_MPI */
   );
 }
 

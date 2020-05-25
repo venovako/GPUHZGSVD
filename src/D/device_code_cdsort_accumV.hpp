@@ -36,4 +36,4 @@ MYKERN __launch_bounds__(HZ_L1_MAX_THREADS_PER_BLOCK, HZ_L1_MIN_BLOCKS_PER_SM)
   dMultV(F0, F1, G0, G1, V0, V1, F, G, V, x, y0, y1);
 }
 
-#endif // !DEVICE_CODE_CDSORT_ACCUMV_HPP
+#endif /* !DEVICE_CODE_CDSORT_ACCUMV_HPP */

@@ -20,4 +20,4 @@ MYDEVFN void dMultV
   dMultAV(V0, V1, A, C, x, y0, y1, _nRowV);
 }
 
-#endif // !DEVICE_CODE_ACCUMV_HPP
+#endif /* !DEVICE_CODE_ACCUMV_HPP */
