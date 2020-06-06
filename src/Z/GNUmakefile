@@ -33,14 +33,12 @@ NVLDFLAGS=-L../../../JACSD -ljstrat$(DEBUG)
 ifdef NDEBUG
 NVPPFLAGS+=-DNDEBUG
 NVCCFLAGS+=-O$(NDEBUG)
+ifeq ($(STD),17)
+NVCCFLAGS+=--extra-device-vectorization
+endif # ?STD
 else # debug
 NVCCFLAGS+=-O0 -$(DEBUG) -G -src-in-ptx -Xptxas -no-bb-merge,-ret-end
 endif # NDEBUG
-
-# e.g. -march=native
-ifdef HOST_FLAGS
-NVCCFLAGS+=-Xcompiler $(HOST_FLAGS)
-endif # HOST_FLAGS
 
 ifdef ANIMATE
 NVPPFLAGS+=-DUSE_MKL -DANIMATE=$(ANIMATE) -I../../../JACSD/vn -I${MKLROOT}/include/intel64/ilp64 -I${MKLROOT}/include
