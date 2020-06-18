@@ -2,15 +2,15 @@
 #define DEVICE_CODE_ACCUMV_HPP
 
 MYDEVFN void zMultV
-(cuD *const F0D, cuJ *const F0J,
- cuD *const F1D, cuJ *const F1J,
- cuD *const G0D, cuJ *const G0J,
- cuD *const G1D, cuJ *const G1J,
- cuD *const V0D, cuJ *const V0J,
- cuD *const V1D, cuJ *const V1J,
- volatile cuD *const AD, volatile cuJ *const AJ,
- volatile cuD *const BD, volatile cuJ *const BJ,
- volatile const cuD *const CD, volatile const cuJ *const CJ,
+(cuD *const __restrict__ F0D, cuJ *const __restrict__ F0J,
+ cuD *const __restrict__ F1D, cuJ *const __restrict__ F1J,
+ cuD *const __restrict__ G0D, cuJ *const __restrict__ G0J,
+ cuD *const __restrict__ G1D, cuJ *const __restrict__ G1J,
+ cuD *const __restrict__ V0D, cuJ *const __restrict__ V0J,
+ cuD *const __restrict__ V1D, cuJ *const __restrict__ V1J,
+ volatile cuD *const __restrict__ AD, volatile cuJ *const __restrict__ AJ,
+ volatile cuD *const __restrict__ BD, volatile cuJ *const __restrict__ BJ,
+ volatile const cuD *const __restrict__ CD, volatile const cuJ *const __restrict__ CJ,
  const unsigned x,
  const unsigned y0,
  const unsigned y1)

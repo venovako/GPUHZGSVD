@@ -31,7 +31,7 @@ MYKERN __launch_bounds__(HZ_L1_MAX_THREADS_PER_BLOCK, HZ_L1_MIN_BLOCKS_PER_SM)
   volatile double
     *const V = shMem + 2048u;
 
-  dFactorize(F0, F1, G0, G1, F, G, V, x, y0, y1);
+  dFactorize(F0, F1, G0, G1, F, G, x, y0, y1);
   (void)dHZ_L0_sv(F, G, V, x, y0);
   dMultV(F0, F1, G0, G1, V0, V1, F, G, V, x, y0, y1);
 }

@@ -23,19 +23,19 @@ dRot
 #endif /* ?CVG */
  ) {
   const double
-    E = (Aqq - App),
-    V = __fma_rn(Bpq, -(App + Aqq), scalbn(Apq, 1));
+    E = _dsub_rn(Aqq, App),
+    V = _fma_rn(Bpq, -_dadd_rn(App, Aqq), _dmul_rn(Apq, 2.0));
 
   if ((V == 0.0) && (E == 0.0)) {
-    const double S1 = my_drsqrt_rn(1.0 + Bpq_);
-    const double S2 = my_drsqrt_rn(1.0 - Bpq_);
-    const double CG = my_drsqrt_rn(2.0);
+    const double S1 = _drsqrt_rn(_dadd_rn(1.0, Bpq_));
+    const double S2 = _drsqrt_rn(_dsub_rn(1.0, Bpq_));
+    const double CG = RSQRT_2;
     const double SG = -CG;
 
-    CosF = CG * S1;
-    SinP = SG * S1;
-    SinF = SG * S2;
-    CosP = CG * S2;
+    CosF = _dmul_rn(CG, S1);
+    SinP = _dmul_rn(SG, S1);
+    SinF = _dmul_rn(SG, S2);
+    CosP = _dmul_rn(CG, S2);
 
 #if ((CVG == 4) || (CVG == 5) || (CVG == 6) || (CVG == 7))
     fn1 = 1;
@@ -44,37 +44,37 @@ dRot
   }
   else {
     const double
-      Bpqp = __dsqrt_rn(1.0 + Bpq),
-      Bpqm = __dsqrt_rn(1.0 - Bpq),
-      Xi = __ddiv_rn(Bpq, (Bpqp + Bpqm)),
+      Bpqp = _dsqrt_rn(_dadd_rn(1.0, Bpq)),
+      Bpqm = _dsqrt_rn(_dsub_rn(1.0, Bpq)),
+      Xi = _ddiv_rn(Bpq, _dadd_rn(Bpqp, Bpqm)),
       Xi_ = -Xi,
-      Eta = __ddiv_rn(Bpq, ((1.0 + Bpqp) * (1.0 + Bpqm))),
+      Eta = _ddiv_rn(Bpq, _dmul_rn(_dadd_rn(1.0, Bpqp), _dadd_rn(1.0, Bpqm))),
       Eta_ = -Eta;
     if (Bpq_ < SQRT_HEPS) {
       const double
-        Cot2T = __ddiv_rn(E, V),
+        Cot2T = _ddiv_rn(E, V),
         Cot2T_ = fabs(Cot2T);
       double TanT;
       if (Cot2T_ >= SQRT_2_HEPS)
-        TanT = scalbn(__drcp_rn(Cot2T), -1);
+        TanT = _dmul_rn(_drcp_rn(Cot2T), 0.5);
       else if (Cot2T_ < SQRT_HEPS)
-        TanT = copysign(__drcp_rn(Cot2T_ + 1.0), Cot2T);
+        TanT = copysign(_drcp_rn(_dadd_rn(Cot2T_, 1.0)), Cot2T);
       else
-        TanT = copysign(__drcp_rn(Cot2T_ + __dsqrt_rn(__fma_rn(Cot2T, Cot2T, 1.0))), Cot2T);
+        TanT = copysign(_drcp_rn(_dadd_rn(Cot2T_, _dsqrt_rn(_fma_rn(Cot2T, Cot2T, 1.0)))), Cot2T);
       if (fabs(TanT) < SQRT_HEPS) {
-        CosF = __fma_rn(TanT - Eta, Xi, 1.0);
-        SinF = __fma_rn(__fma_rn(TanT, Eta, 1.0), Xi_, TanT);
-        CosP = __fma_rn(TanT + Eta, Xi_, 1.0);
-        SinP = __fma_rn(__fma_rn(TanT, Eta_, 1.0), Xi, TanT);
+        CosF = _fma_rn(_dsub_rn(TanT, Eta), Xi, 1.0);
+        SinF = _fma_rn(_fma_rn(TanT, Eta, 1.0), Xi_, TanT);
+        CosP = _fma_rn(_dadd_rn(TanT, Eta), Xi_, 1.0);
+        SinP = _fma_rn(_fma_rn(TanT, Eta_, 1.0), Xi, TanT);
       }
       else {
         const double
-          CosT = my_drsqrt_rn(__fma_rn(TanT, TanT, 1.0)),
-          SinT = CosT * TanT;
-        CosF = __fma_rn(__fma_rn(CosT, Eta_, SinT), Xi, CosT);
-        SinF = __fma_rn(__fma_rn(SinT, Eta, CosT), Xi_, SinT);
-        CosP = __fma_rn(__fma_rn(CosT, Eta, SinT), Xi_, CosT);
-        SinP = __fma_rn(__fma_rn(SinT, Eta_, CosT), Xi, SinT);
+          CosT = _drsqrt_rn(_fma_rn(TanT, TanT, 1.0)),
+          SinT = _dmul_rn(CosT, TanT);
+        CosF = _fma_rn(_fma_rn(CosT, Eta_, SinT), Xi, CosT);
+        SinF = _fma_rn(_fma_rn(SinT, Eta, CosT), Xi_, SinT);
+        CosP = _fma_rn(_fma_rn(CosT, Eta, SinT), Xi_, CosT);
+        SinP = _fma_rn(_fma_rn(SinT, Eta_, CosT), Xi, SinT);
       }
 #if ((CVG == 4) || (CVG == 5) || (CVG == 6) || (CVG == 7))
       fn1 = (CosF != 1.0);
@@ -83,46 +83,49 @@ dRot
     }
     else {
       const double
-        F = my_drsqrt_rn(__fma_rn(Bpq, -Bpq, 1.0)),
-        Cot2T = __ddiv_rn(E, V * F),
+        F = _drsqrt_rn(_fma_rn(Bpq, -Bpq, 1.0)),
+        Cot2T = _ddiv_rn(E, _dmul_rn(V, F)),
         Cot2T_ = fabs(Cot2T);
       double TanT;
       if (Cot2T_ >= SQRT_2_HEPS)
-        TanT = scalbn(__drcp_rn(Cot2T), -1);
+        TanT = _dmul_rn(_drcp_rn(Cot2T), 0.5);
       else if (Cot2T_ < SQRT_HEPS)
-        TanT = copysign(__drcp_rn(Cot2T_ + 1.0), Cot2T);
+        TanT = copysign(_drcp_rn(_dadd_rn(Cot2T_, 1.0)), Cot2T);
       else
-        TanT = copysign(__drcp_rn(Cot2T_ + __dsqrt_rn(__fma_rn(Cot2T, Cot2T, 1.0))), Cot2T);
+        TanT = copysign(_drcp_rn(_dadd_rn(Cot2T_, _dsqrt_rn(_fma_rn(Cot2T, Cot2T, 1.0)))), Cot2T);
       if (fabs(TanT) < SQRT_HEPS) {
-        CosF = __fma_rn(TanT - Eta, Xi, 1.0);
-        SinF = __fma_rn(__fma_rn(TanT, Eta, 1.0), Xi_, TanT);
-        CosP = __fma_rn(TanT + Eta, Xi_, 1.0);
-        SinP = __fma_rn(__fma_rn(TanT, Eta_, 1.0), Xi, TanT);
+        CosF = _fma_rn(_dsub_rn(TanT, Eta), Xi, 1.0);
+        SinF = _fma_rn(_fma_rn(TanT, Eta, 1.0), Xi_, TanT);
+        CosP = _fma_rn(_dadd_rn(TanT, Eta), Xi_, 1.0);
+        SinP = _fma_rn(_fma_rn(TanT, Eta_, 1.0), Xi, TanT);
       }
       else {
         const double
-          CosT = my_drsqrt_rn(__fma_rn(TanT, TanT, 1.0)),
-          SinT = CosT * TanT;
-        CosF = __fma_rn(__fma_rn(CosT, Eta_, SinT), Xi, CosT);
-        SinF = __fma_rn(__fma_rn(SinT, Eta, CosT), Xi_, SinT);
-        CosP = __fma_rn(__fma_rn(CosT, Eta, SinT), Xi_, CosT);
-        SinP = __fma_rn(__fma_rn(SinT, Eta_, CosT), Xi, SinT);
+          CosT = _drsqrt_rn(_fma_rn(TanT, TanT, 1.0)),
+          SinT = _dmul_rn(CosT, TanT);
+        CosF = _fma_rn(_fma_rn(CosT, Eta_, SinT), Xi, CosT);
+        SinF = _fma_rn(_fma_rn(SinT, Eta, CosT), Xi_, SinT);
+        CosP = _fma_rn(_fma_rn(CosT, Eta, SinT), Xi_, CosT);
+        SinP = _fma_rn(_fma_rn(SinT, Eta_, CosT), Xi, SinT);
       }
 #if ((CVG == 4) || (CVG == 5) || (CVG == 6) || (CVG == 7))
       fn1 = (CosF != 1.0);
       pn1 = (CosP != 1.0);
 #endif /* ?CVG */
       if (F != 1.0) {
-        CosF *= F;
-        SinF *= F;
-        CosP *= F;
-        SinP *= F;
+        CosF = _dmul_rn(CosF, F);
+        SinF = _dmul_rn(SinF, F);
+        CosP = _dmul_rn(CosP, F);
+        SinP = _dmul_rn(SinP, F);
       }
     }
   }
 
-  App = CosF*CosF*App - scalbn(CosF*SinP*Apq, 1) + SinP*SinP*Aqq;
-  Aqq = SinF*SinF*App + scalbn(SinF*CosP*Apq, 1) + CosP*CosP*Aqq;
+  // App = _dadd_rn(_dsub_rn(_dmul_rn(_dmul_rn(CosF, CosF), App), _dmul_rn(_dmul_rn(_dmul_rn(CosF, SinP), Apq), 2.0)), _dmul_rn(_dmul_rn(SinP, SinP), Aqq));
+  App = _fma_rn(_dmul_rn(SinP, SinP), Aqq, _fma_rn(_dmul_rn(_dmul_rn(CosF, SinP), Apq), -2.0, _dmul_rn(_dmul_rn(CosF, CosF), App)));
+
+  // Aqq = _dadd_rn(_dadd_rn(_dmul_rn(_dmul_rn(SinF, SinF), App), _dmul_rn(_dmul_rn(_dmul_rn(SinF, CosP), Apq), 2.0)), _dmul_rn(_dmul_rn(CosP, CosP), Aqq));
+  Aqq = _fma_rn(_dmul_rn(CosP, CosP), Aqq, _fma_rn(_dmul_rn(_dmul_rn(SinF, CosP), Apq),  2.0, _dmul_rn(_dmul_rn(SinF, SinF), App)));
 
 #if ((CVG == 4) || (CVG == 5) || (CVG == 6) || (CVG == 7))
   return (fn1 || pn1);

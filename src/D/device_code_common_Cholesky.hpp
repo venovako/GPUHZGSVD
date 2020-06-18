@@ -2,9 +2,9 @@
 #define DEVICE_CODE_COMMON_CHOLESKY_HPP
 
 MYDEVFN void dAtA
-(const double *const A0,
- const double *const A1,
- volatile double *const A,
+(const double *const __restrict__ A0,
+ const double *const __restrict__ A1,
+ volatile double *const __restrict__ A,
  const unsigned m,
  const unsigned x,
  const unsigned y0,
@@ -35,8 +35,8 @@ MYDEVFN void dAtA
       const double _x_ = F64(A, x_64, x);
       const double _y0_ = F64(A, x_64, y0);
       const double _y1_ = F64(A, x_64, y1);
-      y0x = __fma_rn(_y0_, _x_, y0x);
-      y1x = __fma_rn(_y1_, _x_, y1x);
+      y0x = _fma_rn(_y0_, _x_, y0x);
+      y1x = _fma_rn(_y1_, _x_, y1x);
     }
     __syncthreads();
   }
@@ -49,7 +49,7 @@ MYDEVFN void dAtA
 }
 
 MYDEVFN void dCholesky32
-(volatile double *const A,
+(volatile double *const __restrict__ A,
  const unsigned x,
  const unsigned y0,
  const unsigned y1)
@@ -64,7 +64,7 @@ MYDEVFN void dCholesky32
     const double Akk = (((y0 == k) && (x >= k)) ? F32(A, k, k) : 0.0);
     __syncthreads();
     if ((y0 == k) && (x >= k))
-      F32(A, x, k) = ((x > k) ? (F32(A, x, k) * my_drsqrt_rn(Akk)) : __dsqrt_rn(Akk));
+      F32(A, x, k) = ((x > k) ? _dmul_rn(F32(A, x, k), _drsqrt_rn(Akk)) : _dsqrt_rn(Akk));
     __syncthreads();
 
     unsigned j = (k + 1u) + y0;
@@ -74,7 +74,7 @@ MYDEVFN void dCholesky32
       const double Aij = F32(A, x, j);
       const double _Aik = -F32(A, x, k);
       const double Ajk = F32(A, j, k);
-      F32(A, x, j) = __fma_rn(_Aik, Ajk, Aij);
+      F32(A, x, j) = _fma_rn(_Aik, Ajk, Aij);
     }
     __syncthreads();
 
@@ -85,7 +85,7 @@ MYDEVFN void dCholesky32
       const double Aij = F32(A, x, j);
       const double _Aik = -F32(A, x, k);
       const double Ajk = F32(A, j, k);
-      F32(A, x, j) = __fma_rn(_Aik, Ajk, Aij);
+      F32(A, x, j) = _fma_rn(_Aik, Ajk, Aij);
     }
     __syncthreads();
   }
@@ -96,7 +96,7 @@ MYDEVFN void dCholesky32
     const double Akk = (((y1 == k) && (x >= k)) ? F32(A, k, k) : 0.0);
     __syncthreads();
     if ((y1 == k) && (x >= k))
-      F32(A, x, k) = ((x > k) ? (F32(A, x, k) * my_drsqrt_rn(Akk)) : __dsqrt_rn(Akk));
+      F32(A, x, k) = ((x > k) ? _dmul_rn(F32(A, x, k), _drsqrt_rn(Akk)) : _dsqrt_rn(Akk));
     __syncthreads();
 
     const unsigned j = (k + 1u) + y0;
@@ -106,7 +106,7 @@ MYDEVFN void dCholesky32
       const double Aij = F32(A, x, j);
       const double _Aik = -F32(A, x, k);
       const double Ajk = F32(A, j, k);
-      F32(A, x, j) = __fma_rn(_Aik, Ajk, Aij);
+      F32(A, x, j) = _fma_rn(_Aik, Ajk, Aij);
     }
     __syncthreads();
   }
@@ -133,13 +133,12 @@ MYDEVFN void dCholesky32
 }
 
 MYDEVFN void dFactorize
-(const double *const F0,
- const double *const F1,
- const double *const G0,
- const double *const G1,
+(const double *const __restrict__ F0,
+ const double *const __restrict__ F1,
+ const double *const __restrict__ G0,
+ const double *const __restrict__ G1,
  volatile double *const A,
  volatile double *const B,
- volatile double *const V,
  const unsigned x,
  const unsigned y0,
  const unsigned y1)

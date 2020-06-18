@@ -47,33 +47,36 @@ endif # ANIMATE
 
 NVLDFLAGS+=-l dl,m
 
-HEADERS=				\
-	../shared/HZ.hpp		\
-	../shared/HZ_L.hpp		\
-	../shared/cuda_helper.hpp	\
-	../shared/cuda_memory_helper.hpp\
-	../shared/defines.hpp		\
-	../shared/my_utils.hpp		\
-	HZ_L2.hpp			\
-	cuZ.hpp                         \
-	device_code.hpp			\
-	device_code_accumV.hpp 		\
-	device_code_cdsort_$(HCVG).hpp	\
-	device_code_nosort_$(HCVG).hpp	\
-	device_code_cdsort_accumV.hpp	\
-	device_code_nosort_accumV.hpp	\
-	device_code_common.hpp		\
-	device_code_globals.hpp		\
-	device_code_common_rotate.hpp	\
-	device_code_common_Kepler.hpp	\
+HEADERS=				         \
+	../shared/HZ.hpp		         \
+	../shared/HZ_L.hpp		         \
+	../shared/cuda_helper.hpp	         \
+	../shared/cuda_memory_helper.hpp         \
+	../shared/defines.hpp		         \
+	../shared/device_code_common_defs.hpp    \
+	../shared/device_code_common_globals.hpp \
+	../shared/device_code_prof.hpp           \
+	../shared/my_utils.hpp		         \
+	HZ_L2.hpp			         \
+	cuZ.hpp                                  \
+	device_code.hpp			         \
+	device_code_accumV.hpp 		         \
+	device_code_cdsort_$(HCVG).hpp	         \
+	device_code_nosort_$(HCVG).hpp	         \
+	device_code_cdsort_accumV.hpp	         \
+	device_code_nosort_accumV.hpp	         \
+	device_code_common.hpp		         \
+	device_code_globals.hpp		         \
+	device_code_common_rotate.hpp	         \
+	device_code_common_Kepler.hpp	         \
 	device_code_common_Cholesky.hpp
 
-SOURCES=			\
-	../shared/HZ.cu		\
-	../shared/HZ_L.cu	\
-	../shared/cuda_helper.cu\
-	../shared/my_utils.cu	\
-	HZ_L2.cu		\
+SOURCES=			 \
+	../shared/HZ.cu		 \
+	../shared/HZ_L.cu	 \
+	../shared/cuda_helper.cu \
+	../shared/my_utils.cu	 \
+	HZ_L2.cu		 \
 	device_code.cu
 
 ifdef MPI

@@ -2,9 +2,9 @@
 #define DEVICE_CODE_COMMON_CHOLESKY_HPP
 
 MYDEVFN void zAhA
-(const cuD *const A0D, const cuJ *const A0J,
- const cuD *const A1D, const cuJ *const A1J,
- volatile cuD *const AD, volatile cuJ *const AJ,
+(const cuD *const __restrict__ A0D, const cuJ *const __restrict__ A0J,
+ const cuD *const __restrict__ A1D, const cuJ *const __restrict__ A1J,
+ volatile cuD *const __restrict__ AD, volatile cuJ *const __restrict__ AJ,
  const unsigned m,
  const unsigned x,
  const unsigned y0,
@@ -68,7 +68,7 @@ MYDEVFN void zAhA
 }
 
 MYDEVFN void zCholesky32
-(volatile cuD *const AD, volatile cuJ *const AJ,
+(volatile cuD *const __restrict__ AD, volatile cuJ *const __restrict__ AJ,
  const unsigned x,
  const unsigned y0,
  const unsigned y1)
@@ -86,12 +86,12 @@ MYDEVFN void zCholesky32
       assert(Akk > 0.0);
       assert(Akk < INFTY);
       if (x > k) {
-        const double d = my_drsqrt_rn(Akk);
-        F32(AD, x, k) *= d;
-        F32(AJ, x, k) *= d;
+        const double d = _drsqrt_rn(Akk);
+        F32(AD, x, k) = _dmul_rn(F32(AD, x, k), d);
+        F32(AJ, x, k) = _dmul_rn(F32(AJ, x, k), d);
       }
       else {
-        F32(AD, x, k) = __dsqrt_rn(Akk);
+        F32(AD, x, k) = _dsqrt_rn(Akk);
         F32(AJ, x, k) = -0.0;
       }
     }
@@ -139,12 +139,12 @@ MYDEVFN void zCholesky32
       assert(Akk > 0.0);
       assert(Akk < INFTY);
       if (x > k) {
-        const double d = my_drsqrt_rn(Akk);
-        F32(AD, x, k) *= d;
-        F32(AJ, x, k) *= d;
+        const double d = _drsqrt_rn(Akk);
+        F32(AD, x, k) = _dmul_rn(F32(AD, x, k), d);
+        F32(AJ, x, k) = _dmul_rn(F32(AJ, x, k), d);
       }
       else {
-        F32(AD, x, k) = __dsqrt_rn(Akk);
+        F32(AD, x, k) = _dsqrt_rn(Akk);
         F32(AJ, x, k) = -0.0;
       }
     }
@@ -203,10 +203,10 @@ MYDEVFN void zCholesky32
 }
 
 MYDEVFN void zFactorize
-(const cuD *const F0D, const cuJ *const F0J,
- const cuD *const F1D, const cuJ *const F1J,
- const cuD *const G0D, const cuJ *const G0J,
- const cuD *const G1D, const cuJ *const G1J,
+(const cuD *const __restrict__ F0D, const cuJ *const __restrict__ F0J,
+ const cuD *const __restrict__ F1D, const cuJ *const __restrict__ F1J,
+ const cuD *const __restrict__ G0D, const cuJ *const __restrict__ G0J,
+ const cuD *const __restrict__ G1D, const cuJ *const __restrict__ G1J,
  volatile cuD *const AD, volatile cuJ *const AJ,
  volatile cuD *const BD, volatile cuJ *const BJ,
  const unsigned x,

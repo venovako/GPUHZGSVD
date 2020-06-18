@@ -2,9 +2,9 @@
 #define DEVICE_CODE_CDSORT_HPP
 
 MYDEVFN unsigned zHZ_L0_sv
-(volatile cuD *const FD, volatile cuJ *const FJ,
- volatile cuD *const GD, volatile cuJ *const GJ,
- volatile cuD *const VD, volatile cuJ *const VJ,
+(volatile cuD *const __restrict__ FD, volatile cuJ *const __restrict__ FJ,
+ volatile cuD *const __restrict__ GD, volatile cuJ *const __restrict__ GJ,
+ volatile cuD *const __restrict__ VD, volatile cuJ *const __restrict__ VJ,
  const unsigned x,
  const unsigned y)
 {
@@ -41,11 +41,11 @@ MYDEVFN unsigned zHZ_L0_sv
   if (Bpp != 1.0) {
     FpD = F32(FD, x, p);
     FpJ = F32(FJ, x, p);
-    Vpp = my_drsqrt_rn(Bpp);
-    F32(FD, x, p) = FpD * Vpp;
-    F32(FJ, x, p) = FpJ * Vpp;
-    F32(GD, x, p) = GpD * Vpp;
-    F32(GJ, x, p) = GpJ * Vpp;
+    Vpp = _drsqrt_rn(Bpp);
+    F32(FD, x, p) = _dmul_rn(FpD, Vpp);
+    F32(FJ, x, p) = _dmul_rn(FpJ, Vpp);
+    F32(GD, x, p) = _dmul_rn(GpD, Vpp);
+    F32(GJ, x, p) = _dmul_rn(GpJ, Vpp);
   }
   else
     Vpp = 1.0;
@@ -56,11 +56,11 @@ MYDEVFN unsigned zHZ_L0_sv
   if (Bqq != 1.0) {
     FqD = F32(FD, x, q);
     FqJ = F32(FJ, x, q);
-    Vqq = my_drsqrt_rn(Bqq);
-    F32(FD, x, q) = FqD * Vqq;
-    F32(FJ, x, q) = FqJ * Vqq;
-    F32(GD, x, q) = GqD * Vqq;
-    F32(GJ, x, q) = GqJ * Vqq;
+    Vqq = _drsqrt_rn(Bqq);
+    F32(FD, x, q) = _dmul_rn(FqD, Vqq);
+    F32(FJ, x, q) = _dmul_rn(FqJ, Vqq);
+    F32(GD, x, q) = _dmul_rn(GqD, Vqq);
+    F32(GJ, x, q) = _dmul_rn(GqJ, Vqq);
   }
   else
     Vqq = 1.0;
@@ -105,11 +105,11 @@ MYDEVFN unsigned zHZ_L0_sv
       zDot32(ApqD, ApqJ, FpD, FpJ, FqD, FqJ);
       zDot32(BpqD, BpqJ, GpD, GpJ, GqD, GqJ);
 
-      const double Bpq_ = hypot(BpqD, BpqJ);
+      const double Bpq_ = _hypot(BpqD, BpqJ);
       assert(Bpq_ < 1.0);
 
       const int transf_s = (!(Bpq_ < HZ_MYTOL) ? 1 :
-                            !(hypot(ApqD, ApqJ) < ((__dsqrt_rn(App) * __dsqrt_rn(Aqq)) * HZ_MYTOL)));
+                            !(_hypot(ApqD, ApqJ) < _dmul_rn(_dmul_rn(_dsqrt_rn(App), _dsqrt_rn(Aqq)), HZ_MYTOL)));
       int transf_b = 0;
 
       swp_transf_s += (__syncthreads_count(transf_s) >> WARP_SZ_LGi);
@@ -125,36 +125,36 @@ MYDEVFN unsigned zHZ_L0_sv
 
         if (fn1) {
           if (pn1) {
-            Zfma(Fp_D, Fp_J, FqD, FqJ, _SinPD, _SinPJ, FpD * CosF, FpJ * CosF);
-            Zfma(Fq_D, Fq_J, FpD, FpJ, SinFD, SinFJ, FqD * CosP, FqJ * CosP);
+            Zfma(Fp_D, Fp_J, FqD, FqJ, _SinPD, _SinPJ, _dmul_rn(FpD, CosF), _dmul_rn(FpJ, CosF));
+            Zfma(Fq_D, Fq_J, FpD, FpJ, SinFD, SinFJ, _dmul_rn(FqD, CosP), _dmul_rn(FqJ, CosP));
 
-            Zfma(Gp_D, Gp_J, GqD, GqJ, _SinPD, _SinPJ, GpD * CosF, GpJ * CosF);
-            Zfma(Gq_D, Gq_J, GpD, GpJ, SinFD, SinFJ, GqD * CosP, GqJ * CosP);
+            Zfma(Gp_D, Gp_J, GqD, GqJ, _SinPD, _SinPJ, _dmul_rn(GpD, CosF), _dmul_rn(GpJ, CosF));
+            Zfma(Gq_D, Gq_J, GpD, GpJ, SinFD, SinFJ, _dmul_rn(GqD, CosP), _dmul_rn(GqJ, CosP));
 
-            Zfma(Vp_D, Vp_J, VqD, VqJ, _SinPD, _SinPJ, VpD * CosF, VpJ * CosF);
-            Zfma(Vq_D, Vq_J, VpD, VpJ, SinFD, SinFJ, VqD * CosP, VqJ * CosP);
+            Zfma(Vp_D, Vp_J, VqD, VqJ, _SinPD, _SinPJ, _dmul_rn(VpD, CosF), _dmul_rn(VpJ, CosF));
+            Zfma(Vq_D, Vq_J, VpD, VpJ, SinFD, SinFJ, _dmul_rn(VqD, CosP), _dmul_rn(VqJ, CosP));
           }
           else {
-            Zfma(Fp_D, Fp_J, FqD, FqJ, _SinPD, _SinPJ, FpD * CosF, FpJ * CosF);
+            Zfma(Fp_D, Fp_J, FqD, FqJ, _SinPD, _SinPJ, _dmul_rn(FpD, CosF), _dmul_rn(FpJ, CosF));
             Zfma(Fq_D, Fq_J, FpD, FpJ, SinFD, SinFJ, FqD, FqJ);
 
-            Zfma(Gp_D, Gp_J, GqD, GqJ, _SinPD, _SinPJ, GpD * CosF, GpJ * CosF);
+            Zfma(Gp_D, Gp_J, GqD, GqJ, _SinPD, _SinPJ, _dmul_rn(GpD, CosF), _dmul_rn(GpJ, CosF));
             Zfma(Gq_D, Gq_J, GpD, GpJ, SinFD, SinFJ, GqD, GqJ);
 
-            Zfma(Vp_D, Vp_J, VqD, VqJ, _SinPD, _SinPJ, VpD * CosF, VpJ * CosF);
+            Zfma(Vp_D, Vp_J, VqD, VqJ, _SinPD, _SinPJ, _dmul_rn(VpD, CosF), _dmul_rn(VpJ, CosF));
             Zfma(Vq_D, Vq_J, VpD, VpJ, SinFD, SinFJ, VqD, VqJ);
           }
         }
         else {
           if (pn1) {
             Zfma(Fp_D, Fp_J, FqD, FqJ, _SinPD, _SinPJ, FpD, FpJ);
-            Zfma(Fq_D, Fq_J, FpD, FpJ, SinFD, SinFJ, FqD * CosP, FqJ * CosP);
+            Zfma(Fq_D, Fq_J, FpD, FpJ, SinFD, SinFJ, _dmul_rn(FqD, CosP), _dmul_rn(FqJ, CosP));
 
             Zfma(Gp_D, Gp_J, GqD, GqJ, _SinPD, _SinPJ, GpD, GpJ);
-            Zfma(Gq_D, Gq_J, GpD, GpJ, SinFD, SinFJ, GqD * CosP, GqJ * CosP);
+            Zfma(Gq_D, Gq_J, GpD, GpJ, SinFD, SinFJ, _dmul_rn(GqD, CosP), _dmul_rn(GqJ, CosP));
 
             Zfma(Vp_D, Vp_J, VqD, VqJ, _SinPD, _SinPJ, VpD, VpJ);
-            Zfma(Vq_D, Vq_J, VpD, VpJ, SinFD, SinFJ, VqD * CosP, VqJ * CosP);
+            Zfma(Vq_D, Vq_J, VpD, VpJ, SinFD, SinFJ, _dmul_rn(VqD, CosP), _dmul_rn(VqJ, CosP));
           }
           else {
             Zfma(Fp_D, Fp_J, FqD, FqJ, _SinPD, _SinPJ, FpD, FpJ);
@@ -280,13 +280,13 @@ MYDEVFN unsigned zHZ_L0_sv
   assert(Bpp > 0.0);
   assert(Bpp < INFTY);
 
-  Vpp = my_drsqrt_rn(App + Bpp);
+  Vpp = _drsqrt_rn(_dadd_rn(App, Bpp));
   assert(Vpp > 0.0);
   assert(Vpp < INFTY);
 
   if (Vpp != 1.0) {
-    F32(VD, x, p) *= Vpp;
-    F32(VJ, x, p) *= Vpp;
+    F32(VD, x, p) = _dmul_rn(F32(VD, x, p), Vpp);
+    F32(VJ, x, p) = _dmul_rn(F32(VJ, x, p), Vpp);
   }
   __syncthreads();
 
@@ -298,13 +298,13 @@ MYDEVFN unsigned zHZ_L0_sv
   assert(Bqq > 0.0);
   assert(Bqq < INFTY);
 
-  Vqq = my_drsqrt_rn(Aqq + Bqq);
+  Vqq = _drsqrt_rn(_dadd_rn(Aqq, Bqq));
   assert(Vqq > 0.0);
   assert(Vqq < INFTY);
 
   if (Vqq != 1.0) {
-    F32(VD, x, q) *= Vqq;
-    F32(VJ, x, q) *= Vqq;
+    F32(VD, x, q) = _dmul_rn(F32(VD, x, q), Vqq);
+    F32(VJ, x, q) = _dmul_rn(F32(VJ, x, q), Vqq);
   }
   __syncthreads();
 

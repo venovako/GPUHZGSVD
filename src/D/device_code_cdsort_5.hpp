@@ -2,9 +2,9 @@
 #define DEVICE_CODE_CDSORT_HPP
 
 MYDEVFN unsigned dHZ_L0_sv
-(volatile double *const F,
- volatile double *const G,
- volatile double *const V,
+(volatile double *const __restrict__ F,
+ volatile double *const __restrict__ G,
+ volatile double *const __restrict__ V,
  const unsigned x,
  const unsigned y)
 {
@@ -26,18 +26,18 @@ MYDEVFN unsigned dHZ_L0_sv
   __syncthreads();
 
   if (Bpp != 1.0) {
-    Vp_ = my_drsqrt_rn(Bpp);
-    F32(F, x, p) *= Vp_;
-    F32(G, x, p) *= Vp_;
+    Vp_ = _drsqrt_rn(Bpp);
+    F32(F, x, p) = _dmul_rn(F32(F, x, p), Vp_);
+    F32(G, x, p) = _dmul_rn(F32(G, x, p), Vp_);
   }
   else
     Vp_ = 1.0;
   F32(V, x, p) = ((x == p) ? Vp_ : 0.0);
 
   if (Bqq != 1.0) {
-    Vq_ = my_drsqrt_rn(Bqq);
-    F32(F, x, q) *= Vq_;
-    F32(G, x, q) *= Vq_;
+    Vq_ = _drsqrt_rn(Bqq);
+    F32(F, x, q) = _dmul_rn(F32(F, x, q), Vq_);
+    F32(G, x, q) = _dmul_rn(F32(G, x, q), Vq_);
   }
   else
     Vq_ = 1.0;
@@ -72,7 +72,7 @@ MYDEVFN unsigned dHZ_L0_sv
 
       const double Bpq_ = fabs(Bpq);
       const int transf_s = (!(Bpq_ < HZ_MYTOL) ? 1 :
-                            !(fabs(Apq) < ((__dsqrt_rn(App) * __dsqrt_rn(Aqq)) * HZ_MYTOL)));
+                            !(fabs(Apq) < _dmul_rn(_dmul_rn(_dsqrt_rn(App), _dsqrt_rn(Aqq)), HZ_MYTOL)));
       int transf_b = 0;
 
       Fp_ = Fp; Fq_ = Fq;
@@ -91,115 +91,115 @@ MYDEVFN unsigned dHZ_L0_sv
           if (App >= Aqq) {
             if (fn1) {
               if (SinP == 1.0) {
-                Fp_ = __fma_rn(CosF, Fp, -Fq);
-                Gp_ = __fma_rn(CosF, Gp, -Gq);
-                Vp_ = __fma_rn(CosF, Vp, -Vq);
+                Fp_ = _fma_rn(CosF, Fp, -Fq);
+                Gp_ = _fma_rn(CosF, Gp, -Gq);
+                Vp_ = _fma_rn(CosF, Vp, -Vq);
               }
               else if (SinP == -1.0) {
-                Fp_ = __fma_rn(CosF, Fp, Fq);
-                Gp_ = __fma_rn(CosF, Gp, Gq);
-                Vp_ = __fma_rn(CosF, Vp, Vq);
+                Fp_ = _fma_rn(CosF, Fp, Fq);
+                Gp_ = _fma_rn(CosF, Gp, Gq);
+                Vp_ = _fma_rn(CosF, Vp, Vq);
               }
               else {
-                Fp_ = CosF * Fp - SinP * Fq;
-                Gp_ = CosF * Gp - SinP * Gq;
-                Vp_ = CosF * Vp - SinP * Vq;
+                Fp_ = _fma_rn(CosF, Fp, -_dmul_rn(SinP, Fq));
+                Gp_ = _fma_rn(CosF, Gp, -_dmul_rn(SinP, Gq));
+                Vp_ = _fma_rn(CosF, Vp, -_dmul_rn(SinP, Vq));
               }
             }
             else {
               const double SinP_ = -SinP;
-              Fp_ = __fma_rn(SinP_, Fq, Fp);
-              Gp_ = __fma_rn(SinP_, Gq, Gp);
-              Vp_ = __fma_rn(SinP_, Vq, Vp);
+              Fp_ = _fma_rn(SinP_, Fq, Fp);
+              Gp_ = _fma_rn(SinP_, Gq, Gp);
+              Vp_ = _fma_rn(SinP_, Vq, Vp);
             }
             if (pn1) {
               if (SinF == 1.0) {
-                Fq_ = __fma_rn(CosP, Fq, Fp);
-                Gq_ = __fma_rn(CosP, Gq, Gp);
-                Vq_ = __fma_rn(CosP, Vq, Vp);
+                Fq_ = _fma_rn(CosP, Fq, Fp);
+                Gq_ = _fma_rn(CosP, Gq, Gp);
+                Vq_ = _fma_rn(CosP, Vq, Vp);
               }
               else if (SinF == -1.0) {
-                Fq_ = __fma_rn(CosP, Fq, -Fp);
-                Gq_ = __fma_rn(CosP, Gq, -Gp);
-                Vq_ = __fma_rn(CosP, Vq, -Vp);
+                Fq_ = _fma_rn(CosP, Fq, -Fp);
+                Gq_ = _fma_rn(CosP, Gq, -Gp);
+                Vq_ = _fma_rn(CosP, Vq, -Vp);
               }
               else {
-                Fq_ = SinF * Fp + CosP * Fq;
-                Gq_ = SinF * Gp + CosP * Gq;
-                Vq_ = SinF * Vp + CosP * Vq;
+                Fq_ = _fma_rn(SinF, Fp, _dmul_rn(CosP, Fq));
+                Gq_ = _fma_rn(SinF, Gp, _dmul_rn(CosP, Gq));
+                Vq_ = _fma_rn(SinF, Vp, _dmul_rn(CosP, Vq));
               }
             }
             else {
-              Fq_ = __fma_rn(SinF, Fp, Fq);
-              Gq_ = __fma_rn(SinF, Gp, Gq);
-              Vq_ = __fma_rn(SinF, Vp, Vq);
+              Fq_ = _fma_rn(SinF, Fp, Fq);
+              Gq_ = _fma_rn(SinF, Gp, Gq);
+              Vq_ = _fma_rn(SinF, Vp, Vq);
             }
           }
           else {
             if (fn1) {
               if (SinP == 1.0) {
-                Fq_ = __fma_rn(CosF, Fp, -Fq);
-                Gq_ = __fma_rn(CosF, Gp, -Gq);
-                Vq_ = __fma_rn(CosF, Vp, -Vq);
+                Fq_ = _fma_rn(CosF, Fp, -Fq);
+                Gq_ = _fma_rn(CosF, Gp, -Gq);
+                Vq_ = _fma_rn(CosF, Vp, -Vq);
               }
               else if (SinP == -1.0) {
-                Fq_ = __fma_rn(CosF, Fp, Fq);
-                Gq_ = __fma_rn(CosF, Gp, Gq);
-                Vq_ = __fma_rn(CosF, Vp, Vq);
+                Fq_ = _fma_rn(CosF, Fp, Fq);
+                Gq_ = _fma_rn(CosF, Gp, Gq);
+                Vq_ = _fma_rn(CosF, Vp, Vq);
               }
               else {
-                Fq_ = CosF * Fp - SinP * Fq;
-                Gq_ = CosF * Gp - SinP * Gq;
-                Vq_ = CosF * Vp - SinP * Vq;
+                Fq_ = _fma_rn(CosF, Fp, -_dmul_rn(SinP, Fq));
+                Gq_ = _fma_rn(CosF, Gp, -_dmul_rn(SinP, Gq));
+                Vq_ = _fma_rn(CosF, Vp, -_dmul_rn(SinP, Vq));
               }
             }
             else {
               const double SinP_ = -SinP;
-              Fq_ = __fma_rn(SinP_, Fq, Fp);
-              Gq_ = __fma_rn(SinP_, Gq, Gp);
-              Vq_ = __fma_rn(SinP_, Vq, Vp);
+              Fq_ = _fma_rn(SinP_, Fq, Fp);
+              Gq_ = _fma_rn(SinP_, Gq, Gp);
+              Vq_ = _fma_rn(SinP_, Vq, Vp);
             }
             if (pn1) {
               if (SinF == 1.0) {
-                Fp_ = __fma_rn(CosP, Fq, Fp);
-                Gp_ = __fma_rn(CosP, Gq, Gp);
-                Vp_ = __fma_rn(CosP, Vq, Vp);
+                Fp_ = _fma_rn(CosP, Fq, Fp);
+                Gp_ = _fma_rn(CosP, Gq, Gp);
+                Vp_ = _fma_rn(CosP, Vq, Vp);
               }
               else if (SinF == -1.0) {
-                Fp_ = __fma_rn(CosP, Fq, -Fp);
-                Gp_ = __fma_rn(CosP, Gq, -Gp);
-                Vp_ = __fma_rn(CosP, Vq, -Vp);
+                Fp_ = _fma_rn(CosP, Fq, -Fp);
+                Gp_ = _fma_rn(CosP, Gq, -Gp);
+                Vp_ = _fma_rn(CosP, Vq, -Vp);
               }
               else {
-                Fp_ = SinF * Fp + CosP * Fq;
-                Gp_ = SinF * Gp + CosP * Gq;
-                Vp_ = SinF * Vp + CosP * Vq;
+                Fp_ = _fma_rn(SinF, Fp, _dmul_rn(CosP, Fq));
+                Gp_ = _fma_rn(SinF, Gp, _dmul_rn(CosP, Gq));
+                Vp_ = _fma_rn(SinF, Vp, _dmul_rn(CosP, Vq));
               }
             }
             else {
-              Fp_ = __fma_rn(SinF, Fp, Fq);
-              Gp_ = __fma_rn(SinF, Gp, Gq);
-              Vp_ = __fma_rn(SinF, Vp, Vq);
+              Fp_ = _fma_rn(SinF, Fp, Fq);
+              Gp_ = _fma_rn(SinF, Gp, Gq);
+              Vp_ = _fma_rn(SinF, Vp, Vq);
             }
           }
         }
         else {
           const double SinP_ = -SinP;
           if (App >= Aqq) {
-            Fp_ = __fma_rn(SinP_, Fq, Fp);
-            Fq_ = __fma_rn(SinF, Fp, Fq);
-            Gp_ = __fma_rn(SinP_, Gq, Gp);
-            Gq_ = __fma_rn(SinF, Gp,  Gq);
-            Vp_ = __fma_rn(SinP_, Vq, Vp);
-            Vq_ = __fma_rn(SinF, Vp, Vq);
+            Fp_ = _fma_rn(SinP_, Fq, Fp);
+            Fq_ = _fma_rn(SinF, Fp, Fq);
+            Gp_ = _fma_rn(SinP_, Gq, Gp);
+            Gq_ = _fma_rn(SinF, Gp,  Gq);
+            Vp_ = _fma_rn(SinP_, Vq, Vp);
+            Vq_ = _fma_rn(SinF, Vp, Vq);
           }
           else {
-            Fq_ = __fma_rn(SinP_, Fq, Fp);
-            Fp_ = __fma_rn(SinF, Fp, Fq);
-            Gq_ = __fma_rn(SinP_, Gq, Gp);
-            Gp_ = __fma_rn(SinF, Gp,  Gq);
-            Vq_ = __fma_rn(SinP_, Vq, Vp);
-            Vp_ = __fma_rn(SinF, Vp, Vq);
+            Fq_ = _fma_rn(SinP_, Fq, Fp);
+            Fp_ = _fma_rn(SinF, Fp, Fq);
+            Gq_ = _fma_rn(SinP_, Gq, Gp);
+            Gp_ = _fma_rn(SinF, Gp,  Gq);
+            Vq_ = _fma_rn(SinP_, Vq, Vp);
+            Vp_ = _fma_rn(SinF, Vp, Vq);
           }
         }
         F32(F, x, p) = Fp_;
@@ -239,15 +239,15 @@ MYDEVFN unsigned dHZ_L0_sv
 
   App = dSSQ32(Fp_, Aqq, Bqq);
   Bpp = dSSQ32(Gp_, Aqq, Bqq);
-  const double Vpp_ = my_drsqrt_rn(App + Bpp);
+  const double Vpp_ = _drsqrt_rn(_dadd_rn(App, Bpp));
   if (Vpp_ != 1.0)
-    F32(V, x, p) = Vp_ * Vpp_;
+    F32(V, x, p) = _dmul_rn(Vp_, Vpp_);
 
   Aqq = dSSQ32(Fq_, App, Bpp);
   Bqq = dSSQ32(Gq_, App, Bpp);
-  const double Vqq_ = my_drsqrt_rn(Aqq + Bqq);
+  const double Vqq_ = _drsqrt_rn(_dadd_rn(Aqq, Bqq));
   if (Vqq_ != 1.0)
-    F32(V, x, q) = Vq_ * Vqq_;
+    F32(V, x, q) = _dmul_rn(Vq_, Vqq_);
 
   if (!y && !x) {
     const unsigned bix2 = (unsigned)(blockIdx.x) << 1u;

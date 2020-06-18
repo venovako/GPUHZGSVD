@@ -2,15 +2,15 @@
 #define DEVICE_CODE_ACCUMV_HPP
 
 MYDEVFN void dMultV
-(double *const F0,
- double *const F1,
- double *const G0,
- double *const G1,
- double *const V0,
- double *const V1,
- volatile double *const A,
- volatile double *const B,
- volatile const double *const C,
+(double *const __restrict__ F0,
+ double *const __restrict__ F1,
+ double *const __restrict__ G0,
+ double *const __restrict__ G1,
+ double *const __restrict__ V0,
+ double *const __restrict__ V1,
+ volatile double *const __restrict__ A,
+ volatile double *const __restrict__ B,
+ volatile const double *const __restrict__ C,
  const unsigned x,
  const unsigned y0,
  const unsigned y1)

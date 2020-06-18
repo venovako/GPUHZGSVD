@@ -177,18 +177,13 @@
 #ifdef _drsqrt_rn
 #error _drsqrt_rn already defined
 #else /* !_drsqrt_rn */
-#define _drsqrt_rn(x) (__prof_trigger(OTHER_PC), my_drsqrt_rn(x))
+#define _drsqrt_rn(x) (__prof_trigger(OTHER_PC), nj_drsqrt_rn(x))
 #endif /* ?_drsqrt_rn */
 #ifdef _hypot
 #error _hypot already defined
 #else /* !_hypot */
 #define _hypot(x,y) (__prof_trigger(OTHER_PC), hypot((x),(y)))
 #endif /* ?_hypot */
-#ifdef _scalbn
-#error _scalbn already defined
-#else /* !_scalbn */
-#define _scalbn(x,y) (__prof_trigger(DMUL_PC), scalbn((x),(y)))
-#endif /* ?_scalbn */
 #else /* !PROFILE || PROFILE <= 0 */
 #ifdef _dadd_rn
 #error _dadd_rn already defined
@@ -333,18 +328,13 @@
 #ifdef _drsqrt_rn
 #error _drsqrt_rn already defined
 #else /* !_drsqrt_rn */
-#define _drsqrt_rn(x) my_drsqrt_rn(x)
+#define _drsqrt_rn(x) nj_drsqrt_rn(x)
 #endif /* ?_drsqrt_rn */
 #ifdef _hypot
 #error _hypot already defined
 #else /* !_hypot */
 #define _hypot(x,y) hypot((x),(y))
 #endif /* ?_hypot */
-#ifdef _scalbn
-#error _scalbn already defined
-#else /* !_scalbn */
-#define _scalbn(x,y) scalbn((x),(y))
-#endif /* ?_scalbn */
 #endif /* ?PROFILE */
 
 #endif /* !DEVICE_CODE_PROF_HPP */
