@@ -53,7 +53,6 @@ HZ_L2_gpu
   glb_b = 0ull;
 
 #ifndef USE_MPI
-  cuda_prof_start();
   long long swp_tim = 0ll;
   stopwatch_reset(swp_tim);
 #endif /* !USE_MPI */
@@ -128,12 +127,9 @@ HZ_L2_gpu
     initS(0, ncol);
 #else /* !USE_MPI */
   initS(1, ncol);
-#endif /* !USE_MPI */
+#endif /* ?USE_MPI */
   CUDA_CALL(cudaDeviceSynchronize());
 
-#ifndef USE_MPI
-  cuda_prof_stop();
-#endif /* !USE_MPI */
   return 0;
 }
 
@@ -218,13 +214,17 @@ HZ_L2
   CUDA_CALL(cudaMemcpy2D(dG, lddG * sizeof(double), hG, ldhG * sizeof(double), nrowG * sizeof(double), ncol, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaMemcpy2D(dV, lddV * sizeof(double), hV, ldhV * sizeof(double), ncol * sizeof(double), ncol, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaDeviceSynchronize());
+#ifndef USE_MPI
+  cuda_prof_start();
+#endif /* !USE_MPI */
+
 #ifdef USE_MPI
   const unsigned ifc0 = 0u;
   const unsigned ifc1 = (ncol >> 1u);
   initV(((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5)), ncol, ifc0, ifc1);
 #else /* !USE_MPI */
   initV(((CVG == 0) || (CVG == 1) || (CVG == 4) || (CVG == 5)), ncol);
-#endif /* USE_MPI */
+#endif /* ?USE_MPI */
   CUDA_CALL(cudaDeviceSynchronize());
 
 #ifdef ANIMATE
@@ -285,6 +285,9 @@ HZ_L2
 #endif /* ANIMATE */
      );
   timers[2] = stopwatch_lap(timers[3]);
+#ifndef USE_MPI
+  cuda_prof_stop();
+#endif /* !USE_MPI */
 
   CUDA_CALL(cudaMemcpy2D(hF, ldhF * sizeof(double), dF, lddF * sizeof(double), nrowF * sizeof(double), ncol, cudaMemcpyDeviceToHost));
   CUDA_CALL(cudaMemcpy2D(hG, ldhG * sizeof(double), dG, lddG * sizeof(double), nrowG * sizeof(double), ncol, cudaMemcpyDeviceToHost));

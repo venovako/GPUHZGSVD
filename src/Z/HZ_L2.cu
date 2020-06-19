@@ -52,7 +52,6 @@ HZ_L2_gpu
   glb_b = 0ull;
 
 #ifndef USE_MPI
-  cuda_prof_start();
   long long swp_tim = 0ll;
   stopwatch_reset(swp_tim);
 #endif /* !USE_MPI */
@@ -172,9 +171,6 @@ HZ_L2_gpu
 #endif /* ?USE_MPI */
   CUDA_CALL(cudaDeviceSynchronize());
 
-#ifndef USE_MPI
-  cuda_prof_stop();
-#endif /* !USE_MPI */
   return 0;
 }
 
@@ -274,6 +270,10 @@ HZ_L2
   CUDA_CALL(cudaMemcpy2D(dVD, lddV * sizeof(cuD), hVD, ldhV * sizeof(double), ncol * sizeof(cuD), ncol, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaMemcpy2D(dVJ, lddV * sizeof(cuJ), hVJ, ldhV * sizeof(double), ncol * sizeof(cuJ), ncol, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaDeviceSynchronize());
+#ifndef USE_MPI
+  cuda_prof_start();
+#endif /* !USE_MPI */
+
 #ifdef USE_MPI
   const unsigned ifc0 = 0u;
   const unsigned ifc1 = (ncol >> 1u);
@@ -343,6 +343,9 @@ HZ_L2
 #endif /* ANIMATE */
      );
   timers[2] = stopwatch_lap(timers[3]);
+#ifndef USE_MPI
+  cuda_prof_stop();
+#endif /* !USE_MPI */
 
   CUDA_CALL(cudaMemcpy2D(hFD, ldhF * sizeof(double), dFD, lddF * sizeof(cuD), nrowF * sizeof(cuD), ncol, cudaMemcpyDeviceToHost));
   CUDA_CALL(cudaMemcpy2D(hFJ, ldhF * sizeof(double), dFJ, lddF * sizeof(cuJ), nrowF * sizeof(cuJ), ncol, cudaMemcpyDeviceToHost));
