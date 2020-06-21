@@ -213,10 +213,25 @@ MYDEVFN void zFactorize
  const unsigned y0,
  const unsigned y1)
 {
+#if (defined(PROFILE) && (PROFILE == 0))
+  const unsigned bix2 = (unsigned)(blockIdx.x) << C_SHIFTR;
+  __syncthreads();
+  unsigned long long t = static_cast<unsigned long long>(clock64());
+#endif /* ?PROFILE */
   zAhA(F0D, F0J, F1D, F1J, AD, AJ, _nRowF, x, y0, y1);
   zAhA(G0D, G0J, G1D, G1J, BD, BJ, _nRowG, x, y0, y1);
+#if (defined(PROFILE) && (PROFILE == 0))
+  t = static_cast<unsigned long long>(clock64()) - t;
+  (void)atomicMax((_C + bix2) + C_SUBPHASE_1, t);
+  __syncthreads();
+  t = static_cast<unsigned long long>(clock64());
+#endif /* ?PROFILE */
   zCholesky32(AD, AJ, x, y0, y1);
   zCholesky32(BD, BJ, x, y0, y1);
+#if (defined(PROFILE) && (PROFILE == 0))
+  t = static_cast<unsigned long long>(clock64()) - t;
+  (void)atomicMax((_C + bix2) + C_SUBPHASE_2, t);
+#endif /* ?PROFILE */
 }
 
 #endif /* !DEVICE_CODE_COMMON_CHOLESKY_HPP */

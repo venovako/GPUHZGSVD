@@ -143,10 +143,25 @@ MYDEVFN void dFactorize
  const unsigned y0,
  const unsigned y1)
 {
+#if (defined(PROFILE) && (PROFILE == 0))
+  const unsigned bix2 = (unsigned)(blockIdx.x) << C_SHIFTR;
+  __syncthreads();
+  unsigned long long t = static_cast<unsigned long long>(clock64());
+#endif /* ?PROFILE */
   dAtA(F0, F1, A, _nRowF, x, y0, y1);
   dAtA(G0, G1, B, _nRowG, x, y0, y1);
+#if (defined(PROFILE) && (PROFILE == 0))
+  t = static_cast<unsigned long long>(clock64()) - t;
+  (void)atomicMax((_C + bix2) + C_SUBPHASE_1, t);
+  __syncthreads();
+  t = static_cast<unsigned long long>(clock64());
+#endif /* ?PROFILE */
   dCholesky32(A, x, y0, y1);
   dCholesky32(B, x, y0, y1);
+#if (defined(PROFILE) && (PROFILE == 0))
+  t = static_cast<unsigned long long>(clock64()) - t;
+  (void)atomicMax((_C + bix2) + C_SUBPHASE_2, t);
+#endif /* ?PROFILE */
 }
 
 #endif /* !DEVICE_CODE_COMMON_CHOLESKY_HPP */

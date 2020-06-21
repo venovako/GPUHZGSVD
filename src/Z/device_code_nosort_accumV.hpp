@@ -46,8 +46,23 @@ MYKERN __launch_bounds__(HZ_L1_MAX_THREADS_PER_BLOCK, HZ_L1_MIN_BLOCKS_PER_SM)
     *const VJ = static_cast<cuJ*>(shMem + 5u * 32u * 32u);
 
   zFactorize(F0D, F0J, F1D, F1J, G0D, G0J, G1D, G1J, FD, FJ, GD, GJ, x, y0, y1);
+#if (defined(PROFILE) && (PROFILE == 0))
+  const unsigned bix2 = (unsigned)(blockIdx.x) << C_SHIFTR;
+  __syncthreads();
+  unsigned long long t = static_cast<unsigned long long>(clock64());
+#endif /* ?PROFILE */
   (void)zHZ_L0_v(FD, FJ, GD, GJ, VD, VJ, x, y0);
+#if (defined(PROFILE) && (PROFILE == 0))
+  t = static_cast<unsigned long long>(clock64()) - t;
+  (void)atomicMax((_C + bix2) + C_SUBPHASE_3, t);
+  __syncthreads();
+  t = static_cast<unsigned long long>(clock64());
+#endif /* ?PROFILE */
   zMultV(F0D, F0J, F1D, F1J, G0D, G0J, G1D, G1J, V0D, V0J, V1D, V1J, FD, FJ, GD, GJ, VD, VJ, x, y0, y1);
+#if (defined(PROFILE) && (PROFILE == 0))
+  t = static_cast<unsigned long long>(clock64()) - t;
+  (void)atomicMax((_C + bix2) + C_SUBPHASE_4, t);
+#endif /* ?PROFILE */
 }
 
 #endif /* !DEVICE_CODE_NOSORT_ACCUMV_HPP */

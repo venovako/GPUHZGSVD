@@ -109,6 +109,62 @@ extern unsigned STRAT1_DTYPE strat1[STRAT1_MAX_STEPS][STRAT1_MAX_PAIRS][2u];
 
 extern jstrat_common js0, js1;
 
+#ifndef C_ELEMS_PER_BLOCK
+#if (defined(PROFILE) && (PROFILE == 0))
+#define C_ELEMS_PER_BLOCK 8u
+#else /* !PROFILE || PROFILE != 0 */
+#define C_ELEMS_PER_BLOCK 2u
+#endif /* ?PROFILE */
+#else /* C_ELEMS_PER_BLOCK */
+#error C_ELEMS_PER_BLOCK not definable externally
+#endif /* ?C_ELEMS_PER_BLOCK */
+
+#ifndef C_SHIFTR
+#if (defined(PROFILE) && (PROFILE == 0))
+#define C_SHIFTR 3u
+#else /* !PROFILE || PROFILE != 0 */
+#define C_SHIFTR 1u
+#endif /* ?PROFILE */
+#else /* C_SHIFTR */
+#error C_SHIFTR not definable externally
+#endif /* ?C_SHIFTR */
+
+#ifndef C_SMALL
+#define C_SMALL 0u
+#else /* C_SMALL */
+#error C_SMALL not definable externally
+#endif /* ?C_SMALL */
+
+#ifndef C_BIG
+#define C_BIG 1u
+#else /* C_BIG */
+#error C_BIG not definable externally
+#endif /* ?C_BIG */
+
+#ifndef C_SUBPHASE_1
+#define C_SUBPHASE_1 2u
+#else /* C_SUBPHASE_1 */
+#error C_SUBPHASE_1 not definable externally
+#endif /* ?C_SUBPHASE_1 */
+
+#ifndef C_SUBPHASE_2
+#define C_SUBPHASE_2 3u
+#else /* C_SUBPHASE_2 */
+#error C_SUBPHASE_2 not definable externally
+#endif /* ?C_SUBPHASE_2 */
+
+#ifndef C_SUBPHASE_3
+#define C_SUBPHASE_3 4u
+#else /* C_SUBPHASE_3 */
+#error C_SUBPHASE_3 not definable externally
+#endif /* ?C_SUBPHASE_3 */
+
+#ifndef C_SUBPHASE_4
+#define C_SUBPHASE_4 5u
+#else /* C_SUBPHASE_4 */
+#error C_SUBPHASE_4 not definable externally
+#endif /* ?C_SUBPHASE_4 */
+
 #ifdef USE_MPI
 #ifndef HZ_MAX_DEVICES
 #define HZ_MAX_DEVICES 512u

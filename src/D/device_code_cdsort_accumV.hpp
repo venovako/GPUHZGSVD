@@ -32,8 +32,23 @@ MYKERN __launch_bounds__(HZ_L1_MAX_THREADS_PER_BLOCK, HZ_L1_MIN_BLOCKS_PER_SM)
     *const V = shMem + 2048u;
 
   dFactorize(F0, F1, G0, G1, F, G, x, y0, y1);
+#if (defined(PROFILE) && (PROFILE == 0))
+  const unsigned bix2 = (unsigned)(blockIdx.x) << C_SHIFTR;
+  __syncthreads();
+  unsigned long long t = static_cast<unsigned long long>(clock64());
+#endif /* ?PROFILE */
   (void)dHZ_L0_sv(F, G, V, x, y0);
+#if (defined(PROFILE) && (PROFILE == 0))
+  t = static_cast<unsigned long long>(clock64()) - t;
+  (void)atomicMax((_C + bix2) + C_SUBPHASE_3, t);
+  __syncthreads();
+  t = static_cast<unsigned long long>(clock64());
+#endif /* ?PROFILE */
   dMultV(F0, F1, G0, G1, V0, V1, F, G, V, x, y0, y1);
+#if (defined(PROFILE) && (PROFILE == 0))
+  t = static_cast<unsigned long long>(clock64()) - t;
+  (void)atomicMax((_C + bix2) + C_SUBPHASE_4, t);
+#endif /* ?PROFILE */
 }
 
 #endif /* !DEVICE_CODE_CDSORT_ACCUMV_HPP */

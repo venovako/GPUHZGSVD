@@ -310,10 +310,10 @@ MYDEVFN unsigned zHZ_L0_sv
   __syncthreads();
 
   if (!y && !x) {
-    const unsigned bix2 = (unsigned)(blockIdx.x) << 1u;
-    _C[bix2] += blk_transf_s;
+    const unsigned bix2 = (unsigned)(blockIdx.x) << C_SHIFTR;
+    _C[bix2 + C_SMALL] += blk_transf_s;
     if (blk_transf_b)
-      _C[bix2 + 1u] += blk_transf_b;
+      _C[bix2 + C_BIG] += blk_transf_b;
   }
 
   __syncthreads();
