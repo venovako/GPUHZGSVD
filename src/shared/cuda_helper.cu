@@ -52,14 +52,14 @@ int configureGPU(const int dev) throw()
 
 void cuda_prof_start() throw()
 {
-#ifdef PROFILE
+#if (defined(PROFILE) && (PROFILE != 0))
   CUDA_CALL(cudaProfilerStart());
-#endif /* PROFILE */
+#endif /* ?PROFILE */
 }
 
 void cuda_prof_stop() throw()
 {
-#ifdef PROFILE
+#if (defined(PROFILE) && (PROFILE != 0))
   CUDA_CALL(cudaProfilerStop());
-#endif /* PROFILE */
+#endif /* ?PROFILE */
 }
