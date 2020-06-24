@@ -757,9 +757,9 @@ int main(int argc, char *argv[])
   free_strats();
 
   CUDA_CALL(cudaDeviceSynchronize());
-#ifdef PROFILE
+#if (defined(PROFILE) && (PROFILE != 0))
   CUDA_CALL(cudaDeviceReset());
-#endif /* PROFILE */
+#endif /* ?PROFILE */
 
   return fini_MPI();
 }
