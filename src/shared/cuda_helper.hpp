@@ -6,9 +6,9 @@
 
 #include <cuda_runtime.h>
 #include <math_constants.h>
-#ifdef PROFILE
+#if (defined(PROFILE) && (PROFILE != 0))
 #include <cuda_profiler_api.h>
-#endif /* PROFILE */
+#endif /* ?PROFILE */
 
 #ifndef CUDA_CALL
 #define CUDA_CALL(call) {                                             \
