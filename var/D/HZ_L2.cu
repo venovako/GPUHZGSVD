@@ -147,10 +147,12 @@ HZ_L2
       if (blk_stp) {
         CUDA_CALL(cudaDeviceSynchronize());
       }
-      for (unsigned k = 0u, j = 0u; k < STRAT1_PAIRS; ++k) {
+#pragma omp parallel for default(none) shared(STRAT1_PAIRS,strat1,blk_stp,pA,pB,pC,s0,s1,dF,lddFb)
+      for (unsigned k = 0u; k < STRAT1_PAIRS; ++k) {
         const unsigned p = static_cast<unsigned>(strat1[blk_stp][k][0u]);
         const unsigned q = static_cast<unsigned>(strat1[blk_stp][k][1u]);
         const unsigned i = (k << 1u);
+        unsigned j = (k * 3u);
         // (p,p) @ F
         pB[j] = pA[j] = (dF[s0] + p * lddFb);
         pC[j] = (dF[s1] + i * lddFb);
@@ -163,14 +165,15 @@ HZ_L2
         // (q,q) @ F
         pB[j] = pA[j] = (dF[s0] + q * lddFb);
         pC[j] = (dF[s1] + (i + 1u) * lddFb + HZ_L1_NCOLB);
-        ++j;
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_T, CUBLAS_OP_N, static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(nrowF), &one, pA, static_cast<int>(lddF), pB, static_cast<int>(lddF), &zero, pC, static_cast<int>(lddF), static_cast<int>(bc0)));
       CUDA_CALL(cudaDeviceSynchronize());
-      for (unsigned k = 0u, j = 0u; k < STRAT1_PAIRS; ++k) {
+#pragma omp parallel for default(none) shared(STRAT1_PAIRS,strat1,blk_stp,pA,pB,pC,s0,s1,dG,lddGb)
+      for (unsigned k = 0u; k < STRAT1_PAIRS; ++k) {
         const unsigned p = static_cast<unsigned>(strat1[blk_stp][k][0u]);
         const unsigned q = static_cast<unsigned>(strat1[blk_stp][k][1u]);
         const unsigned i = (k << 1u);
+        unsigned j = (k * 3u);
         // (p,p) @ G
         pB[j] = pA[j] = (dG[s0] + p * lddGb);
         pC[j] = (dG[s1] + i * lddGb);
@@ -183,111 +186,110 @@ HZ_L2
         // (q,q) @ G
         pB[j] = pA[j] = (dG[s0] + q * lddGb);
         pC[j] = (dG[s1] + (i + 1u) * lddGb + HZ_L1_NCOLB);
-        ++j;
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_T, CUBLAS_OP_N, static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(nrowG), &one, pA, static_cast<int>(lddG), pB, static_cast<int>(lddG), &zero, pC, static_cast<int>(lddG), static_cast<int>(bc0)));
       CUDA_CALL(cudaDeviceSynchronize());
       HZ_L1_sv(dF[s1], dG[s1]);
       CUDA_CALL(cudaDeviceSynchronize());
-      for (unsigned k = 0u, j = 0u; k < STRAT1_PAIRS; ++k) {
+#pragma omp parallel for default(none) shared(STRAT1_PAIRS,strat1,blk_stp,pA,pB,pC,s0,s1,dW,lddWb,dF,lddFb)
+      for (unsigned k = 0u; k < STRAT1_PAIRS; ++k) {
         const unsigned p = static_cast<unsigned>(strat1[blk_stp][k][0u]);
         const unsigned q = static_cast<unsigned>(strat1[blk_stp][k][1u]);
-        const unsigned i = (k << 1u);
+        unsigned i = (k << 1u);
         // p @ F
-        pA[j] = (dF[s0] + p * lddFb);
-        pB[j] = (dW + i * lddWb);
-        pC[j] = (dF[s1] + p * lddFb);
-        ++j;
+        pA[i] = (dF[s0] + p * lddFb);
+        pB[i] = (dW + i * lddWb);
+        pC[i] = (dF[s1] + p * lddFb);
+        ++i;
         // q @ F
-        pA[j] = (dF[s0] + p * lddFb);
-        pB[j] = (dW + (i + 1u) * lddWb);
-        pC[j] = (dF[s1] + q * lddFb);
-        ++j;
+        pA[i] = (dF[s0] + p * lddFb);
+        pB[i] = (dW + i * lddWb);
+        pC[i] = (dF[s1] + q * lddFb);
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, static_cast<int>(nrowF), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), &one, pA, static_cast<int>(lddF), pB, static_cast<int>(lddW), &zero, pC, static_cast<int>(lddF), static_cast<int>(bc1)));
       CUDA_CALL(cudaDeviceSynchronize());
-      for (unsigned k = 0u, j = 0u; k < STRAT1_PAIRS; ++k) {
+#pragma omp parallel for default(none) shared(STRAT1_PAIRS,strat1,blk_stp,pA,pB,pC,s0,s1,dW,lddWb,dG,lddGb)
+      for (unsigned k = 0u; k < STRAT1_PAIRS; ++k) {
         const unsigned p = static_cast<unsigned>(strat1[blk_stp][k][0u]);
         const unsigned q = static_cast<unsigned>(strat1[blk_stp][k][1u]);
-        const unsigned i = (k << 1u);
+        unsigned i = (k << 1u);
         // p @ G
-        pA[j] = (dG[s0] + p * lddGb);
-        pB[j] = (dW + i * lddWb);
-        pC[j] = (dG[s1] + p * lddGb);
-        ++j;
+        pA[i] = (dG[s0] + p * lddGb);
+        pB[i] = (dW + i * lddWb);
+        pC[i] = (dG[s1] + p * lddGb);
+        ++i;
         // q @ G
-        pA[j] = (dG[s0] + p * lddGb);
-        pB[j] = (dW + (i + 1u) * lddWb);
-        pC[j] = (dG[s1] + q * lddGb);
-        ++j;
+        pA[i] = (dG[s0] + p * lddGb);
+        pB[i] = (dW + i * lddWb);
+        pC[i] = (dG[s1] + q * lddGb);
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, static_cast<int>(nrowG), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), &one, pA, static_cast<int>(lddG), pB, static_cast<int>(lddW), &zero, pC, static_cast<int>(lddG), static_cast<int>(bc1)));
       CUDA_CALL(cudaDeviceSynchronize());
-      for (unsigned k = 0u, j = 0u; k < STRAT1_PAIRS; ++k) {
+#pragma omp parallel for default(none) shared(STRAT1_PAIRS,strat1,blk_stp,pA,pB,pC,s0,s1,dW,lddWb,dV,lddVb)
+      for (unsigned k = 0u; k < STRAT1_PAIRS; ++k) {
         const unsigned p = static_cast<unsigned>(strat1[blk_stp][k][0u]);
         const unsigned q = static_cast<unsigned>(strat1[blk_stp][k][1u]);
-        const unsigned i = (k << 1u);
+        unsigned i = (k << 1u);
         // p @ V
-        pA[j] = (dV[s0] + p * lddVb);
-        pB[j] = (dW + i * lddWb);
-        pC[j] = (dV[s1] + p * lddVb);
-        ++j;
+        pA[i] = (dV[s0] + p * lddVb);
+        pB[i] = (dW + i * lddWb);
+        pC[i] = (dV[s1] + p * lddVb);
+        ++i;
         // q @ V
-        pA[j] = (dV[s0] + p * lddVb);
-        pB[j] = (dW + (i + 1u) * lddWb);
-        pC[j] = (dV[s1] + q * lddVb);
-        ++j;
+        pA[i] = (dV[s0] + p * lddVb);
+        pB[i] = (dW + i * lddWb);
+        pC[i] = (dV[s1] + q * lddVb);
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, static_cast<int>(nrowV), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), &one, pA, static_cast<int>(lddV), pB, static_cast<int>(lddW), &zero, pC, static_cast<int>(lddV), static_cast<int>(bc1)));
       CUDA_CALL(cudaDeviceSynchronize());
-      for (unsigned k = 0u, j = 0u; k < STRAT1_PAIRS; ++k) {
+#pragma omp parallel for default(none) shared(STRAT1_PAIRS,strat1,blk_stp,pA,pB,pC,s0,s1,dW,lddWb,dF,lddFb)
+      for (unsigned k = 0u; k < STRAT1_PAIRS; ++k) {
         const unsigned p = static_cast<unsigned>(strat1[blk_stp][k][0u]);
         const unsigned q = static_cast<unsigned>(strat1[blk_stp][k][1u]);
-        const unsigned i = (k << 1u);
+        unsigned i = (k << 1u);
         // p @ F
-        pA[j] = (dF[s0] + q * lddFb);
-        pB[j] = (dW + i * lddWb + HZ_L1_NCOLB);
-        pC[j] = (dF[s1] + p * lddFb);
-        ++j;
+        pA[i] = (dF[s0] + q * lddFb);
+        pB[i] = (dW + i * lddWb + HZ_L1_NCOLB);
+        pC[i] = (dF[s1] + p * lddFb);
+        ++i;
         // q @ F
-        pA[j] = (dF[s0] + q * lddFb);
-        pB[j] = (dW + (i + 1u) * lddWb + HZ_L1_NCOLB);
-        pC[j] = (dF[s1] + q * lddFb);
-        ++j;
+        pA[i] = (dF[s0] + q * lddFb);
+        pB[i] = (dW + i * lddWb + HZ_L1_NCOLB);
+        pC[i] = (dF[s1] + q * lddFb);
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, static_cast<int>(nrowF), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), &one, pA, static_cast<int>(lddF), pB, static_cast<int>(lddW), &one, pC, static_cast<int>(lddF), static_cast<int>(bc1)));
       CUDA_CALL(cudaDeviceSynchronize());
-      for (unsigned k = 0u, j = 0u; k < STRAT1_PAIRS; ++k) {
+#pragma omp parallel for default(none) shared(STRAT1_PAIRS,strat1,blk_stp,pA,pB,pC,s0,s1,dW,lddWb,dG,lddGb)
+      for (unsigned k = 0u; k < STRAT1_PAIRS; ++k) {
         const unsigned p = static_cast<unsigned>(strat1[blk_stp][k][0u]);
         const unsigned q = static_cast<unsigned>(strat1[blk_stp][k][1u]);
-        const unsigned i = (k << 1u);
+        unsigned i = (k << 1u);
         // p @ G
-        pA[j] = (dG[s0] + q * lddGb);
-        pB[j] = (dW + i * lddWb + HZ_L1_NCOLB);
-        pC[j] = (dG[s1] + p * lddGb);
-        ++j;
+        pA[i] = (dG[s0] + q * lddGb);
+        pB[i] = (dW + i * lddWb + HZ_L1_NCOLB);
+        pC[i] = (dG[s1] + p * lddGb);
+        ++i;
         // q @ G
-        pA[j] = (dG[s0] + q * lddGb);
-        pB[j] = (dW + (i + 1u) * lddWb + HZ_L1_NCOLB);
-        pC[j] = (dG[s1] + q * lddGb);
-        ++j;
+        pA[i] = (dG[s0] + q * lddGb);
+        pB[i] = (dW + i * lddWb + HZ_L1_NCOLB);
+        pC[i] = (dG[s1] + q * lddGb);
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, static_cast<int>(nrowG), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), &one, pA, static_cast<int>(lddG), pB, static_cast<int>(lddW), &one, pC, static_cast<int>(lddG), static_cast<int>(bc1)));
       CUDA_CALL(cudaDeviceSynchronize());
-      for (unsigned k = 0u, j = 0u; k < STRAT1_PAIRS; ++k) {
+#pragma omp parallel for default(none) shared(STRAT1_PAIRS,strat1,blk_stp,pA,pB,pC,s0,s1,dW,lddWb,dV,lddVb)
+      for (unsigned k = 0u; k < STRAT1_PAIRS; ++k) {
         const unsigned p = static_cast<unsigned>(strat1[blk_stp][k][0u]);
         const unsigned q = static_cast<unsigned>(strat1[blk_stp][k][1u]);
-        const unsigned i = (k << 1u);
+        unsigned i = (k << 1u);
         // p @ V
-        pA[j] = (dV[s0] + q * lddVb);
-        pB[j] = (dW + i * lddWb + HZ_L1_NCOLB);
-        pC[j] = (dV[s1] + p * lddVb);
-        ++j;
+        pA[i] = (dV[s0] + q * lddVb);
+        pB[i] = (dW + i * lddWb + HZ_L1_NCOLB);
+        pC[i] = (dV[s1] + p * lddVb);
+        ++i;
         // q @ V
-        pA[j] = (dV[s0] + q * lddVb);
-        pB[j] = (dW + (i + 1u) * lddWb + HZ_L1_NCOLB);
-        pC[j] = (dV[s1] + q * lddVb);
-        ++j;
+        pA[i] = (dV[s0] + q * lddVb);
+        pB[i] = (dW + i * lddWb + HZ_L1_NCOLB);
+        pC[i] = (dV[s1] + q * lddVb);
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, static_cast<int>(nrowV), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), &one, pA, static_cast<int>(lddV), pB, static_cast<int>(lddW), &one, pC, static_cast<int>(lddV), static_cast<int>(bc1)));
       const unsigned s = s0;
