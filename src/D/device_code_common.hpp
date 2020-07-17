@@ -7,7 +7,11 @@
 
 #include "device_code_common_rotate.hpp"
 #include "device_code_common_Kepler.hpp"
+#ifdef USE_QR
+#include "device_code_common_QR.hpp"
+#else /* !USE_QR */
 #include "device_code_common_Cholesky.hpp"
+#endif /* ?USE_QR */
 
 MYDEVFN void dMultAV
 (double *const __restrict__ A0,

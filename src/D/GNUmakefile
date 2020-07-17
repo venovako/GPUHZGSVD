@@ -65,7 +65,8 @@ HEADERS=				         \
 	device_code_globals.hpp		         \
 	device_code_common_rotate.hpp	         \
 	device_code_common_Kepler.hpp	         \
-	device_code_common_Cholesky.hpp
+	device_code_common_Cholesky.hpp          \
+	device_code_common_QR.hpp
 
 SOURCES=			 \
 	../shared/HZ.cu		 \
@@ -106,4 +107,3 @@ MHZ$(CVG).exe: $(MPIHDR) $(HEADERS) $(MPISRC) $(SOURCES) GNUmakefile
 
 clean:
 	-$(RM) $(EXE)
-	-$(RM) $(EXE).dSYM

@@ -31,7 +31,13 @@ MYKERN __launch_bounds__(HZ_L1_MAX_THREADS_PER_BLOCK, HZ_L1_MIN_BLOCKS_PER_SM)
   volatile double
     *const V = shMem + 2048u;
 
+#ifdef USE_QR
+  dFactorize(F0, F1, F, G, _nRowF, x, y0, y1);
+  dFactorize(G0, G1, G, V, _nRowG, x, y0, y1);
+#else /* !USE_QR */
   dFactorize(F0, F1, G0, G1, F, G, x, y0, y1);
+#endif /* ?USE_QR */
+
 #if (defined(PROFILE) && (PROFILE == 0))
   const unsigned bix2 = (unsigned)(blockIdx.x) << C_SHIFTR;
   __syncthreads();

@@ -110,4 +110,3 @@ MHZ$(CVG).exe: $(MPIHDR) $(HEADERS) $(MPISRC) $(SOURCES) GNUmakefile
 
 clean:
 	-$(RM) $(EXE)
-	-$(RM) $(EXE).dSYM
