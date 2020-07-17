@@ -31,17 +31,39 @@ MYKERN __launch_bounds__(HZ_L1_MAX_THREADS_PER_BLOCK, HZ_L1_MIN_BLOCKS_PER_SM)
   volatile double
     *const V = shMem + 2048u;
 
-#ifdef USE_QR
-  dFactorize(F0, F1, F, G, _nRowF, x, y0, y1);
-  dFactorize(G0, G1, G, V, _nRowG, x, y0, y1);
-#else /* !USE_QR */
-  dFactorize(F0, F1, G0, G1, F, G, x, y0, y1);
-#endif /* ?USE_QR */
-
 #if (defined(PROFILE) && (PROFILE == 0))
   const unsigned bix2 = (unsigned)(blockIdx.x) << C_SHIFTR;
   __syncthreads();
   unsigned long long t = static_cast<unsigned long long>(clock64());
+#endif /* ?PROFILE */
+
+#ifdef USE_QR
+  dFactorize(F0, F1, F, G, _nRowF, x, y0, y1);
+#if (defined(PROFILE) && (PROFILE == 0))
+  t = static_cast<unsigned long long>(clock64()) - t;
+  (void)atomicMax((_C + bix2) + C_SUBPHASE_1, t);
+  __syncthreads();
+  t = static_cast<unsigned long long>(clock64());
+#endif /* ?PROFILE */
+  dFactorize(G0, G1, G, V, _nRowG, x, y0, y1);
+#else /* !USE_QR */
+  dAtA(F0, F1, F, _nRowF, x, y0, y1);
+  dAtA(G0, G1, G, _nRowG, x, y0, y1);
+#if (defined(PROFILE) && (PROFILE == 0))
+  t = static_cast<unsigned long long>(clock64()) - t;
+  (void)atomicMax((_C + bix2) + C_SUBPHASE_1, t);
+  __syncthreads();
+  t = static_cast<unsigned long long>(clock64());
+#endif /* ?PROFILE */
+  dCholesky32(F, x, y0, y1);
+  dCholesky32(G, x, y0, y1);
+#endif /* ?USE_QR */
+
+#if (defined(PROFILE) && (PROFILE == 0))
+  t = static_cast<unsigned long long>(clock64()) - t;
+  (void)atomicMax((_C + bix2) + C_SUBPHASE_2, t);
+  __syncthreads();
+  t = static_cast<unsigned long long>(clock64());
 #endif /* ?PROFILE */
   (void)dHZ_L0_sv(F, G, V, x, y0);
 #if (defined(PROFILE) && (PROFILE == 0))
