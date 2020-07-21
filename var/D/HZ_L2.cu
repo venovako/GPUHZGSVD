@@ -147,7 +147,9 @@ HZ_L2
       if (blk_stp) {
         CUDA_CALL(cudaDeviceSynchronize());
       }
-#pragma omp parallel for default(none) shared(STRAT1_PAIRS,strat1,blk_stp,pA,pB,pC,s0,s1,dF,lddFb)
+#ifdef _OPENMP
+#pragma omp parallel for default(shared)
+#endif /* _OPENMP */
       for (unsigned k = 0u; k < STRAT1_PAIRS; ++k) {
         const unsigned p = static_cast<unsigned>(strat1[blk_stp][k][0u]);
         const unsigned q = static_cast<unsigned>(strat1[blk_stp][k][1u]);
@@ -168,7 +170,9 @@ HZ_L2
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_T, CUBLAS_OP_N, static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(nrowF), &one, pA, static_cast<int>(lddF), pB, static_cast<int>(lddF), &zero, pC, static_cast<int>(lddF), static_cast<int>(bc0)));
       CUDA_CALL(cudaDeviceSynchronize());
-#pragma omp parallel for default(none) shared(STRAT1_PAIRS,strat1,blk_stp,pA,pB,pC,s0,s1,dG,lddGb)
+#ifdef _OPENMP
+#pragma omp parallel for default(shared)
+#endif /* _OPENMP */
       for (unsigned k = 0u; k < STRAT1_PAIRS; ++k) {
         const unsigned p = static_cast<unsigned>(strat1[blk_stp][k][0u]);
         const unsigned q = static_cast<unsigned>(strat1[blk_stp][k][1u]);
@@ -191,7 +195,9 @@ HZ_L2
       CUDA_CALL(cudaDeviceSynchronize());
       HZ_L1_sv(dF[s1], dG[s1]);
       CUDA_CALL(cudaDeviceSynchronize());
-#pragma omp parallel for default(none) shared(STRAT1_PAIRS,strat1,blk_stp,pA,pB,pC,s0,s1,dW,lddWb,dF,lddFb)
+#ifdef _OPENMP
+#pragma omp parallel for default(shared)
+#endif /* _OPENMP */
       for (unsigned k = 0u; k < STRAT1_PAIRS; ++k) {
         const unsigned p = static_cast<unsigned>(strat1[blk_stp][k][0u]);
         const unsigned q = static_cast<unsigned>(strat1[blk_stp][k][1u]);
@@ -208,7 +214,9 @@ HZ_L2
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, static_cast<int>(nrowF), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), &one, pA, static_cast<int>(lddF), pB, static_cast<int>(lddW), &zero, pC, static_cast<int>(lddF), static_cast<int>(bc1)));
       CUDA_CALL(cudaDeviceSynchronize());
-#pragma omp parallel for default(none) shared(STRAT1_PAIRS,strat1,blk_stp,pA,pB,pC,s0,s1,dW,lddWb,dG,lddGb)
+#ifdef _OPENMP
+#pragma omp parallel for default(shared)
+#endif /* _OPENMP */
       for (unsigned k = 0u; k < STRAT1_PAIRS; ++k) {
         const unsigned p = static_cast<unsigned>(strat1[blk_stp][k][0u]);
         const unsigned q = static_cast<unsigned>(strat1[blk_stp][k][1u]);
@@ -225,7 +233,9 @@ HZ_L2
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, static_cast<int>(nrowG), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), &one, pA, static_cast<int>(lddG), pB, static_cast<int>(lddW), &zero, pC, static_cast<int>(lddG), static_cast<int>(bc1)));
       CUDA_CALL(cudaDeviceSynchronize());
-#pragma omp parallel for default(none) shared(STRAT1_PAIRS,strat1,blk_stp,pA,pB,pC,s0,s1,dW,lddWb,dV,lddVb)
+#ifdef _OPENMP
+#pragma omp parallel for default(shared)
+#endif /* _OPENMP */
       for (unsigned k = 0u; k < STRAT1_PAIRS; ++k) {
         const unsigned p = static_cast<unsigned>(strat1[blk_stp][k][0u]);
         const unsigned q = static_cast<unsigned>(strat1[blk_stp][k][1u]);
@@ -242,7 +252,9 @@ HZ_L2
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, static_cast<int>(nrowV), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), &one, pA, static_cast<int>(lddV), pB, static_cast<int>(lddW), &zero, pC, static_cast<int>(lddV), static_cast<int>(bc1)));
       CUDA_CALL(cudaDeviceSynchronize());
-#pragma omp parallel for default(none) shared(STRAT1_PAIRS,strat1,blk_stp,pA,pB,pC,s0,s1,dW,lddWb,dF,lddFb)
+#ifdef _OPENMP
+#pragma omp parallel for default(shared)
+#endif /* _OPENMP */
       for (unsigned k = 0u; k < STRAT1_PAIRS; ++k) {
         const unsigned p = static_cast<unsigned>(strat1[blk_stp][k][0u]);
         const unsigned q = static_cast<unsigned>(strat1[blk_stp][k][1u]);
@@ -259,7 +271,9 @@ HZ_L2
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, static_cast<int>(nrowF), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), &one, pA, static_cast<int>(lddF), pB, static_cast<int>(lddW), &one, pC, static_cast<int>(lddF), static_cast<int>(bc1)));
       CUDA_CALL(cudaDeviceSynchronize());
-#pragma omp parallel for default(none) shared(STRAT1_PAIRS,strat1,blk_stp,pA,pB,pC,s0,s1,dW,lddWb,dG,lddGb)
+#ifdef _OPENMP
+#pragma omp parallel for default(shared)
+#endif /* _OPENMP */
       for (unsigned k = 0u; k < STRAT1_PAIRS; ++k) {
         const unsigned p = static_cast<unsigned>(strat1[blk_stp][k][0u]);
         const unsigned q = static_cast<unsigned>(strat1[blk_stp][k][1u]);
@@ -276,7 +290,9 @@ HZ_L2
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, static_cast<int>(nrowG), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), &one, pA, static_cast<int>(lddG), pB, static_cast<int>(lddW), &one, pC, static_cast<int>(lddG), static_cast<int>(bc1)));
       CUDA_CALL(cudaDeviceSynchronize());
-#pragma omp parallel for default(none) shared(STRAT1_PAIRS,strat1,blk_stp,pA,pB,pC,s0,s1,dW,lddWb,dV,lddVb)
+#ifdef _OPENMP
+#pragma omp parallel for default(shared)
+#endif /* _OPENMP */
       for (unsigned k = 0u; k < STRAT1_PAIRS; ++k) {
         const unsigned p = static_cast<unsigned>(strat1[blk_stp][k][0u]);
         const unsigned q = static_cast<unsigned>(strat1[blk_stp][k][1u]);
