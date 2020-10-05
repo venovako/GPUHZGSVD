@@ -44,7 +44,7 @@
 #error WARP_SZ not definable externally
 #endif /* ?WARP_SZ */
 
-EXTERN_C int configureGPU(const int dev, cublasHandle_t &handle) throw();
+EXTERN_C int configureGPU(const int dev, cublasHandle_t &handle, const cudaStream_t s = 0) throw();
 EXTERN_C void freeGPU(cublasHandle_t &handle) throw();
 
 EXTERN_C void cuda_prof_start() throw();

@@ -67,39 +67,42 @@ HZ_L2
 
   stopwatch_reset(timers[3]);
 
+  cudaStream_t s = 0;
+  CUBLAS_CALL(cublasGetStream(handle, &s));
+
   size_t lddF = static_cast<size_t>(nrowF);
   double *const dF[2u] =
-    { allocDeviceMtx<double>(lddF, static_cast<size_t>(nrowF), static_cast<size_t>(ncol), true),
-      allocDeviceMtx<double>(lddF, static_cast<size_t>(nrowF), static_cast<size_t>(ncol), true)
+    { allocDeviceMtx<double>(lddF, static_cast<size_t>(nrowF), static_cast<size_t>(ncol), true, s),
+      allocDeviceMtx<double>(lddF, static_cast<size_t>(nrowF), static_cast<size_t>(ncol), true, s)
     };
 
   size_t lddG = static_cast<size_t>(nrowG);
   double *const dG[2u] =
-    { allocDeviceMtx<double>(lddG, static_cast<size_t>(nrowG), static_cast<size_t>(ncol), true),
-      allocDeviceMtx<double>(lddG, static_cast<size_t>(nrowG), static_cast<size_t>(ncol), true)
+    { allocDeviceMtx<double>(lddG, static_cast<size_t>(nrowG), static_cast<size_t>(ncol), true, s),
+      allocDeviceMtx<double>(lddG, static_cast<size_t>(nrowG), static_cast<size_t>(ncol), true, s)
     };
 
   const unsigned nrowV = ncol;
   size_t lddV = static_cast<size_t>(nrowV);
   double *const dV[2u] =
-    { allocDeviceMtx<double>(lddV, static_cast<size_t>(nrowV), static_cast<size_t>(ncol), true),
-      allocDeviceMtx<double>(lddV, static_cast<size_t>(nrowV), static_cast<size_t>(ncol), true)
+    { allocDeviceMtx<double>(lddV, static_cast<size_t>(nrowV), static_cast<size_t>(ncol), true, s),
+      allocDeviceMtx<double>(lddV, static_cast<size_t>(nrowV), static_cast<size_t>(ncol), true, s)
     };
 
   const unsigned nrowW = (HZ_L1_NCOLB << 1u);
   size_t lddW = static_cast<size_t>(nrowW);
-  double *const dW = allocDeviceMtx<double>(lddW, static_cast<size_t>(nrowW), static_cast<size_t>(ncol), true);
+  double *const dW = allocDeviceMtx<double>(lddW, static_cast<size_t>(nrowW), static_cast<size_t>(ncol), true, s);
 
-  double *const dS = allocDeviceVec<double>(static_cast<size_t>(ncol));
-  double *const dH = allocDeviceVec<double>(static_cast<size_t>(ncol));
-  double *const dK = allocDeviceVec<double>(static_cast<size_t>(ncol));
+  double *const dS = allocDeviceVec<double>(static_cast<size_t>(ncol), s);
+  double *const dH = allocDeviceVec<double>(static_cast<size_t>(ncol), s);
+  double *const dK = allocDeviceVec<double>(static_cast<size_t>(ncol), s);
 
   // stats count
   const unsigned sc = STRAT1_PAIRS * C_ELEMS_PER_BLOCK;
   // stats len
   const size_t sl = sc * sizeof(unsigned long long);
 
-  unsigned long long *const dC = allocDeviceVec<unsigned long long>(static_cast<size_t>(sc));
+  unsigned long long *const dC = allocDeviceVec<unsigned long long>(static_cast<size_t>(sc), s);
   unsigned long long *const hC = allocHostVec<unsigned long long>(static_cast<size_t>(sc));
 
   const size_t bc1 = (static_cast<size_t>(STRAT1_PAIRS) << 1u);
@@ -109,7 +112,7 @@ HZ_L2
   double **const pB = allocHostVec<double*>(bc0);
   double **const pC = allocHostVec<double*>(bc0);
 
-  initSymbols(dW,dC, nrowF,nrowG,nrowV,nrowW, lddF,lddG,lddV,lddW, ncol,((routine & HZ_BO_1) ? 1u : HZ_NSWEEP));
+  initSymbols(dW,dC, nrowF,nrowG,nrowV,nrowW, lddF,lddG,lddV,lddW, ncol,((routine & HZ_BO_1) ? 1u : HZ_NSWEEP), s);
 
   const size_t lddFb = (HZ_L1_NCOLB * lddF);
   const size_t lddGb = (HZ_L1_NCOLB * lddG);
@@ -122,14 +125,14 @@ HZ_L2
   unsigned s0 = 0u;
   unsigned s1 = 1u;
 
-  CUDA_CALL(cudaMemcpy2D(dF[s0], lddF * sizeof(double), hF, ldhF * sizeof(double), nrowF * sizeof(double), ncol, cudaMemcpyHostToDevice));
-  CUDA_CALL(cudaMemcpy2D(dG[s0], lddG * sizeof(double), hG, ldhG * sizeof(double), nrowG * sizeof(double), ncol, cudaMemcpyHostToDevice));
-  CUDA_CALL(cudaMemcpy2D(dV[s0], lddV * sizeof(double), hV, ldhV * sizeof(double), nrowV * sizeof(double), ncol, cudaMemcpyHostToDevice));
-  CUDA_CALL(cudaDeviceSynchronize());
+  CUDA_CALL(cudaMemcpy2DAsync(dF[s0], lddF * sizeof(double), hF, ldhF * sizeof(double), nrowF * sizeof(double), ncol, cudaMemcpyHostToDevice, s));
+  CUDA_CALL(cudaMemcpy2DAsync(dG[s0], lddG * sizeof(double), hG, ldhG * sizeof(double), nrowG * sizeof(double), ncol, cudaMemcpyHostToDevice, s));
+  CUDA_CALL(cudaMemcpy2DAsync(dV[s0], lddV * sizeof(double), hV, ldhV * sizeof(double), nrowV * sizeof(double), ncol, cudaMemcpyHostToDevice, s));
+  CUDA_CALL(cudaStreamSynchronize(s));
   cuda_prof_start();
 
-  initV(dF[s0], dG[s0], dV[s0], ncol);
-  CUDA_CALL(cudaDeviceSynchronize());
+  initV(dF[s0], dG[s0], dV[s0], ncol, s);
+  CUDA_CALL(cudaStreamSynchronize(s));
 
   const unsigned swp = HZ_NSWEEP;
   timers[1] = stopwatch_lap(timers[3]);
@@ -141,11 +144,11 @@ HZ_L2
 
   unsigned blk_swp = 0u;
   while (blk_swp < swp) {
-    CUDA_CALL(cudaMemset(dC, 0, sl));
-    CUDA_CALL(cudaDeviceSynchronize());
+    CUDA_CALL(cudaMemsetAsync(dC, 0, sl, s));
+    CUDA_CALL(cudaStreamSynchronize(s));
     for (unsigned blk_stp = 0u; blk_stp < STRAT1_STEPS; ++blk_stp) {
       if (blk_stp) {
-        CUDA_CALL(cudaDeviceSynchronize());
+        CUDA_CALL(cudaStreamSynchronize(s));
       }
 #ifdef _OPENMP
 #pragma omp parallel for default(shared)
@@ -169,7 +172,7 @@ HZ_L2
         pC[j] = (dF[s1] + (i + 1u) * lddFb + HZ_L1_NCOLB);
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_T, CUBLAS_OP_N, static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(nrowF), &one, pA, static_cast<int>(lddF), pB, static_cast<int>(lddF), &zero, pC, static_cast<int>(lddF), static_cast<int>(bc0)));
-      CUDA_CALL(cudaDeviceSynchronize());
+      CUDA_CALL(cudaStreamSynchronize(s));
 #ifdef _OPENMP
 #pragma omp parallel for default(shared)
 #endif /* _OPENMP */
@@ -192,9 +195,9 @@ HZ_L2
         pC[j] = (dG[s1] + (i + 1u) * lddGb + HZ_L1_NCOLB);
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_T, CUBLAS_OP_N, static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(nrowG), &one, pA, static_cast<int>(lddG), pB, static_cast<int>(lddG), &zero, pC, static_cast<int>(lddG), static_cast<int>(bc0)));
-      CUDA_CALL(cudaDeviceSynchronize());
-      HZ_L1_sv(dF[s1], dG[s1]);
-      CUDA_CALL(cudaDeviceSynchronize());
+      CUDA_CALL(cudaStreamSynchronize(s));
+      HZ_L1_sv(dF[s1], dG[s1], s);
+      CUDA_CALL(cudaStreamSynchronize(s));
 #ifdef _OPENMP
 #pragma omp parallel for default(shared)
 #endif /* _OPENMP */
@@ -213,7 +216,7 @@ HZ_L2
         pC[i] = (dF[s1] + q * lddFb);
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, static_cast<int>(nrowF), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), &one, pA, static_cast<int>(lddF), pB, static_cast<int>(lddW), &zero, pC, static_cast<int>(lddF), static_cast<int>(bc1)));
-      CUDA_CALL(cudaDeviceSynchronize());
+      CUDA_CALL(cudaStreamSynchronize(s));
 #ifdef _OPENMP
 #pragma omp parallel for default(shared)
 #endif /* _OPENMP */
@@ -232,7 +235,7 @@ HZ_L2
         pC[i] = (dG[s1] + q * lddGb);
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, static_cast<int>(nrowG), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), &one, pA, static_cast<int>(lddG), pB, static_cast<int>(lddW), &zero, pC, static_cast<int>(lddG), static_cast<int>(bc1)));
-      CUDA_CALL(cudaDeviceSynchronize());
+      CUDA_CALL(cudaStreamSynchronize(s));
 #ifdef _OPENMP
 #pragma omp parallel for default(shared)
 #endif /* _OPENMP */
@@ -251,7 +254,7 @@ HZ_L2
         pC[i] = (dV[s1] + q * lddVb);
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, static_cast<int>(nrowV), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), &one, pA, static_cast<int>(lddV), pB, static_cast<int>(lddW), &zero, pC, static_cast<int>(lddV), static_cast<int>(bc1)));
-      CUDA_CALL(cudaDeviceSynchronize());
+      CUDA_CALL(cudaStreamSynchronize(s));
 #ifdef _OPENMP
 #pragma omp parallel for default(shared)
 #endif /* _OPENMP */
@@ -270,7 +273,7 @@ HZ_L2
         pC[i] = (dF[s1] + q * lddFb);
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, static_cast<int>(nrowF), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), &one, pA, static_cast<int>(lddF), pB, static_cast<int>(lddW), &one, pC, static_cast<int>(lddF), static_cast<int>(bc1)));
-      CUDA_CALL(cudaDeviceSynchronize());
+      CUDA_CALL(cudaStreamSynchronize(s));
 #ifdef _OPENMP
 #pragma omp parallel for default(shared)
 #endif /* _OPENMP */
@@ -289,7 +292,7 @@ HZ_L2
         pC[i] = (dG[s1] + q * lddGb);
       }
       CUBLAS_CALL(cublasDgemmBatched(handle, CUBLAS_OP_N, CUBLAS_OP_N, static_cast<int>(nrowG), static_cast<int>(HZ_L1_NCOLB), static_cast<int>(HZ_L1_NCOLB), &one, pA, static_cast<int>(lddG), pB, static_cast<int>(lddW), &one, pC, static_cast<int>(lddG), static_cast<int>(bc1)));
-      CUDA_CALL(cudaDeviceSynchronize());
+      CUDA_CALL(cudaStreamSynchronize(s));
 #ifdef _OPENMP
 #pragma omp parallel for default(shared)
 #endif /* _OPENMP */
@@ -313,9 +316,9 @@ HZ_L2
       s1 = s;
     }
 
-    CUDA_CALL(cudaDeviceSynchronize());
-    CUDA_CALL(cudaMemcpy(hC, dC, sl, cudaMemcpyDeviceToHost));
-    CUDA_CALL(cudaDeviceSynchronize());
+    CUDA_CALL(cudaStreamSynchronize(s));
+    CUDA_CALL(cudaMemcpyAsync(hC, dC, sl, cudaMemcpyDeviceToHost, s));
+    CUDA_CALL(cudaStreamSynchronize(s));
 
     unsigned long long cvg_s = 0ull;
     unsigned long long cvg_b = 0ull;
@@ -332,27 +335,27 @@ HZ_L2
     if (!cvg_b)
       break;
     ++blk_swp;
-    initS(dF[s0], dG[s0], dV[s0], ncol);
-    CUDA_CALL(cudaDeviceSynchronize());
+    initS(dF[s0], dG[s0], dV[s0], ncol, s);
+    CUDA_CALL(cudaStreamSynchronize(s));
   }
 
   if (blk_swp < swp)
     glbSwp = (blk_swp + 1u);
   else
     glbSwp = blk_swp;
-  initS(dF[s0], dG[s0], dV[s0], dS, dH, dK, ncol);
-  CUDA_CALL(cudaDeviceSynchronize());
+  initS(dF[s0], dG[s0], dV[s0], dS, dH, dK, ncol, s);
+  CUDA_CALL(cudaStreamSynchronize(s));
 
   timers[2] = stopwatch_lap(timers[3]);
   cuda_prof_stop();
 
-  CUDA_CALL(cudaMemcpy2D(hF, ldhF * sizeof(double), dF[s0], lddF * sizeof(double), nrowF * sizeof(double), ncol, cudaMemcpyDeviceToHost));
-  CUDA_CALL(cudaMemcpy2D(hG, ldhG * sizeof(double), dG[s0], lddG * sizeof(double), nrowG * sizeof(double), ncol, cudaMemcpyDeviceToHost));
-  CUDA_CALL(cudaMemcpy2D(hV, ldhV * sizeof(double), dV[s0], lddV * sizeof(double), nrowV * sizeof(double), ncol, cudaMemcpyDeviceToHost));
-  CUDA_CALL(cudaMemcpy(hS, dS, ncol * sizeof(double), cudaMemcpyDeviceToHost));
-  CUDA_CALL(cudaMemcpy(hH, dH, ncol * sizeof(double), cudaMemcpyDeviceToHost));
-  CUDA_CALL(cudaMemcpy(hK, dK, ncol * sizeof(double), cudaMemcpyDeviceToHost));
-  CUDA_CALL(cudaDeviceSynchronize());
+  CUDA_CALL(cudaMemcpy2DAsync(hF, ldhF * sizeof(double), dF[s0], lddF * sizeof(double), nrowF * sizeof(double), ncol, cudaMemcpyDeviceToHost, s));
+  CUDA_CALL(cudaMemcpy2DAsync(hG, ldhG * sizeof(double), dG[s0], lddG * sizeof(double), nrowG * sizeof(double), ncol, cudaMemcpyDeviceToHost, s));
+  CUDA_CALL(cudaMemcpy2DAsync(hV, ldhV * sizeof(double), dV[s0], lddV * sizeof(double), nrowV * sizeof(double), ncol, cudaMemcpyDeviceToHost, s));
+  CUDA_CALL(cudaMemcpyAsync(hS, dS, ncol * sizeof(double), cudaMemcpyDeviceToHost, s));
+  CUDA_CALL(cudaMemcpyAsync(hH, dH, ncol * sizeof(double), cudaMemcpyDeviceToHost, s));
+  CUDA_CALL(cudaMemcpyAsync(hK, dK, ncol * sizeof(double), cudaMemcpyDeviceToHost, s));
+  CUDA_CALL(cudaStreamSynchronize(s));
 
   CUDA_CALL(cudaFreeHost(pC));
   CUDA_CALL(cudaFreeHost(pB));

@@ -30,7 +30,7 @@ T *allocHostVec(const size_t m) throw()
 }
 
 template <typename T>
-T *allocDeviceMtx(size_t &ldm, const size_t m, const size_t n, const bool f) throw()
+T *allocDeviceMtx(size_t &ldm, const size_t m, const size_t n, const bool f, const cudaStream_t s = 0) throw()
 {
   T *ret = static_cast<T*>(NULL);
 
@@ -39,7 +39,7 @@ T *allocDeviceMtx(size_t &ldm, const size_t m, const size_t n, const bool f) thr
     CUDA_CALL(cudaMallocPitch(&ret, &pitch, ldm * sizeof(T), (f ? n : m)));
     ldm = pitch / sizeof(T);
     if (ret) {
-      CUDA_CALL(cudaMemset2D(ret, pitch, 0, pitch, (f ? n : m)));
+      CUDA_CALL(cudaMemset2DAsync(ret, pitch, 0, pitch, (f ? n : m), s));
     }
   }
 
@@ -47,7 +47,7 @@ T *allocDeviceMtx(size_t &ldm, const size_t m, const size_t n, const bool f) thr
 }
 
 template <typename T>
-T *allocDeviceVec(const size_t m) throw()
+T *allocDeviceVec(const size_t m, const cudaStream_t s = 0) throw()
 {
   T *ret = static_cast<T*>(NULL);
   const size_t b = m * sizeof(T);
@@ -55,7 +55,7 @@ T *allocDeviceVec(const size_t m) throw()
   if (b) {
     CUDA_CALL(cudaMalloc(&ret, b));
     if (ret) {
-      CUDA_CALL(cudaMemset(ret, 0, b));
+      CUDA_CALL(cudaMemsetAsync(ret, 0, b, s));
     }
   }
 

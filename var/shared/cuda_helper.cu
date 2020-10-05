@@ -2,7 +2,7 @@
 
 #include "my_utils.hpp"
 
-int configureGPU(const int dev, cublasHandle_t &handle) throw()
+int configureGPU(const int dev, cublasHandle_t &handle, const cudaStream_t s) throw()
 {
   assert(dev >= 0);
   cudaDeviceProp cdp;
@@ -17,7 +17,7 @@ int configureGPU(const int dev, cublasHandle_t &handle) throw()
   CUDA_CALL(cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeEightByte));
 
   CUBLAS_CALL(cublasCreate(&handle));
-  CUBLAS_CALL(cublasSetStream(handle, static_cast<cudaStream_t>(NULL)));
+  CUBLAS_CALL(cublasSetStream(handle, s));
   CUBLAS_CALL(cublasSetPointerMode(handle, CUBLAS_POINTER_MODE_HOST));
   CUBLAS_CALL(cublasSetAtomicsMode(handle, CUBLAS_ATOMICS_NOT_ALLOWED));
 
@@ -26,11 +26,13 @@ int configureGPU(const int dev, cublasHandle_t &handle) throw()
 
 void freeGPU(cublasHandle_t &handle) throw()
 {
+  cudaStream_t s = 0;
+  CUBLAS_CALL(cublasGetStream(handle, &s));
   CUBLAS_CALL(cublasDestroy(handle));
 #if (defined(PROFILE) && (PROFILE != 0))
   CUDA_CALL(cudaDeviceReset());
 #else /* !PROFILE || PROFILE == 0 */
-  CUDA_CALL(cudaDeviceSynchronize());
+  CUDA_CALL(cudaStreamSynchronize(s));
 #endif /* ?PROFILE */
 }
 
