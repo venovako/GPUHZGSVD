@@ -41,6 +41,7 @@ HZ_L2_gpu
  , vn_mtxvis_ctx *const ctxG
 #endif /* ?ANIMATE */
 #endif /* ANIMATE */
+ , const cudaStream_t s = 0
 ) throw();
 
 EXTERN_C int // 0 if OK, < 0 if invalid argument, > 0 if error
@@ -62,8 +63,9 @@ HZ_L2
  unsigned &glbSwp,          // OUT, number of sweeps at the outermost level;
  unsigned long long &glb_s, // OUT, number of rotations;
  unsigned long long &glb_b, // OUT, number of ``big'' rotations;
- double *const timing       // OUT, optional, in seconds, double[4] ==
+ double *const timing,      // OUT, optional, in seconds, double[4] ==
  // WALL, SETUP & HOST ==> GPUs, COMPUTATION, CLEANUP & GPUs ==> HOST;
+ const cudaStream_t s = 0
 ) throw();
 
 #endif /* !HZ_L2_HPP */

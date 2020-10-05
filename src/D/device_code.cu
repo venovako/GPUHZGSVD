@@ -29,30 +29,32 @@
 
 static const dim3 hzL1bD(HZ_L1_THREADS_PER_BLOCK_X, HZ_L1_THREADS_PER_BLOCK_Y, 1u);
 
-void HZ_L1_sv(const unsigned step) throw()
+void HZ_L1_sv(const unsigned step, const cudaStream_t s) throw()
 {
   const dim3 hzL1gD(STRAT1_PAIRS, 1u, 1u);
-  dHZ_L1_sv<<< hzL1gD, hzL1bD >>>(step);
+  const size_t shmD = static_cast<size_t>(0u);
+  dHZ_L1_sv<<< hzL1gD, hzL1bD, shmD, s >>>(step);
 }
 
-void initS(const int full, const unsigned nRank) throw()
+void initS(const int full, const unsigned nRank, const cudaStream_t s) throw()
 {
   const dim3 bD(2u * WARP_SZ, 1u, 1u);
   const dim3 gD(udiv_ceil(nRank * WARP_SZ, bD.x), 1u, 1u);
   const size_t shmD = static_cast<size_t>(0u);
-  dInitS<<< gD, bD, shmD >>>(full);
+  dInitS<<< gD, bD, shmD, s >>>(full);
 }
 
 void initV(const int sclV, const unsigned nRank
 #ifdef USE_MPI
   , const unsigned ifc0, const unsigned ifc1
 #endif /* USE_MPI */
+  , const cudaStream_t s
 ) throw()
 {
   const dim3 bD(2u * WARP_SZ, 1u, 1u);
   const dim3 gD(udiv_ceil(nRank * WARP_SZ, bD.x), 1u, 1u);
   const size_t shmD = static_cast<size_t>(0u);
-  dInitV<<< gD, bD, shmD >>>(sclV
+  dInitV<<< gD, bD, shmD, s >>>(sclV
 #ifdef USE_MPI
     , ifc0, ifc1
 #endif /* USE_MPI */
@@ -74,27 +76,29 @@ void initSymbols
  const unsigned ldF,
  const unsigned ldG,
  const unsigned ldV,
- const unsigned nSwp
+ const unsigned nSwp,
+ const cudaStream_t s
 ) throw()
 {
-  CUDA_CALL(cudaMemcpyToSymbol(_F, &F, sizeof(double*)));
-  CUDA_CALL(cudaMemcpyToSymbol(_G, &G, sizeof(double*)));
-  CUDA_CALL(cudaMemcpyToSymbol(_V, &V, sizeof(double*)));
-  CUDA_CALL(cudaMemcpyToSymbol(_S, &S, sizeof(double*)));
-  CUDA_CALL(cudaMemcpyToSymbol(_H, &H, sizeof(double*)));
-  CUDA_CALL(cudaMemcpyToSymbol(_K, &K, sizeof(double*)));
-  CUDA_CALL(cudaMemcpyToSymbol(_C, &C, sizeof(unsigned long long*)));
-  CUDA_CALL(cudaMemcpyToSymbol(_nRowF, &nRowF, sizeof(unsigned)));
-  CUDA_CALL(cudaMemcpyToSymbol(_nRowG, &nRowG, sizeof(unsigned)));
-  CUDA_CALL(cudaMemcpyToSymbol(_nRowV, &nRowV, sizeof(unsigned)));
-  CUDA_CALL(cudaMemcpyToSymbol(_nRank, &nRank, sizeof(unsigned)));
-  CUDA_CALL(cudaMemcpyToSymbol(_ldF, &ldF, sizeof(unsigned)));
-  CUDA_CALL(cudaMemcpyToSymbol(_ldG, &ldG, sizeof(unsigned)));
-  CUDA_CALL(cudaMemcpyToSymbol(_ldV, &ldV, sizeof(unsigned)));
-  CUDA_CALL(cudaMemcpyToSymbol(_nSwp, &nSwp, sizeof(unsigned)));
-  CUDA_CALL(cudaMemcpyToSymbol(_STRAT0_STEPS, &STRAT0_STEPS, sizeof(unsigned)));
-  CUDA_CALL(cudaMemcpyToSymbol(_STRAT0_PAIRS, &STRAT0_PAIRS, sizeof(unsigned)));
+  const size_t off = static_cast<size_t>(0u);
+  CUDA_CALL(cudaMemcpyToSymbolAsync(_F, &F, sizeof(double*), off, cudaMemcpyHostToDevice, s));
+  CUDA_CALL(cudaMemcpyToSymbolAsync(_G, &G, sizeof(double*), off, cudaMemcpyHostToDevice, s));
+  CUDA_CALL(cudaMemcpyToSymbolAsync(_V, &V, sizeof(double*), off, cudaMemcpyHostToDevice, s));
+  CUDA_CALL(cudaMemcpyToSymbolAsync(_S, &S, sizeof(double*), off, cudaMemcpyHostToDevice, s));
+  CUDA_CALL(cudaMemcpyToSymbolAsync(_H, &H, sizeof(double*), off, cudaMemcpyHostToDevice, s));
+  CUDA_CALL(cudaMemcpyToSymbolAsync(_K, &K, sizeof(double*), off, cudaMemcpyHostToDevice, s));
+  CUDA_CALL(cudaMemcpyToSymbolAsync(_C, &C, sizeof(unsigned long long*), off, cudaMemcpyHostToDevice, s));
+  CUDA_CALL(cudaMemcpyToSymbolAsync(_nRowF, &nRowF, sizeof(unsigned), off, cudaMemcpyHostToDevice, s));
+  CUDA_CALL(cudaMemcpyToSymbolAsync(_nRowG, &nRowG, sizeof(unsigned), off, cudaMemcpyHostToDevice, s));
+  CUDA_CALL(cudaMemcpyToSymbolAsync(_nRowV, &nRowV, sizeof(unsigned), off, cudaMemcpyHostToDevice, s));
+  CUDA_CALL(cudaMemcpyToSymbolAsync(_nRank, &nRank, sizeof(unsigned), off, cudaMemcpyHostToDevice, s));
+  CUDA_CALL(cudaMemcpyToSymbolAsync(_ldF, &ldF, sizeof(unsigned), off, cudaMemcpyHostToDevice, s));
+  CUDA_CALL(cudaMemcpyToSymbolAsync(_ldG, &ldG, sizeof(unsigned), off, cudaMemcpyHostToDevice, s));
+  CUDA_CALL(cudaMemcpyToSymbolAsync(_ldV, &ldV, sizeof(unsigned), off, cudaMemcpyHostToDevice, s));
+  CUDA_CALL(cudaMemcpyToSymbolAsync(_nSwp, &nSwp, sizeof(unsigned), off, cudaMemcpyHostToDevice, s));
+  CUDA_CALL(cudaMemcpyToSymbolAsync(_STRAT0_STEPS, &STRAT0_STEPS, sizeof(unsigned), off, cudaMemcpyHostToDevice, s));
+  CUDA_CALL(cudaMemcpyToSymbolAsync(_STRAT0_PAIRS, &STRAT0_PAIRS, sizeof(unsigned), off, cudaMemcpyHostToDevice, s));
   // copy strategy tables
-  CUDA_CALL(cudaMemcpyToSymbol(_strat0, strat0, sizeof(strat0)));
-  CUDA_CALL(cudaMemcpyToSymbol(_strat1, strat1, sizeof(strat1)));
+  CUDA_CALL(cudaMemcpyToSymbolAsync(_strat0, strat0, sizeof(strat0), off, cudaMemcpyHostToDevice, s));
+  CUDA_CALL(cudaMemcpyToSymbolAsync(_strat1, strat1, sizeof(strat1), off, cudaMemcpyHostToDevice, s));
 }

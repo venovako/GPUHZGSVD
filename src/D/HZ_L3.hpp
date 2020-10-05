@@ -26,7 +26,8 @@ HZ_L3
  unsigned &glbSwp,          // OUT, number of sweeps at the outermost level;
  unsigned long long &glb_s, // OUT, number of rotations;
  unsigned long long &glb_b, // OUT, number of ``big'' rotations;
- double &timing             // OUT, in seconds;
+ double &timing,            // OUT, in seconds;
+ const cudaStream_t cs = 0
 ) throw();
 
 #endif /* !HZ_L3_HPP */
