@@ -56,3 +56,17 @@ long long stopwatch_lap(long long &sw) throw()
   sw = ts;
   return lap;
 }
+
+int fresize(FILE *const f, const size_t s) throw()
+{
+  int e = -1;
+  if (!f)
+    return e;
+  e = ftruncate(fileno(f), static_cast<off_t>(s));
+  if (e)
+    return e;
+  e = fflush(f);
+  if (e)
+    return e;
+  return 0;
+}

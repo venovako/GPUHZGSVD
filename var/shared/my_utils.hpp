@@ -96,4 +96,59 @@ EXTERN_C long long timestamp() throw();
 EXTERN_C void stopwatch_reset(long long &sw) throw();
 EXTERN_C long long stopwatch_lap(long long &sw) throw();
 
+EXTERN_C int fresize(FILE *const f, const size_t s) throw();
+
+template <typename T>
+int fread_bycol(FILE *const f, const size_t m, const size_t n, T *const A, const size_t ldA) throw()
+{
+  if (!f)
+    return -1;
+  if (!m)
+    return 0;
+  if (!n)
+    return 0;
+  if (!A)
+    return -4;
+  if (ldA < m)
+    return -5;
+
+  const long co = ftell(f);
+  SYSI_CALL(co < 0l);
+  if (co)
+    SYSI_CALL(fseek(f, 0l, SEEK_SET));
+
+  for (size_t j = 0u; j < n; ++j) {
+    T *const c = (A + ldA * j);
+    SYSI_CALL(fread(c, sizeof(T), m, f) != m);
+  }
+
+  return 0;
+}
+
+template <typename T>
+int fwrite_bycol(FILE *const f, const size_t m, const size_t n, const T *const A, const size_t ldA) throw()
+{
+  if (!f)
+    return -1;
+  if (!m)
+    return 0;
+  if (!n)
+    return 0;
+  if (!A)
+    return -4;
+  if (ldA < m)
+    return -5;
+
+  const long co = ftell(f);
+  SYSI_CALL(co < 0l);
+  if (co)
+    SYSI_CALL(fseek(f, 0l, SEEK_SET));
+
+  for (size_t j = 0u; j < n; ++j) {
+    const T *const c = (A + ldA * j);
+    SYSI_CALL(fwrite(c, sizeof(T), m, f) != m);
+  }
+
+  return 0;
+}
 #endif /* !MY_UTILS_HPP */
