@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
   qsort(ev, n, sizeof(double), (int (*)(const void*, const void*))dd);
 
   long double MreS = 0.0, MreE = 0.0;
-  (void)fprintf(stdout, "\"IDX\",\"VPAS\",\"GESV\",\"RESV\",\"GEEV\",\"REEV\"\n");
+  (void)fprintf(stdout, "\"IDX\",\"GSVD\",\"GESV\",\"RESV\",\"GEEV\",\"REEV\"\n");
   (void)fflush(stdout);
   for (unsigned i = 0u; i < n; ++i) {
     const long double lse = (long double)(se[i]);
