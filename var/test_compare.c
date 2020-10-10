@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
     (void)fflush(stdout);
   }
 
-  (void)fprintf(stdout, "%4u,%# .17Le,%# .17Le,%# .17Le,%# .17Le,%# .17Le\n", n, -0.0, -0.0, MreS, -0.0, MreE);
+  (void)fprintf(stdout, "%4u,%# .17Le,%# .17Le,%# .17Le,%# .17Le,%# .17Le\n", n, -0.0L, -0.0L, MreS, -0.0L, MreE);
   (void)fflush(stdout);
 
   free(ev);
