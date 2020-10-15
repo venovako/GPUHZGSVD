@@ -44,6 +44,12 @@ int main(int argc, char *argv[])
   SYSP_CALL(hG);
   SYSI_CALL(fread_bycol(g, mG, n, hG, ldhG));
   SYSI_CALL(fclose(g));
+  size_t lddF = mF;
+  cuDoubleComplex *const dF = allocDeviceMtx<cuDoubleComplex>(lddF, mF, n, true);
+  SYSP_CALL(dF);
+  size_t lddG = mG;
+  cuDoubleComplex *const dG = allocDeviceMtx<cuDoubleComplex>(lddG, mG, n, true);
+  SYSP_CALL(dG);
   size_t lddA = n;
   cuDoubleComplex *const dA = allocDeviceMtx<cuDoubleComplex>(lddA, n, n, true);
   SYSP_CALL(dA);
@@ -59,21 +65,17 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   (void)fprintf(stdout, "%d,", lwork);
   (void)fflush(stdout);
-  const unsigned mM = ((mF >= mG) ? mF : mG);
-  size_t lddM = mM;
-  size_t n4 = (static_cast<size_t>(n) * 4u);
-  if ((lddM * n4) < lwork)
-    n4 = ((static_cast<size_t>(lwork) + (lddM - 1u)) / lddM);
-  cuDoubleComplex *const dwork = allocDeviceMtx<cuDoubleComplex>(lddM, mM, n4, true);
+  const size_t mM = ((mF >= mG) ? mF : mG);
+  size_t lddM = ((lddF >= lddG) ? lddF : lddG);
+  size_t n2 = static_cast<size_t>(n) * 2u;
+  if ((lddM * n2) < lwork)
+    n2 = ((static_cast<size_t>(lwork) + (lddM - 1u)) / lddM);
+  cuDoubleComplex *const dwork = allocDeviceMtx<cuDoubleComplex>(lddM, mM, n2, true);
   SYSP_CALL(dwork);
-  const size_t lddF = lddM;
-  cuDoubleComplex *const dF = dwork;
-  const size_t lddG = lddM;
-  cuDoubleComplex *const dG = dwork + (lddM * n);
   const size_t lddU = lddM;
-  cuDoubleComplex *const dU = dwork + (lddM * n) * 2u;
+  cuDoubleComplex *const dU = dwork;
   const size_t lddV = lddM;
-  cuDoubleComplex *const dV = dwork + (lddM * n) * 3u;
+  cuDoubleComplex *const dV = dwork + (lddM * n);
   CUDA_CALL(cudaDeviceSynchronize());
   CUDA_CALL(cudaMemcpy2D(dF, lddF * sizeof(cuDoubleComplex), hF, ldhF * sizeof(cuDoubleComplex), mF * sizeof(cuDoubleComplex), n, cudaMemcpyHostToDevice));
   CUDA_CALL(cudaMemcpy2D(dG, lddG * sizeof(cuDoubleComplex), hG, ldhG * sizeof(cuDoubleComplex), mG * sizeof(cuDoubleComplex), n, cudaMemcpyHostToDevice));
@@ -100,6 +102,8 @@ int main(int argc, char *argv[])
   (void)fprintf(stdout, "%lld,", (t = stopwatch_lap(sw)));
   (void)fflush(stdout);
   tt += t;
+  CUDA_CALL(cudaFree(dG));
+  CUDA_CALL(cudaFree(dF));
   double *const hW = allocHostVec<double>(n + 1u);
   SYSP_CALL(hW);
   CUDA_CALL(cudaMemcpy(hW, dW, (n + 1u) * sizeof(double), cudaMemcpyDeviceToHost));
