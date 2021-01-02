@@ -2,7 +2,8 @@
 The Hari–Zimmermann generalized SVD for CUDA.
 
 A part of the supplementary material for the paper
-[doi:10.1177/1094342020972772](https://doi.org/10.1177/1094342020972772 "Implicit Hari–Zimmermann algorithm for the generalized SVD on the GPUs").
+doi:[10.1177/1094342020972772](https://doi.org/10.1177/1094342020972772 "Implicit Hari–Zimmermann algorithm for the generalized SVD on the GPUs")
+(arXiv:[1909.00101](https://arxiv.org/abs/1909.00101) \[math.NA\]).
 
 ## Building
 
