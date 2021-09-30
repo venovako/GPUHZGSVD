@@ -12,7 +12,11 @@ static int fresize(FILE *const f, const size_t s) throw()
   int e = -1;
   if (!f)
     return e;
+#ifdef _WIN32
+  e = _chsize(_fileno(f), static_cast<long>(s));
+#else /* POSIX */
   e = ftruncate(fileno(f), static_cast<off_t>(s));
+#endif /* ?_WIN32 */
   if (e)
     return e;
   e = fflush(f);
@@ -172,11 +176,11 @@ int main(int argc, char *argv[])
   if (!n)
     return EXIT_SUCCESS;
   if (n > mF) {
-    (void)fprintf(stderr, "N(%u) > MF(%u)\n", n, mF);
+    (void)fprintf(stderr, "N(%zu) > MF(%zu)\n", n, mF);
     return EXIT_FAILURE;
   }
   if (n > mG) {
-    (void)fprintf(stderr, "N(%u) > MG(%u)\n", n, mG);
+    (void)fprintf(stderr, "N(%zu) > MG(%zu)\n", n, mG);
     return EXIT_FAILURE;
   }
 

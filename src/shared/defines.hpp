@@ -3,9 +3,11 @@
 #ifndef DEFINES_HPP
 #define DEFINES_HPP
 
+#ifndef _WIN32
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif /* !_GNU_SOURCE */
+#endif /* !_WIN32 */
 
 #ifdef __INTEL_COMPILER
 #include <mathimf.h>
@@ -45,11 +47,15 @@
 #include <time.h>
 #endif /* ?__cplusplus */
 
-#include <alloca.h>
+#ifdef _WIN32
+#include <io.h>
+#include <sys/timeb.h>
+#else /* POSIX */
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#endif /* ?_WIN32 */
 
 // defines
 

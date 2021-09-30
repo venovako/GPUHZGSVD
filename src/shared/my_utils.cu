@@ -38,9 +38,15 @@ unsigned long long atou(const char *const s) throw()
 
 long long timestamp() throw()
 {
+#ifdef _WIN32
+  struct _timeb tv;
+  _ftime(&tv);
+  return (tv.time * TS_S + tv.millitm);
+#else /* POSIX */
   struct timeval tv;
   SYSI_CALL(gettimeofday(&tv, static_cast<struct timezone*>(NULL)));
   return (tv.tv_sec * TS_S + tv.tv_usec);
+#endif /* ?_WIN32 */
 }
 
 void stopwatch_reset(long long &sw) throw()

@@ -89,13 +89,21 @@ T dimToMod(const T dim, const T mod) throw()
 EXTERN_C unsigned long long atou(const char *const s) throw();
 
 #ifndef TS2S
+#ifdef _WIN32
+#define TS2S 1e-3
+#else /* POSIX */
 #define TS2S 1e-6
+#endif /* ?_WIN32 */
 #else /* TS2S */
 #error TS2S not definable externally
 #endif /* ?TS2S */
 
 #ifndef TS_S
+#ifdef _WIN32
+#define TS_S 1000ll
+#else /* POSIX */
 #define TS_S 1000000ll
+#endif /* ?_WIN32 */
 #else /* TS_S */
 #error TS_S not definable externally
 #endif /* ?TS_S */
