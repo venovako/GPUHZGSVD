@@ -18,10 +18,10 @@ NVPPFLAGS=-I. -I../shared -I../../../JACSD/jstrat
 ifdef PROFILE
 NVPPFLAGS+=-DPROFILE=$(PROFILE)
 endif # PROFILE
-ifndef CPU
-CPU=native
-endif # !CPU
-NVCCFLAGS=-std c++$(STD) -restrict -res-usage -Xcompiler -march=$(CPU) -Xcompiler -pthread # -Xcompiler -fopenmp
+ifndef MARCH
+MARCH=native
+endif # !MARCH
+NVCCFLAGS=-std c++$(STD) -restrict -res-usage -Xcompiler -march=$(MARCH) -Xcompiler -pthread # -Xcompiler -fopenmp
 ifdef GPU_ARCH
 GENCODE=-gencode arch=compute_$(ARCH),code=sm_$(ARCH)
 NVCCFLAGS+=$(foreach ARCH,$(GPU_ARCH),$(GENCODE))
