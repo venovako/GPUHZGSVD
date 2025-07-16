@@ -62,4 +62,8 @@ The output comprises ``FN.YU``, ``FN.WV``, ``FN.Z``, for the ``double`` or ``dou
 
 See also [FLAPWxHZ](https://github.com/venovako/FLAPWxHZ) repository for more explanation.
 
+## Talks
+
+A related presentation is [here](https://venovako.eu/VeNoDrSc/GPUHZGSVD.pdf).
+
 This work has been supported in part by Croatian Science Foundation under the project IP-2014-09-3670 ([MFBDA](https://web.math.pmf.unizg.hr/mfbda/)).
