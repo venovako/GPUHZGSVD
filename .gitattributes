@@ -2,6 +2,3 @@
 *.m linguist-language=MATLAB
 src/D/cuda_* linguist-language=Cuda
 src/D/device_code* linguist-language=Cuda
-*.pdf filter=lfs diff=lfs merge=lfs -text
-*.gif filter=lfs diff=lfs merge=lfs -text
-*.png filter=lfs diff=lfs merge=lfs -text
