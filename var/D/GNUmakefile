@@ -22,7 +22,7 @@ ifdef GPU_ARCH
 GENCODE=-gencode arch=compute_$(ARCH),code=sm_$(ARCH)
 NVCCFLAGS+=$(foreach ARCH,$(GPU_ARCH),$(GENCODE))
 endif # GPU_ARCH
-NVLDFLAGS=-L../../../JACSD -ljstrat$(DEBUG) -l cublas,dl,m
+NVLDFLAGS=-l cublas,dl,m
 
 ifdef NDEBUG
 NVPPFLAGS+=-DNDEBUG
