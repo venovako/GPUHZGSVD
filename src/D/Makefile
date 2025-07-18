@@ -14,7 +14,6 @@ ARCH=native
 
 NVPPFLAGS=-I. -I..\shared -I..\..\..\JACSD\jstrat -DCVG=$(CVG) -DNDEBUG
 NVCCFLAGS=-std c++20 -restrict -res-usage -arch $(ARCH) -extra-device-vectorization -Wno-deprecated-gpu-targets
-NVLDFLAGS=-L..\..\..\JACSD -ljstrat
 
 HEADERS=				         \
 	..\shared\HZ.hpp		         \
@@ -45,13 +44,14 @@ SOURCES=			 \
 	..\shared\main.cu        \
 	..\shared\my_utils.cu	 \
 	HZ_L2.cu		 \
-	device_code.cu
+	device_code.cu		 \
+	..\..\..\JACSD\jstrat\jstrat.c
 
 EXE=HZ$(CVG).exe
 all: $(EXE)
 
 HZ$(CVG).exe: $(HEADERS) $(SOURCES) Makefile
-	$(NVCC) $(NVPPFLAGS) $(NVCCFLAGS) $(SOURCES) -o $@ $(NVLDFLAGS)
+	$(NVCC) $(NVPPFLAGS) $(NVCCFLAGS) $(SOURCES) -o $@
 
 clean:
 	-$(RM) $(EXE)
