@@ -17,7 +17,7 @@ endif # PROFILE
 ifndef MARCH
 MARCH=native
 endif # !MARCH
-NVCCFLAGS=-std c++20 -restrict -res-usage -Xcompiler -march=$(MARCH) -Xcompiler -pthread # -Xcompiler -fopenmp
+NVCCFLAGS=-std c++20 -restrict -res-usage -Wno-deprecated-gpu-targets -Xcompiler -march=$(MARCH) -Xcompiler -pthread # -Xcompiler -fopenmp
 ifdef GPU_ARCH
 GENCODE=-gencode arch=compute_$(ARCH),code=sm_$(ARCH)
 NVCCFLAGS+=$(foreach ARCH,$(GPU_ARCH),$(GENCODE))
@@ -57,7 +57,8 @@ SOURCES=			 \
 	../shared/main.cu        \
 	../shared/my_utils.cu	 \
 	HZ_L2.cu		 \
-	device_code.cu
+	device_code.cu		 \
+	../../../JACSD/jstrat/jstrat.c
 
 EXE=HZ0.exe
 
