@@ -27,7 +27,7 @@ ifdef GPU_ARCH
 GENCODE=-gencode arch=compute_$(ARCH),code=sm_$(ARCH)
 NVCCFLAGS+=$(foreach ARCH,$(GPU_ARCH),$(GENCODE))
 endif # GPU_ARCH
-NVLDFLAGS=-L../../../JACSD -ljstrat$(DEBUG)
+NVLDFLAGS=
 
 ifdef NDEBUG
 NVPPFLAGS+=-DNDEBUG
@@ -73,7 +73,8 @@ SOURCES=			 \
 	../shared/cuda_helper.cu \
 	../shared/my_utils.cu	 \
 	HZ_L2.cu		 \
-	device_code.cu
+	device_code.cu		 \
+	../../../JACSD/jstrat/jstrat.c
 
 ifdef MPI
 NVPPFLAGS+=-DUSE_MPI

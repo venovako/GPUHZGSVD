@@ -13,7 +13,7 @@ A reasonably recent (e.g., 10.1.243) full CUDA installation on a 64-bit Linux (e
 
 For the Level 3 (multi-GPU) version an MPI installation on Linux built with the CUDA support (e.g., [Open MPI](https://www.open-mpi.org)) is required.
 
-Then, clone and build [JACSD](https://github.com/venovako/JACSD) repository, with the same parent directory as this one.  In fact, only the ``jstrat`` library (i.e., ``libjstrat.a``) is needed to be built there.
+Then, clone [JACSD](https://github.com/venovako/JACSD) repository, with the same parent directory as this one.
 
 ### Make options
 
