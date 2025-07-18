@@ -25,11 +25,11 @@ HCVG=3
 !ENDIF # ?CVG
 
 !IFNDEF ARCH
-ARCH=35 -Wno-deprecated-gpu-targets
+ARCH=native
 !ENDIF # !ARCH
 
 NVPPFLAGS=-I. -I..\shared -I..\..\..\JACSD\jstrat -DCVG=$(CVG) -DUSE_COMPLEX -DNDEBUG
-NVCCFLAGS=-std c++17 -restrict -res-usage -arch sm_$(ARCH) -extra-device-vectorization
+NVCCFLAGS=-std c++20 -restrict -res-usage -arch $(ARCH) -extra-device-vectorization -Wno-deprecated-gpu-targets
 NVLDFLAGS=-L..\..\..\JACSD -ljstrat
 
 HEADERS=				         \

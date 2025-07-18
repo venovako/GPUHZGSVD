@@ -8,10 +8,6 @@ ifndef CVG
 CVG=0
 endif # !CVG
 
-ifndef STD
-STD=11
-endif # !STD
-
 ifdef NDEBUG
 DEBUG=
 else # DEBUG
@@ -25,7 +21,7 @@ endif # PROFILE
 ifndef MARCH
 MARCH=native
 endif # !MARCH
-NVCCFLAGS=-std c++$(STD) -restrict -res-usage -Xcompiler -march=$(MARCH) -Xcompiler -pthread
+NVCCFLAGS=-std c++20 -restrict -res-usage -Xcompiler -march=$(MARCH) -Xcompiler -pthread
 ifdef GPU_ARCH
 GENCODE=-gencode arch=compute_$(ARCH),code=sm_$(ARCH)
 NVCCFLAGS+=$(foreach ARCH,$(GPU_ARCH),$(GENCODE))
@@ -34,10 +30,7 @@ NVLDFLAGS=-L../../../JACSD -ljstrat$(DEBUG)
 
 ifdef NDEBUG
 NVPPFLAGS+=-DNDEBUG
-NVCCFLAGS+=-O$(NDEBUG)
-ifeq ($(STD),17)
-NVCCFLAGS+=--extra-device-vectorization
-endif # ?STD
+NVCCFLAGS+=-O$(NDEBUG) --extra-device-vectorization
 else # debug
 NVCCFLAGS+=-O0 -$(DEBUG) -G -src-in-ptx -Xptxas -no-bb-merge,-ret-end
 endif # NDEBUG

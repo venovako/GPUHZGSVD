@@ -5,7 +5,7 @@ NVCC=nvcc
 endif # !NVCC
 
 ifndef STD
-STD=11
+STD=20
 endif # !STD
 
 ifdef NDEBUG
@@ -30,10 +30,7 @@ NVLDFLAGS=-L../../../JACSD -ljstrat$(DEBUG) -l cublas,dl,m
 
 ifdef NDEBUG
 NVPPFLAGS+=-DNDEBUG
-NVCCFLAGS+=-O$(NDEBUG)
-ifeq ($(STD),17)
-NVCCFLAGS+=--extra-device-vectorization
-endif # ?STD
+NVCCFLAGS+=-O$(NDEBUG) --extra-device-vectorization
 else # debug
 NVCCFLAGS+=-O0 -$(DEBUG) -G -src-in-ptx -Xptxas -no-bb-merge,-ret-end
 endif # NDEBUG
