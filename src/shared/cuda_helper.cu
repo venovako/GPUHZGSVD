@@ -35,8 +35,9 @@ int configureGPUex(const int dev, const unsigned maxShMemB) throw()
     }
   }
   CUDA_CALL(cudaDeviceSetCacheConfig(cacheConfig));
+  /* deprecated:
   CUDA_CALL(cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeEightByte));
-
+  */
   return dcc;
 }
 
