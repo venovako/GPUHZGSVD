@@ -22,7 +22,7 @@ endif # PROFILE
 ifndef MARCH
 MARCH:=native
 endif # !MARCH
-NVCCFLAGS=-std c++20 -restrict -res-usage -Wno-deprecated-gpu-targets -Xcompiler -march=$(MARCH) -Xcompiler -pthread
+NVCCFLAGS=-std c++23 -restrict -res-usage -Wno-deprecated-declarations -Wno-deprecated-gpu-targets -Xcompiler -march=$(MARCH) -Xcompiler -pthread
 ifdef GPU_ARCH
 GENCODE=-gencode arch=compute_$(ARCH),code=sm_$(ARCH)
 NVCCFLAGS += $(foreach ARCH,$(GPU_ARCH),$(GENCODE))
@@ -31,7 +31,7 @@ NVLDFLAGS=
 
 ifdef NDEBUG
 NVPPFLAGS += -DNDEBUG
-NVCCFLAGS += -O$(NDEBUG) --extra-device-vectorization
+NVCCFLAGS += -O$(NDEBUG) -extra-device-vectorization
 else # debug
 NVCCFLAGS += -O0 -$(DEBUG) -G -src-in-ptx -Xptxas -no-bb-merge,-ret-end
 endif # NDEBUG
